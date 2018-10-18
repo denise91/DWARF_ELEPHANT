@@ -11,7 +11,7 @@ InputParameters validParams<RBInnerProductMatrix> ()
 {
 	InputParameters params  = validParams<Kernel>();
 	params.addClassDescription("Implements an A matrix which makes use of a Empirically interpolated function");
-        //params.addRequiredParam<UserObjectName>("initial_rb_userobject", "Name of the UserObject for  initializing the RB system");
+    params.addRequiredParam<UserObjectName>("initial_rb_userobject", "Name of the UserObject for  initializing the RB system");
 	return params;
 }
 

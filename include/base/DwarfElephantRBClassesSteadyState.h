@@ -26,6 +26,8 @@
 #include "libmesh/petsc_matrix.h"
 
 // libMesh includes (RB package)
+#include "libmesh/rb_theta.h"
+#include "libmesh/rb_assembly_expansion.h"
 #include "libmesh/rb_evaluation.h"
 #include "libmesh/rb_construction.h"
 #include "libmesh/rb_eim_construction.h"
@@ -54,9 +56,37 @@ namespace libMesh
   class RBEIMConstruction;
   class RBEIMEvaluation;
   class RBEIMAssembly;
+  class RBParameters;
 }
 
 class DwarfElephantInitializeRBSystemSteadyState;
+
+
+struct CustomRBTheta : RBTheta
+{
+	virtual Number evaluate(const RBParameters &_mu)
+	{
+		return _mu.get_value("mu_0");
+	}
+};
+
+struct CustomRBThetaExpansion : RBThetaExpansion
+{
+  CustomRBThetaExpansion()
+  {
+    // Setting up the RBThetaExpansion object
+    attach_A_theta(&_rb_theta);
+    attach_A_theta(&_theta_a_1);
+
+    attach_F_theta(&_rb_theta);
+
+    attach_output_theta(&_rb_theta);
+
+  }
+  // Member Variables
+  CustomRBTheta _theta_a_1;
+  RBTheta _rb_theta;         // Default RBTheta object, simply returns one.
+};
 
 ///-----------------------DWARFELEPHANTRBCONSTRUCTION-----------------------
 class DwarfElephantRBConstructionSteadyState : public RBConstruction
@@ -108,7 +138,7 @@ public:
   FEProblemBase & fe_problem;
   //DwarfElephantEIMTestRBThetaExpansion _eim_test_rb_theta_expansion;
   //Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
-  DwarfElephantRBT3F1O1SteadyStateExpansion RBExpansion;
+  CustomRBThetaExpansion RBExpansion;
 };
 
 

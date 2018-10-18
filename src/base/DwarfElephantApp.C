@@ -28,7 +28,7 @@
 #include "DwarfElephantRBNeumannBC.h"
 #include "DwarfElephantRBNeumannBCND.h"
 #include "DwarfElephantRBFunctionNeumannBC.h"
-
+#include "DwarfElephantRBThermalConduction.h"
 //ICs
 #include "DwarfElephantFileIC.h"
 
@@ -184,6 +184,7 @@ DwarfElephantApp::registerObjects(Factory & factory)
   registerKernel(DwarfElephantRBDiffusionZY); 
   registerKernel(DwarfElephantRBRFHeatsourceKernel);
   registerKernel(DwarfElephantRBPennesPerfusion);
+  registerKernel(DwarfElephantRBThermalConduction);
   //DiracKernels
   registerDiracKernel(DwarfElephantRBConstantPointSource);
 
