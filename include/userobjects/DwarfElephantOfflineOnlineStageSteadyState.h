@@ -57,7 +57,9 @@ class DwarfElephantOfflineOnlineStageSteadyState :
     /* Methods */
     void setAffineMatrices();
     void offlineStageEIM();
+    void offlineStageRBOnly();
     void onlineStageEIM();
+    void onlineStageRBOnly();
     void setOnlineParameters();
     void transferAffineVectors();
 //    std::string getFileName();

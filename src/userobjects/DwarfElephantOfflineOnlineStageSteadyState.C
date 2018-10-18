@@ -63,11 +63,13 @@ DwarfElephantOfflineOnlineStageSteadyState::setAffineMatrices()
 {
    _initialize_rb_system._inner_product_matrix -> close();
    
-   _initialize_rb_system._inner_product_matrix->close();
+   //_initialize_rb_system._inner_product_matrix->close();
     for(unsigned int _q=0; _q<_initialize_rb_system._qa; _q++)
     {
-      //_rb_problem->rbAssembly(_q).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]);
-      _rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // for EIM example in Martin's publication
+      if (_initialize_rb_system._use_EIM)
+    	  _rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // for EIM example in Martin's publication
+      else
+    	  _rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]);
       _initialize_rb_system._jacobian_subdomain[_q] ->close();
     }
 
@@ -80,11 +82,11 @@ DwarfElephantOfflineOnlineStageSteadyState::transferAffineVectors()
     // Transfer the data for the F vectors.
     for(unsigned int _q=0; _q<_initialize_rb_system._qf; _q++)
     {
-      //_rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system._residuals[_q]); Commented out for compatibility with libMesh EIM example
+      
       if (_initialize_rb_system._use_EIM)
         _rb_problem->rbAssembly(0).setCachedResidual(*_initialize_rb_system._residuals[_q]); // line added for compatibility with libMesh EIM example
+      else _rb_problem->rbAssembly(0).setCachedResidual(*_initialize_rb_system._residuals[_q]); 
       
-
       _initialize_rb_system._residuals[_q]->close();
     }
 
@@ -121,6 +123,30 @@ DwarfElephantOfflineOnlineStageSteadyState::offlineStageEIM()
     if (_store_basis_functions)
     {
       _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().write_out_basis_functions(_initialize_rb_system._eim_con_ptr->get_explicit_system(),"eim_data");  
+      _initialize_rb_system._rb_con_ptr->get_rb_evaluation().write_out_basis_functions(*_initialize_rb_system._rb_con_ptr,"offline_data");
+    }
+
+//    _initialize_rbeim_system._rb_con_ptr->print_basis_function_orthogonality();
+}
+
+void
+DwarfElephantOfflineOnlineStageSteadyState::offlineStageRBOnly()
+{
+    _initialize_rb_system._rb_con_ptr->GreedyOutputFile.open("RBGreedyOutputFile.csv");
+    _initialize_rb_system._rb_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxErrorBound" << std::endl;
+    _initialize_rb_system._rb_con_ptr->train_reduced_basis(); //Errors are here
+    _initialize_rb_system._rb_con_ptr->GreedyOutputFile.close();
+    #if defined(LIBMESH_HAVE_CAPNPROTO)
+      RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
+      _rb_eval_writer.write_to_file("rb_eval.bin");
+    #else
+      // Write the offline data to file (xdr format).
+      _initialize_rb_system._rb_con_ptr->get_rb_evaluation().legacy_write_offline_data_to_files("offline_data");
+    #endif
+
+    // If desired, store the basis functions (xdr format).
+    if (_store_basis_functions)
+    { 
       _initialize_rb_system._rb_con_ptr->get_rb_evaluation().write_out_basis_functions(*_initialize_rb_system._rb_con_ptr,"offline_data");
     }
 
@@ -201,6 +227,58 @@ void DwarfElephantOfflineOnlineStageSteadyState::onlineStageEIM()
       }
 }
 
+void DwarfElephantOfflineOnlineStageSteadyState::onlineStageRBOnly()
+{
+      Moose::perf_log.push("onlineStage()", "Execution");
+      
+      #if defined(LIBMESH_HAVE_CAPNPROTO)
+      RBDataSerialization::RBEvaluationDeserialization rb_eval_reader(_initialize_rb_system._rb_con_ptr -> get_rb_evaluation());
+      rb_eval_reader.read_from_file("rb_eval.bin");
+      #else
+      _initialize_rb_system._rb_con_ptr -> get_rb_evaluation().legacy_read_offline_data_from_files("offline_data");
+      #endif
+
+      setOnlineParameters();
+      _initialize_rb_system._rb_eval_ptr ->set_parameters(_rb_online_mu);
+
+      _console << "---- Online Stage ----" << std::endl;
+      _initialize_rb_system._rb_eval_ptr ->print_parameters();
+      std::cout << "Online N = " << _online_N << std::endl;
+
+      if (_online_N == 0)
+        _online_N = _initialize_rb_system._rb_eval_ptr->get_n_basis_functions();
+
+      if(_offline_error_bound)
+       _initialize_rb_system._rb_eval_ptr->evaluate_RB_error_bound = false;
+
+      _initialize_rb_system._rb_eval_ptr->rb_solve(_online_N);
+/*
+      if (_compute_output)
+        for (unsigned int i = 0; i != _initialize_rbeim_system._n_outputs_rb; i++)
+          for (unsigned int _q = 0; _q != _initialize_rbeim_system._ql_rb[i]; _q++)
+            _console << "Output " << std::to_string(i) << ": value = " << _rb_eval.RB_outputs[i]
+            << ", error bound = " << _rb_eval.RB_output_error_bounds[i] << std::endl;
+*/
+      // Back transfer of the data to use MOOSE Postprocessor and Output classes
+      //Moose::perf_log.push("DataTransfer()", "Execution");
+      if(_output_file)
+      {
+         _initialize_rb_system._rb_con_ptr -> get_rb_evaluation().read_in_basis_functions(*_initialize_rb_system._rb_con_ptr,"offline_data");
+
+         _initialize_rb_system._rb_con_ptr -> load_rb_solution();
+
+         *_es.get_system(_system_name).solution = *_es.get_system("RBSystem").solution;
+         _fe_problem.getNonlinearSystemBase().update();
+         std::stringstream ss;
+         
+         ss << std::setw(2) << std::setfill('0') << _online_N;
+         
+		 #ifdef LIBMESH_HAVE_EXODUS_API
+		 ExodusII_IO(_mesh_ptr->getMesh()).write_equation_systems("RB_sol_DwarfElephant.e-s"+ss.str(),_es);
+		 #endif
+      }
+}
+
 void
 DwarfElephantOfflineOnlineStageSteadyState::initialize()
 {
@@ -233,12 +311,14 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
       // Perform the offline stage.
       _console << std::endl;
       if (_initialize_rb_system._use_EIM) { offlineStageEIM();}
+      else offlineStageRBOnly();
       _console << std::endl;
     }
 
     if(_online_stage)
     {
         if (_initialize_rb_system._use_EIM) { onlineStageEIM();}
+        else onlineStageRBOnly();
 //        How to write own Exodus file  // not required anymore
 //        Moose::perf_log.push("write_Exodus()", "Output");
 //

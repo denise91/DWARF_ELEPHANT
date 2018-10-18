@@ -233,6 +233,24 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStageEIM()
   _eim_con_ptr->print_info(); 
 }
 
+void DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStageRBOnly()
+{
+// Get and process the necessary input parameters for the
+  // offline stage
+
+  //libMesh way: //  _rb_con_ptr->process_parameters_file(_parameters_filename);
+  processRBParameters(); // sets parameter values for the EIM construction object
+  _rb_con_ptr->print_info();
+  _rb_con_ptr->initialize_rb_construction(_skip_matrix_assembly_in_rb_system,_skip_vector_assembly_in_rb_system);
+
+
+  AssignAffineMatricesAndVectors();
+   
+
+  // Print the system informations for the RBConstruction system.
+  _rb_con_ptr->print_info(); 
+}
+
 void DwarfElephantInitializeRBSystemSteadyState::initializeEIM()
 {
     // Define the parameter file for the libMesh functions.
@@ -260,11 +278,33 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeEIM()
   _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);
 }
 
+void DwarfElephantInitializeRBSystemSteadyState::initializeRBOnly()
+{
+    // Define the parameter file for the libMesh functions.
+  // In our case not required, because the read-in is done via the MOOSE inputfile.
+  // GetPot infile (_parameters_filename);
+  std::cout << "Starting InitializeRB::initialize()" << std::endl;
+  // Add a new equation system for the RB construction.
+  _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState> ("RBSystem");
+
+  // Intialization of the added equation system
+  _rb_con_ptr->init();
+  _es.update();
+
+  //DwarfElephantRBEvaluationSteadyState _rb_eval(_mesh_ptr->comm(), _fe_problem);
+  //DwarfElephantEIMEvaluationSteadyState _eim_eval(_mesh_ptr->comm(), _fe_problem);
+  _rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
+
+  _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);
+}
+
 void
 DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStage() // make new initializeOfflineStageEIM() and initializeOfflineStageRB() functions and use them with if conditions
 {
   if (_use_EIM)
     initializeOfflineStageEIM();
+  else
+    initializeOfflineStageRBOnly();
 }
 
 void
@@ -272,6 +312,8 @@ DwarfElephantInitializeRBSystemSteadyState::initialize() // Make new initializeE
 {
   if (_use_EIM)
     initializeEIM();
+  else
+     initializeRBOnly();
 
   if (_offline_stage) // location of _offline_stage if statement changed for compatibility with EIM.
   {

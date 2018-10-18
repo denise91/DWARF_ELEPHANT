@@ -37,16 +37,8 @@
 #include "FEProblemBase.h"
 
 // MOOSE includes (DwarfElephant package)
-
-#include "DwarfElephantRBStructuresT1F1O1SteadyState.h"
-#include "DwarfElephantRBStructuresT2F1O1SteadyState.h"
 #include "DwarfElephantRBStructuresT3F1O1SteadyState.h"
-#include "DwarfElephantRBStructuresT3F3O1SteadyState.h"
-#include "DwarfElephantRBStructuresT3F1O3SteadyState.h"
-#include "DwarfElephantRBStructuresT4F1O1SteadyState.h"
-#include "DwarfElephantRBStructuresT5F1O1SteadyState.h"
-#include "DwarfElephantRBStructuresT5F3O1SteadyState.h"
-#include "DwarfElephantRBStructuresT6F1O1SteadyState.h"
+#include "DwarfElephantGeom2DRBThetaExpansion.h"
 #include "DwarfElephantEIMStructures.h"
 ///-------------------------------------------------------------------------
 // Forward Declarations
@@ -93,7 +85,9 @@ public:
   virtual Real compute_residual_dual_norm(const unsigned int N);
  
   virtual Real train_reduced_basis(const bool resize_rb_eval_data=true) override;
-
+  
+  virtual void compute_Fq_representor_innerprods(bool compute_inner_products=true) override;
+  
   unsigned int u_var;
   std::ofstream GreedyOutputFile;
 };
@@ -112,7 +106,9 @@ public:
   FEProblemBase & get_fe_problem(){return fe_problem;}
 
   FEProblemBase & fe_problem;
-  DwarfElephantEIMTestRBThetaExpansion _eim_test_rb_theta_expansion;
+  //DwarfElephantEIMTestRBThetaExpansion _eim_test_rb_theta_expansion;
+  //Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
+  DwarfElephantRBT3F1O1SteadyStateExpansion RBExpansion;
 };
 
 

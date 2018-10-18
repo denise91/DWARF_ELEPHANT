@@ -16,6 +16,8 @@
 // First commit of branch
  ///-------------------------------------------------------------------------
  #include "DwarfElephantRBClassesSteadyState.h"
+#include "libmesh/timestamp.h"
+
 
 DwarfElephantRBConstructionSteadyState::DwarfElephantRBConstructionSteadyState (EquationSystems & es,
                                                                                 const std::string & name_in,
@@ -102,7 +104,7 @@ DwarfElephantRBConstructionSteadyState::train_reduced_basis(const bool resize_rb
 //
       libMesh::out << "Performing truth solve at parameter:" << std::endl;
       print_parameters();
-      GreedyOutputFile << get_parameters().get_value("mu_0") << ", " << get_parameters().get_value("mu_1") << ", " << training_greedy_error << std::endl;
+      //GreedyOutputFile << get_parameters().get_value("mu_0") << ", " << get_parameters().get_value("mu_1") << ", " << training_greedy_error << std::endl;
 //      // Update the list of Greedily selected parameters
       this->update_greedy_param_list();
 //
@@ -121,6 +123,77 @@ DwarfElephantRBConstructionSteadyState::train_reduced_basis(const bool resize_rb
   this->update_greedy_param_list();
 //
   return training_greedy_error;
+}
+
+void DwarfElephantRBConstructionSteadyState::compute_Fq_representor_innerprods(bool compute_inner_products)
+{
+
+  // Skip calculations if we've already computed the Fq_representors
+  if (!Fq_representor_innerprods_computed)
+    {
+      // Only log if we get to here
+      LOG_SCOPE("compute_Fq_representor_innerprods()", "RBConstruction");
+
+      for (unsigned int q_f=0; q_f<get_rb_theta_expansion().get_n_F_terms(); q_f++)
+        {
+          if (!Fq_representor[q_f])
+            {
+              Fq_representor[q_f] = NumericVector<Number>::build(this->comm());
+              Fq_representor[q_f]->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+            }
+
+          libmesh_assert(Fq_representor[q_f]->size()       == this->n_dofs()       &&
+                         Fq_representor[q_f]->local_size() == this->n_local_dofs() );
+
+          rhs->zero();
+          rhs->add(1., *get_Fq(q_f));
+
+          if (!is_quiet())
+            libMesh::out << "Starting solve q_f=" << q_f
+                         << " in RBConstruction::update_residual_terms() at "
+                         << Utility::get_timestamp() << std::endl;
+
+          solve_for_matrix_and_rhs(*inner_product_solver, *inner_product_matrix, *rhs);
+          inner_product_matrix->print_matlab("inner_product_matrix.m");
+          rhs->print_matlab("rhs.m");
+          if (assert_convergence)
+            check_convergence(*inner_product_solver);
+
+          if (!is_quiet())
+            {
+              libMesh::out << "Finished solve q_f=" << q_f
+                           << " in RBConstruction::update_residual_terms() at "
+                           << Utility::get_timestamp() << std::endl;
+
+              libMesh::out << this->n_linear_iterations()
+                           << " iterations, final residual "
+                           << this->final_linear_residual() << std::endl;
+            }
+
+          *Fq_representor[q_f] = *solution;
+        }
+
+      if (compute_inner_products)
+        {
+          unsigned int q=0;
+
+          for (unsigned int q_f1=0; q_f1<get_rb_theta_expansion().get_n_F_terms(); q_f1++)
+            {
+              get_non_dirichlet_inner_product_matrix_if_avail()->vector_mult(*inner_product_storage_vector, *Fq_representor[q_f1]);
+
+              for (unsigned int q_f2=q_f1; q_f2<get_rb_theta_expansion().get_n_F_terms(); q_f2++)
+                {
+                  Fq_representor_innerprods[q] = inner_product_storage_vector->dot(*Fq_representor[q_f2]);
+
+                  q++;
+                }
+            }
+        } // end if (compute_inner_products)
+
+      Fq_representor_innerprods_computed = true;
+    }
+
+  get_rb_evaluation().Fq_representor_innerprods = Fq_representor_innerprods;
 }
 
  Real
@@ -177,7 +250,9 @@ DwarfElephantRBEvaluationSteadyState::DwarfElephantRBEvaluationSteadyState(const
     RBEvaluation(comm),
     fe_problem(fe_problem)
 {
-  set_rb_theta_expansion(_eim_test_rb_theta_expansion);
+  //set_rb_theta_expansion(_eim_test_rb_theta_expansion);
+  //set_rb_theta_expansion(_goem_2D_rb_theta_expansion);
+	set_rb_theta_expansion(RBExpansion);
 }
 
 Real

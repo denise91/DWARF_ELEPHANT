@@ -47,6 +47,17 @@
 #include "DwarfElephantEIMAKernel.h"
 #include "ExtractQpPointsKernel.h"
 #include "RBInnerProductMatrix.h"
+#include "DwarfElephantRBDiffusionXX.h"
+#include "DwarfElephantRBDiffusionXY.h"
+#include "DwarfElephantRBDiffusionXZ.h"
+#include "DwarfElephantRBDiffusionYY.h"
+#include "DwarfElephantRBDiffusionYZ.h"
+#include "DwarfElephantRBDiffusionZZ.h"
+#include "DwarfElephantRBDiffusionYX.h"
+#include "DwarfElephantRBDiffusionZX.h"
+#include "DwarfElephantRBDiffusionZY.h"
+#include "DwarfElephantRBRFHeatsourceKernel.h"
+#include "DwarfElephantRBPennesPerfusion.h"
 
 // DiracKernels
 #include "DwarfElephantRBConstantPointSource.h"
@@ -162,7 +173,17 @@ DwarfElephantApp::registerObjects(Factory & factory)
   registerKernel(DwarfElephantEIMFKernel);
   registerKernel(DwarfElephantEIMAKernel);
   registerKernel(RBInnerProductMatrix);
-
+  registerKernel(DwarfElephantRBDiffusionXX);
+  registerKernel(DwarfElephantRBDiffusionXY);
+  registerKernel(DwarfElephantRBDiffusionXZ);
+  registerKernel(DwarfElephantRBDiffusionYY);
+  registerKernel(DwarfElephantRBDiffusionYZ);
+  registerKernel(DwarfElephantRBDiffusionZZ);
+  registerKernel(DwarfElephantRBDiffusionYX);
+  registerKernel(DwarfElephantRBDiffusionZX);
+  registerKernel(DwarfElephantRBDiffusionZY); 
+  registerKernel(DwarfElephantRBRFHeatsourceKernel);
+  registerKernel(DwarfElephantRBPennesPerfusion);
   //DiracKernels
   registerDiracKernel(DwarfElephantRBConstantPointSource);
 

@@ -63,16 +63,18 @@ class DwarfElephantInitializeRBSystemSteadyState :
     ~DwarfElephantInitializeRBSystemSteadyState()
     {
       // Delete statements added to prevent memory leaks
-      delete _eim_eval_ptr;
+      if (_use_EIM) { delete _eim_eval_ptr;}
       delete _rb_eval_ptr;
     }
     // Initializes all required matrices and vectors for the RB solve.
     void initializeOfflineStage();
     void initializeOfflineStageEIM();
+    void initializeOfflineStageRBOnly();
     
     void processEIMParameters();
     void processRBParameters() const;
     void initializeEIM();
+    void initializeRBOnly();
     void AssignAffineMatricesAndVectors() const;
 
     // Initializes the RB System.
