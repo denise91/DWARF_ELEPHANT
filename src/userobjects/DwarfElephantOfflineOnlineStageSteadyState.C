@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
-
+#include "libmesh/vtk_io.h"
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantOfflineOnlineStageSteadyState.h"
 
@@ -66,10 +66,7 @@ DwarfElephantOfflineOnlineStageSteadyState::setAffineMatrices()
    //_initialize_rb_system._inner_product_matrix->close();
     for(unsigned int _q=0; _q<_initialize_rb_system._qa; _q++)
     {
-      if (_initialize_rb_system._use_EIM)
-    	  _rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // for EIM example in Martin's publication
-      else
-    	  _rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]);
+      _rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // for EIM example in Martin's publication
       _initialize_rb_system._jacobian_subdomain[_q] ->close();
     }
 
@@ -83,9 +80,7 @@ DwarfElephantOfflineOnlineStageSteadyState::transferAffineVectors()
     for(unsigned int _q=0; _q<_initialize_rb_system._qf; _q++)
     {
       
-      if (_initialize_rb_system._use_EIM)
-        _rb_problem->rbAssembly(0).setCachedResidual(*_initialize_rb_system._residuals[_q]); // line added for compatibility with libMesh EIM example
-      else _rb_problem->rbAssembly(0).setCachedResidual(*_initialize_rb_system._residuals[_q]); 
+      _rb_problem->rbAssembly(0).setCachedResidual(*_initialize_rb_system._residuals[_q]); // line added for compatibility with libMesh EIM example 
       
       _initialize_rb_system._residuals[_q]->close();
     }
@@ -274,8 +269,9 @@ void DwarfElephantOfflineOnlineStageSteadyState::onlineStageRBOnly()
          ss << std::setw(2) << std::setfill('0') << _online_N;
          
 		 #ifdef LIBMESH_HAVE_EXODUS_API
-		 ExodusII_IO(_mesh_ptr->getMesh()).write_equation_systems("RB_sol_DwarfElephant.e-s"+ss.str(),_es);
+		 //ExodusII_IO(_mesh_ptr->getMesh()).write_equation_systems("RB_sol_DwarfElephant.e",_es);//-s"+ss.str(),_es);
 		 #endif
+                VTKIO(_mesh_ptr->getMesh()).write_equation_systems("out.pvtu", _es);
       }
 }
 

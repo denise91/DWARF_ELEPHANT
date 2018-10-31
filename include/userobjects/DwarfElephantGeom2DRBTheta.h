@@ -17,446 +17,137 @@ struct Geom2DRB_ATheta_DiffusionXX_maxZ1 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return ((k+k*1.0/pow(L-_mu.get_value("mu_1"),2.0)*pow(r-_mu.get_value("mu_0"),2.0)*4.0)*(L-_mu.get_value("mu_1")))/(L-l);
+    double r = 1;
+  double  l = 2;
+  double L = 4;
+   double k = 1;
+   double l_new = _mu.get_value("mu_1");
+   double r_new = _mu.get_value("mu_0");
+ 
+    return fabs(L-l_new)/fabs(L-l)+(fabs(L-l_new)*1.0/pow(L-l_new,2.0)*pow(r-r_new,2.0)*4.0)/fabs(L-l);
   }
 };
 struct Geom2DRB_ATheta_DiffusionXY_maxZ1 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-    double r = 0.03;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(r-_mu.get_value("mu_0"))*-2.0)/(L-_mu.get_value("mu_1"));
+    double r = 1;
+  double  l = 2;
+  double L = 4;
+   double k = 1;
+   double l_new = _mu.get_value("mu_1");
+   double r_new = _mu.get_value("mu_0");
+
+    return (fabs(L-l_new)*(L-l)*1.0/pow(L-l_new,2.0)*(r-r_new)*-2.0)/fabs(L-l);
   }
 };
 struct Geom2DRB_ATheta_DiffusionYX_maxZ1 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-    double r = 0.03;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(r-_mu.get_value("mu_0"))*-2.0)/(L-_mu.get_value("mu_1"));
+    double r = 1;
+  double  l = 2;
+  double L = 4;
+   double k = 1;
+   double l_new = _mu.get_value("mu_1");
+   double r_new = _mu.get_value("mu_0");
+
+    return (fabs(L-l_new)*(L-l)*1.0/pow(L-l_new,2.0)*(r-r_new)*-2.0)/fabs(L-l);
   }
 };
 struct Geom2DRB_ATheta_DiffusionYY_maxZ1 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(L-l))/(L-_mu.get_value("mu_1"));
+  double  l = 2;
+  double L = 4;
+   double k = 1;
+   double r = 1;
+   double l_new = _mu.get_value("mu_1");
+   double r_new = _mu.get_value("mu_0");
+
+     return (fabs(L-l_new)*pow(L-l,2.0)*1.0/pow(L-l_new,2.0))/fabs(L-l);
   }
 };
+/*
 struct Geom2DRB_FTheta_HeatSource_maxZ1 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-  double  l = 0.06;
-  double L = 0.1;
-    return fabs(L-_mu.get_value("mu_1"))/fabs(L-l);
+  double  l = 2;
+  double L = 4;
+    return fabs(L-2*_mu.get_value("mu_0"))/fabs(L-l);
   }
 };
+*/
 struct Geom2DRB_ATheta_DiffusionXX_maxZ2 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (_mu.get_value("mu_0")*(L-_mu.get_value("mu_1"))*(k*(r*r)*1.0/(_mu.get_value("mu_0")*_mu.get_value("mu_0"))+(L*L)*k*1.0/(_mu.get_value("mu_0")*_mu.get_value("mu_0"))*1.0/pow(L-_mu.get_value("mu_1"),2.0)*pow(r-_mu.get_value("mu_0"),2.0)))/(r*(L-l));
+    double r = 1;
+  double  l = 2;
+  double L = 4;
+   double k = 1;
+   double l_new = _mu.get_value("mu_1");
+   double r_new = _mu.get_value("mu_0");
+
+    return ((r*r)*1.0/(r_new*r_new)*fabs(r_new*(L-l_new)))/(fabs(r)*fabs(L-l))+(1.0/(r_new*r_new)*fabs(r_new*(L-l_new))*1.0/pow(L-l_new,2.0)*pow(L*r-L*r_new,2.0))/(fabs(r)*fabs(L-l));
   }
 };
 struct Geom2DRB_ATheta_DiffusionXY_maxZ2 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-    double r = 0.03;
-  double L = 0.1;
-   double k = 0.05;
-    return (L*k*(r-_mu.get_value("mu_0")))/(r*(L-_mu.get_value("mu_1")));
+    double r = 1;
+  double  l = 2;
+  double L = 4;
+   double k = 1;
+  double l_new = _mu.get_value("mu_1");
+   double r_new = _mu.get_value("mu_0");
+
+    return (fabs(r_new*(L-l_new))*(L-l)*1.0/pow(L-l_new,2.0)*(L*r-L*r_new))/(r_new*fabs(r)*fabs(L-l));
   }
 };
 struct Geom2DRB_ATheta_DiffusionYX_maxZ2 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-    double r = 0.03;
-  double L = 0.1;
-   double k = 0.05;
-    return (L*k*(r-_mu.get_value("mu_0")))/(r*(L-_mu.get_value("mu_1")));
+    double r = 1;
+  double  l = 2;
+  double L = 4;
+   double k = 1;
+  double l_new = _mu.get_value("mu_1");
+   double r_new = _mu.get_value("mu_0");
+
+   return (fabs(r_new*(L-l_new))*(L-l)*1.0/pow(L-l_new,2.0)*(L*r-L*r_new))/(r_new*fabs(r)*fabs(L-l));
   }
 };
 struct Geom2DRB_ATheta_DiffusionYY_maxZ2 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*_mu.get_value("mu_0")*(L-l))/(r*(L-_mu.get_value("mu_1")));
+    double r = 1;
+  double  l = 2;
+  double L = 4;
+   double k = 1;
+   double l_new = _mu.get_value("mu_1");
+   double r_new = _mu.get_value("mu_0");
+
+    return (fabs(r_new*(L-l_new))*pow(L-l,2.0)*1.0/pow(L-l_new,2.0))/(fabs(r)*fabs(L-l));
   }
 };
+
+
 struct Geom2DRB_FTheta_HeatSource_maxZ2 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-    return fabs(_mu.get_value("mu_0")*(L-_mu.get_value("mu_1")))/(fabs(r)*fabs(L-l));
+    double r = 1;
+  double  l = 2;
+  double L = 4;
+  double r_new = _mu.get_value("mu_0");
+    return sqrt(1.0/(r*r)*(r_new*r_new));
   }
 };
-struct Geom2DRB_ATheta_DiffusionXX_maxX1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(L-r*2.0))/(L-_mu.get_value("mu_0")*2.0);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXY_maxX1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(l-_mu.get_value("mu_1")))/(L-_mu.get_value("mu_0")*2.0);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYX_maxX1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(l-_mu.get_value("mu_1")))/(L-_mu.get_value("mu_0")*2.0);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYY_maxX1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return ((k+k*1.0/pow(L-_mu.get_value("mu_0")*2.0,2.0)*pow(l-_mu.get_value("mu_1"),2.0))*(L-_mu.get_value("mu_0")*2.0))/(L-r*2.0);
-  }
-};
-struct Geom2DRB_FTheta_HeatSource_maxX1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double L = 0.1;
-    return fabs(L-_mu.get_value("mu_0")*2.0)/fabs(L-r*2.0);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXX_maxX2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*_mu.get_value("mu_1")*(L-r*2.0))/(l*(L-_mu.get_value("mu_0")*2.0));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXY_maxX2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return -(L*k*(l-_mu.get_value("mu_1")))/(l*(L-_mu.get_value("mu_0")*2.0));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYX_maxX2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return -(L*k*(l-_mu.get_value("mu_1")))/(l*(L-_mu.get_value("mu_0")*2.0));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYY_maxX2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (_mu.get_value("mu_1")*(L-_mu.get_value("mu_0")*2.0)*(k*(l*l)*1.0/(_mu.get_value("mu_1")*_mu.get_value("mu_1"))+(L*L)*k*1.0/(_mu.get_value("mu_1")*_mu.get_value("mu_1"))*1.0/pow(L-_mu.get_value("mu_0")*2.0,2.0)*pow(l-_mu.get_value("mu_1"),2.0)))/(l*(L-r*2.0));
-  }
-};
-struct Geom2DRB_FTheta_HeatSource_maxX2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-    return fabs(_mu.get_value("mu_1")*(L-_mu.get_value("mu_0")*2.0))/(fabs(l)*fabs(L-r*2.0));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXX_minZ1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return ((k+k*1.0/pow(L-_mu.get_value("mu_1"),2.0)*pow(r-_mu.get_value("mu_0"),2.0)*4.0)*(L-_mu.get_value("mu_1")))/(L-l);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXY_minZ1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(r-_mu.get_value("mu_0"))*-2.0)/(L-_mu.get_value("mu_1"));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYX_minZ1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(r-_mu.get_value("mu_0"))*-2.0)/(L-_mu.get_value("mu_1"));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYY_minZ1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(L-l))/(L-_mu.get_value("mu_1"));
-  }
-};
-struct Geom2DRB_FTheta_HeatSource_minZ1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-  double  l = 0.06;
-  double L = 0.1;
-    return fabs(L-_mu.get_value("mu_1"))/fabs(L-l);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXX_minZ2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (_mu.get_value("mu_0")*(L-_mu.get_value("mu_1"))*(k*(r*r)*1.0/(_mu.get_value("mu_0")*_mu.get_value("mu_0"))+(L*L)*k*1.0/(_mu.get_value("mu_0")*_mu.get_value("mu_0"))*1.0/pow(L-_mu.get_value("mu_1"),2.0)*pow(r-_mu.get_value("mu_0"),2.0)))/(r*(L-l));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXY_minZ2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double L = 0.1;
-   double k = 0.05;
-    return (L*k*(r-_mu.get_value("mu_0")))/(r*(L-_mu.get_value("mu_1")));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYX_minZ2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double L = 0.1;
-   double k = 0.05;
-    return (L*k*(r-_mu.get_value("mu_0")))/(r*(L-_mu.get_value("mu_1")));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYY_minZ2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*_mu.get_value("mu_0")*(L-l))/(r*(L-_mu.get_value("mu_1")));
-  }
-};
-struct Geom2DRB_FTheta_HeatSource_minZ2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-    return fabs(_mu.get_value("mu_0")*(L-_mu.get_value("mu_1")))/(fabs(r)*fabs(L-l));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXX_minX1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(L-r*2.0))/(L-_mu.get_value("mu_0")*2.0);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXY_minX1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(l-_mu.get_value("mu_1")))/(L-_mu.get_value("mu_0")*2.0);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYX_minX1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*(l-_mu.get_value("mu_1")))/(L-_mu.get_value("mu_0")*2.0);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYY_minX1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return ((k+k*1.0/pow(L-_mu.get_value("mu_0")*2.0,2.0)*pow(l-_mu.get_value("mu_1"),2.0))*(L-_mu.get_value("mu_0")*2.0))/(L-r*2.0);
-  }
-};
-struct Geom2DRB_FTheta_HeatSource_minX1 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double L = 0.1;
-    return fabs(L-_mu.get_value("mu_0")*2.0)/fabs(L-r*2.0);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXX_minX2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (k*_mu.get_value("mu_1")*(L-r*2.0))/(l*(L-_mu.get_value("mu_0")*2.0));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXY_minX2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return -(L*k*(l-_mu.get_value("mu_1")))/(l*(L-_mu.get_value("mu_0")*2.0));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYX_minX2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return -(L*k*(l-_mu.get_value("mu_1")))/(l*(L-_mu.get_value("mu_0")*2.0));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYY_minX2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-   double k = 0.05;
-    return (_mu.get_value("mu_1")*(L-_mu.get_value("mu_0")*2.0)*(k*(l*l)*1.0/(_mu.get_value("mu_1")*_mu.get_value("mu_1"))+(L*L)*k*1.0/(_mu.get_value("mu_1")*_mu.get_value("mu_1"))*1.0/pow(L-_mu.get_value("mu_0")*2.0,2.0)*pow(l-_mu.get_value("mu_1"),2.0)))/(l*(L-r*2.0));
-  }
-};
-struct Geom2DRB_FTheta_HeatSource_minX2 : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-  double L = 0.1;
-    return fabs(_mu.get_value("mu_1")*(L-_mu.get_value("mu_0")*2.0))/(fabs(l)*fabs(L-r*2.0));
-  }
-};
-struct Geom2DRB_ATheta_DiffusionXX_BoundingBox : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-   double k = 0.05;
-    return r*_mu.get_value("mu_1")*k/(_mu.get_value("mu_0")*l);
-  }
-};
-struct Geom2DRB_ATheta_DiffusionYY_BoundingBox : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-   double k = 0.05;
-    return _mu.get_value("mu_0")*l*k/(r*_mu.get_value("mu_1"));
-  }
-};
-struct Geom2DRB_ATheta_Perfusion_BoundingBox : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-    return _mu.get_value("mu_0")*_mu.get_value("mu_1")/(r*l);
-  }
-};
-struct Geom2DRB_FTheta_HeatSource_BoundingBox : RBTheta
-{
-  virtual Number evaluate (const RBParameters & _mu)
-  {
-    double r = 0.03;
-  double  l = 0.06;
-    return _mu.get_value("mu_0")*_mu.get_value("mu_1")/(r*l);
-  }
-};
+
 #endif //DWARFELEPHANTGEOM2DRBTHETA_H

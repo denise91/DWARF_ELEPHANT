@@ -36,7 +36,7 @@ InputParameters validParams<DwarfElephantRBKernel>()
   params.addParam<unsigned int>("ID_Mq", 0, "ID of the current mass matrix");
   params.addParam<unsigned int>("ID_Fq", 0, "ID of the current load vector");
   params.addParam<unsigned int>("ID_Oq", 0, "ID of the current output vector");
-  params.addParam<bool>("matrix_seperation_according_to_subdomains", true, "Tells whether the stiffness matrix is separated according to the subdomain_ids");
+  params.addParam<bool>("matrix_seperation_according_to_subdomains", false, "Tells whether the stiffness matrix is separated according to the subdomain_ids");
   params.addParam<bool>("time_matrix_seperation_according_to_subdomains", true, "Tells whether the mass matrix is separated according to the subdomain_ids");
   params.addParam<bool>("vector_seperation_according_to_subdomains", false, "Tells whether the load vector is separated according to the subdomain_ids");
   params.addParam<bool>("compute_output",false,"Determines whether an output function is used or not");

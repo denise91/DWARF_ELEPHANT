@@ -23,7 +23,7 @@ InputParameters validParams<DwarfElephantRBIntegratedBC>()
   params.addParam<unsigned int>("ID_Fq", 0, "ID of the current load vector.");
   params.addParam<unsigned int>("ID_Fq_split", 0, "Defines the number that has to be added to the subdomain ID to get the correct load vector ID. This is only required when the boundary is splitted into the subdomains.");
   params.addParam<unsigned int>("ID_Oq", 0, "ID of the current output vector.");
-  params.addParam<bool>("matrix_seperation_according_to_subdomains", true, "Tells whether the stiffness matrix is separated according to the subdomain_ids");
+  params.addParam<bool>("matrix_seperation_according_to_subdomains", false, "Tells whether the stiffness matrix is separated according to the subdomain_ids");
   params.addParam<bool>("compute_output",false,"Determines whether an output function is used or not");
   params.addParam<bool>("split_boundary_according_to_subdomains", false, "Determines whether boundary will be splitted or not.");
   params.addParam<bool>("compliant", false, "Specifies if you have a compliant or non-compliant case.");
