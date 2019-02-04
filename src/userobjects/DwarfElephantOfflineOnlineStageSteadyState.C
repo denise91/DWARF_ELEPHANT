@@ -66,7 +66,7 @@ DwarfElephantOfflineOnlineStageSteadyState::setAffineMatrices()
    //_initialize_rb_system._inner_product_matrix->close();
     for(unsigned int _q=0; _q<_initialize_rb_system._qa; _q++)
     {
-      _rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // for EIM example in Martin's publication
+      //_rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // for EIM example in Martin's publication
       _initialize_rb_system._jacobian_subdomain[_q] ->close();
     }
 
@@ -80,7 +80,7 @@ DwarfElephantOfflineOnlineStageSteadyState::transferAffineVectors()
     for(unsigned int _q=0; _q<_initialize_rb_system._qf; _q++)
     {
       
-      _rb_problem->rbAssembly(0).setCachedResidual(*_initialize_rb_system._residuals[_q]); // line added for compatibility with libMesh EIM example 
+      //_rb_problem->rbAssembly(0).setCachedResidual(*_initialize_rb_system._residuals[_q]); // line added for compatibility with libMesh EIM example 
       
       _initialize_rb_system._residuals[_q]->close();
     }
@@ -170,7 +170,7 @@ void DwarfElephantOfflineOnlineStageSteadyState::onlineStageEIM()
 
       _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
       _initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
-      _initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_A_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects()); // for EIM example in Martin's publication
+      //_initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_A_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects()); // for EIM example in Martin's publication
 
       #if defined(LIBMESH_HAVE_CAPNPROTO)
       RBDataSerialization::RBEvaluationDeserialization rb_eval_reader(_initialize_rb_system._rb_con_ptr -> get_rb_evaluation());
