@@ -66,7 +66,7 @@ struct CustomRBTheta : RBTheta
 {
 	virtual Number evaluate(const RBParameters &_mu)
 	{
-		return _mu.get_value("mu_0");
+		return 0.05;//_mu.get_value("mu_0");
 	}
 };
 
@@ -76,7 +76,7 @@ struct CustomRBThetaExpansion : RBThetaExpansion
   {
     // Setting up the RBThetaExpansion object
     
-    attach_A_theta(&_rb_theta);
+    //attach_A_theta(&_rb_theta);
 attach_A_theta(&_theta_a_1);
     attach_F_theta(&_rb_theta);
 

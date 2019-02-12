@@ -29,9 +29,9 @@
     type = DwarfElephantEIMFKernel
   [../]
 
-  [./EIMA] # For EIM example in Martin's publication
-    type = DwarfElephantEIMAKernel
-  [../]
+  #[./EIMA] # For EIM example in Martin's publication
+  #  type = DwarfElephantEIMAKernel
+  #[../]
 
   [./RB_inner_product_matrix]
     type = RBInnerProductMatrix
@@ -73,7 +73,7 @@
   solve_type = 'Newton'
   l_tol = 1.0e-8
   nl_rel_tol = 1.0e-8
-  #offline_stage = false
+  offline_stage = false
 []
 
 [UserObjects]
@@ -81,22 +81,22 @@
   type = DwarfElephantInitializeRBSystemSteadyState
   use_EIM = true
   execute_on = 'initial'
-  N_max_EIM = 48
-  n_training_samples_EIM = 225
+  N_max_EIM = 10
+  n_training_samples_EIM = 25
   rel_training_tolerance_EIM = 1e-8
   parameter_names_EIM = 'mu_0 mu_1'    #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
   parameter_min_values_EIM = '-1 -1'
   parameter_max_values_EIM = '-0.01 -0.01'
   deterministic_training_EIM = true
   best_fit_type_EIM = projection
-  n_training_samples_RB = 225
-  N_max_RB = 20
+  n_training_samples_RB = 25
+  N_max_RB = 7
   rel_training_tolerance_RB = 1e-8
   parameter_names_RB = 'mu_0 mu_1'
   parameter_min_values_RB = '-1.0 -1.0'
   parameter_max_values_RB = '-0.01 -0.01'
   deterministic_training_RB = true
-  #offline_stage = false
+  offline_stage = false
 [../]
 
 [./jEIMInnerProductMatrixComputation]
@@ -107,9 +107,9 @@
 
 [./performRBSystem ]
   type = DwarfElephantOfflineOnlineStageSteadyState
-  #online_stage = true
-  online_N = 20
-  online_mu = '-0.43241 -0.63241'
+  online_stage = true
+  online_N = 7
+  online_mu = '-0.043241 -0.063241'
   execute_on = 'timestep_end'
 [../]
 []

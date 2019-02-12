@@ -46,7 +46,7 @@ struct ShiftedGaussian : public RBParametrizedFunction
                           const Point & p,
                           const Elem & elem)
   {
-    Real r_0 = mu.get_value("mu_0");
+/*    Real r_0 = mu.get_value("mu_0");
     Real l_0 = mu.get_value("mu_1");
     Real x_prime = mu.get_value("mu_2");
     Real y_prime = mu.get_value("mu_3");
@@ -75,10 +75,13 @@ struct ShiftedGaussian : public RBParametrizedFunction
        // x_new = XCoordinateTrafo_for_subdomain2(p)
        // y_new = YCoordinateTrafo_for_subdomain2(p)
     }
-     
-    //return exp(-2.*(pow(center_x-p(0),2.) + pow(center_y-p(1),2.))); //Forcing function from libMesh rb example 4
+*/     
+    Real center_x = mu.get_value("mu_0");
+    Real center_y = mu.get_value("mu_1");
+
+    return exp(-2.*(pow(center_x-p(0),2.) + pow(center_y-p(1),2.))); //Forcing function from libMesh rb example 4
     //return 1.0/sqrt(pow(center_x - p(0),2) + pow(center_y - p(1),2)); // Forcing function from Martin's EIM publication
-    return exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2)));
+    //return exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2)));
   }
 };
 

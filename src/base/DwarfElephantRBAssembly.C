@@ -95,7 +95,7 @@ DwarfElephantRBAssembly::setCachedJacobianContributions(SparseMatrix<Number> & _
                   _cached_jacobian_contribution_cols[i],
                   _cached_jacobian_contribution_vals[i]);
 
-  //clearCachedJacobianContributions(); // Commented out for EIM example in Martin's publication
+  clearCachedJacobianContributions(); // Commented out for EIM example in Martin's publication
 }
 
 void
