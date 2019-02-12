@@ -174,17 +174,17 @@
   deterministic_training_EIM = true
   best_fit_type_EIM = projection
   execute_on = 'initial'
-  N_max_RB = 20
+  N_max_RB = 7
   #offline_stage = false
   n_training_samples_RB = 25
-  rel_training_tolerance_RB = 1.e-8
+  rel_training_tolerance_RB = 1.e-6
   #parameter_names_RB = 'mu_0 mu_1 mu_2 mu_3'# mu_2'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
   #parameter_min_values_RB = '0.8 1.6 -1 -1'# 0.01'
   #parameter_max_values_RB = '1.2 2.4 -0.1 -0.1'# 1.0'
   parameter_names_RB = 'mu_0 mu_1'
   parameter_min_values_RB = '-1 -1'
   parameter_max_values_RB = '-0.01 -0.01'
-  #normalize_rb_bound_in_greedy = false
+  normalize_rb_bound_in_greedy = true
   deterministic_training_RB = true
 [../]
 

@@ -78,9 +78,9 @@ struct CustomRBThetaExpansion : RBThetaExpansion
     
     //attach_A_theta(&_rb_theta);
 attach_A_theta(&_theta_a_1);
-    attach_F_theta(&_rb_theta);
+    //attach_F_theta(&_rb_theta);
 
-    attach_output_theta(&_rb_theta);
+    //attach_output_theta(&_rb_theta);
 
   }
   // Member Variables
@@ -137,7 +137,7 @@ public:
 
   FEProblemBase & fe_problem;
   //DwarfElephantEIMTestRBThetaExpansion _eim_test_rb_theta_expansion;
-  Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
+  //Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
   CustomRBThetaExpansion RBExpansion;
 };
 
