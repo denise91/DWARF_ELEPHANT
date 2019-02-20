@@ -45,7 +45,8 @@ struct Geom2DRBThetaExpansion : RBThetaExpansion
   attach_A_theta(&Geom2DRB_ATheta_DiffusionYX_maxZ2_0);
   attach_A_theta(&Geom2DRB_ATheta_DiffusionYY_maxZ2_0);
   
-  attach_F_theta(&Geom2DRB_FTheta_HeatSource_maxZ2_0);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&Geom2DRB_FTheta_HeatSource_maxZ2_0);
 
   }
   Geom2DRB_ATheta_DiffusionXX_maxZ1 Geom2DRB_ATheta_DiffusionXX_maxZ1_0;
