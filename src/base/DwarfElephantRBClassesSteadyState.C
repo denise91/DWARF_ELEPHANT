@@ -109,7 +109,15 @@ DwarfElephantRBConstructionSteadyState::train_reduced_basis(const bool resize_rb
       this->update_greedy_param_list();
 //
 //      // Perform an Offline truth solve for the current parameter
-      Real truth_X_norm = truth_solve(-1);
+      //if (count == 10)
+      //  {
+      //     libMesh::out << "Printing truth solution." << std::endl;
+      //     print_parameters();
+      //     Real truth_X_norm = truth_solve(1);
+      //  }
+      
+      //else
+        Real truth_X_norm = truth_solve(-1);
 //
 //      // Add orthogonal part of the snapshot to the RB space
       libMesh::out << "Enriching the RB space" << std::endl;
@@ -251,8 +259,8 @@ DwarfElephantRBEvaluationSteadyState::DwarfElephantRBEvaluationSteadyState(const
     fe_problem(fe_problem)
 {
   //set_rb_theta_expansion(_eim_test_rb_theta_expansion);
-  //set_rb_theta_expansion(_goem_2D_rb_theta_expansion);
-  set_rb_theta_expansion(RBExpansion);
+  set_rb_theta_expansion(_goem_2D_rb_theta_expansion);
+  //set_rb_theta_expansion(RBExpansion);
 }
 
 Real

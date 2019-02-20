@@ -66,7 +66,7 @@ struct CustomRBTheta : RBTheta
 {
 	virtual Number evaluate(const RBParameters &_mu)
 	{
-		return 0.05;//_mu.get_value("mu_0");
+		return 1;//_mu.get_value("mu_0");
 	}
 };
 
@@ -76,9 +76,9 @@ struct CustomRBThetaExpansion : RBThetaExpansion
   {
     // Setting up the RBThetaExpansion object
     
-    //attach_A_theta(&_rb_theta);
-attach_A_theta(&_theta_a_1);
-    //attach_F_theta(&_rb_theta);
+    attach_A_theta(&_rb_theta);
+    attach_A_theta(&_rb_theta);
+    attach_F_theta(&_rb_theta);
 
     //attach_output_theta(&_rb_theta);
 
@@ -137,8 +137,8 @@ public:
 
   FEProblemBase & fe_problem;
   //DwarfElephantEIMTestRBThetaExpansion _eim_test_rb_theta_expansion;
-  //Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
-  CustomRBThetaExpansion RBExpansion;
+  Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
+  //CustomRBThetaExpansion RBExpansion;
 };
 
 

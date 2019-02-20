@@ -46,48 +46,49 @@ struct ShiftedGaussian : public RBParametrizedFunction
                           const Point & p,
                           const Elem & elem)
   {
-/*    Real r_0 = mu.get_value("mu_0");
+    
+    Real r_0 = mu.get_value("mu_0");
     Real l_0 = mu.get_value("mu_1");
     Real x_prime = mu.get_value("mu_2");
     Real y_prime = mu.get_value("mu_3");
-    Number x_new, y_new;
+    Number result;
+    Number x_new, y_new, Jacobian;
     double trafo_mat[2][2]={0}, trafo_vec[2][1]={0}, L = 4.0, r = 1.0, l = 2.0;
 
     if (elem.subdomain_id() == 1)// Point p is in subdomain 1
     {  
        trafo_mat[0][0] = 1.0;
        trafo_mat[0][1] = (r*2.0-r_0*2.0)/(L-l);
-       trafo_mat[1][1] = (L-l_0)/(L-l);  trafo_vec[0][0] = -(L*(r-r_0))/(L-l);
+       trafo_mat[1][1] = (L-l_0)/(L-l);  
+       trafo_vec[0][0] = -(L*(r-r_0))/(L-l);
        trafo_vec[1][0] = (L*(l-l_0)*(-1.0/2.0))/(L-l);
        x_new = trafo_mat[0][0]*p(0) + trafo_mat[0][1]*p(1) + trafo_vec[0][0];
        y_new = trafo_mat[1][0]*p(0) + trafo_mat[1][1]*p(1) + trafo_vec[1][0];
-       // x_new = XCoordinateTrafo_for_subdomain1(p)
-       // y_new = YCoordinateTrafor_for_subdomain1(p)
+       Jacobian = (L-l_0)/(L - l);
     }
     else
     {
        trafo_mat[0][0] = r_0/r;
        trafo_mat[0][1] = -(L*r-L*r_0)/(L*r-l*r);
-       trafo_mat[1][1] = (L-l_0)/(L-l);  trafo_vec[0][0] = (L*(l*r-l*r_0)*(1.0/2.0))/(L*r-l*r);
+       trafo_mat[1][1] = (L-l_0)/(L-l);  
+       trafo_vec[0][0] = (L*(l*r-l*r_0)*(1.0/2.0))/(L*r-l*r);
        trafo_vec[1][0] = (L*(l-l_0)*(-1.0/2.0))/(L-l);
        x_new = trafo_mat[0][0]*p(0) + trafo_mat[0][1]*p(1) + trafo_vec[0][0];
        y_new = trafo_mat[1][0]*p(0) + trafo_mat[1][1]*p(1) + trafo_vec[1][0];
-       // x_new = XCoordinateTrafo_for_subdomain2(p)
-       // y_new = YCoordinateTrafo_for_subdomain2(p)
+       Jacobian = r_0 * (L - l_0)/(r * (L - l));
     }
-*/     
-    Real center_x = mu.get_value("mu_0");
-    Real center_y = mu.get_value("mu_1");
+     
+    //Real center_x = mu.get_value("mu_0");
+    //Real center_y = mu.get_value("mu_1");
 
-    return exp(-2.*(pow(center_x-p(0),2.) + pow(center_y-p(1),2.))); //Forcing function from libMesh rb example 4
-    //return 1.0/sqrt(pow(center_x - p(0),2) + pow(center_y - p(1),2)); // Forcing function from Martin's EIM publication
-    //return exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2)));
+    //return exp(-(pow(center_x-p(0),2.) + pow(center_y-p(1),2.))); //Forcing function from libMesh rb example 4
+    return exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2))) * Jacobian; // Forcing function for geometrical parametrization example
   }
 };
 
 // Expansion of the PDE operator
 //struct DwarfElephantEIMThetaA0 : RBTheta { virtual Number evaluate(const RBParameters &) { return 0.05;  } }; //theta_A0 for libMesh rb example 4
-struct DwarfElephantEIMThetaA0 : RBTheta { virtual Number evaluate(const RBParameters &) { return 1;  } }; //theta_A0 for Martin's EIM publication
+struct DwarfElephantEIMThetaA0 : RBTheta { virtual Number evaluate(const RBParameters &) { return 0.05;  } }; //theta_A0 for libmesh EIM example
 
 // Define an RBThetaExpansion class for this PDE
 struct DwarfElephantEIMTestRBThetaExpansion : RBThetaExpansion
@@ -98,10 +99,12 @@ struct DwarfElephantEIMTestRBThetaExpansion : RBThetaExpansion
   DwarfElephantEIMTestRBThetaExpansion()
   {
     attach_A_theta(&theta_a_0);
+    attach_A_theta(&_rb_theta);
   }
 
   // The RBTheta member variables
   DwarfElephantEIMThetaA0 theta_a_0;
+  RBTheta _rb_theta;
 };
 
 struct DwarfElephantEIMFAssembly : RBEIMAssembly

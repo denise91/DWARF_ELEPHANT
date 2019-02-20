@@ -219,6 +219,7 @@ void DwarfElephantOfflineOnlineStageSteadyState::onlineStageEIM()
 		 #ifdef LIBMESH_HAVE_EXODUS_API
 		 ExodusII_IO(_mesh_ptr->getMesh()).write_equation_systems("RB_sol_DwarfElephant.e-s"+ss.str(),_es);
 		 #endif
+                 VTKIO(_mesh_ptr->getMesh()).write_equation_systems("out.pvtu", _es);
       }
 }
 

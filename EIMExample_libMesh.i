@@ -23,6 +23,7 @@
 [Kernels]
   [./RBConduction]
     type = DwarfElephantRBDiffusion
+    ID_Aq = 0
   [../]
   
   [./EIMF]
@@ -39,28 +40,12 @@
 []
 
 [BCs] # To be changed
-[./top]
-  type = DwarfElephantRBDirichletBC
-  boundary = top
+[./boundary]
+  type = DwarfElephantRBPenaltyDirichletBC
+  boundary = 'left right bottom top'
+  penalty = 10.0
   value = 0.00
-[../]
-
-[./bottom]
-  type = DwarfElephantRBDirichletBC
-  boundary = bottom
-  value = 0
-[../]
-
-[./left]
-  type = DwarfElephantRBDirichletBC
-  boundary = left
-  value = 0.00
-[../]
-
-[./right]
-  type = DwarfElephantRBDirichletBC
-  boundary = right
-  value = 0.00
+  ID_Aq = 1
 [../]
 []
 
@@ -73,7 +58,7 @@
   solve_type = 'Newton'
   l_tol = 1.0e-8
   nl_rel_tol = 1.0e-8
-  offline_stage = false
+  #offline_stage = false
 []
 
 [UserObjects]
@@ -96,7 +81,7 @@
   parameter_min_values_RB = '-1.0 -1.0'
   parameter_max_values_RB = '-0.01 -0.01'
   deterministic_training_RB = true
-  offline_stage = false
+  #offline_stage = false
 [../]
 
 [./jEIMInnerProductMatrixComputation]
@@ -107,10 +92,11 @@
 
 [./performRBSystem ]
   type = DwarfElephantOfflineOnlineStageSteadyState
-  online_stage = true
-  online_N = 7
+  #online_stage = true
+  online_N = 1
   online_mu = '-0.043241 -0.063241'
   execute_on = 'timestep_end'
+  #offline_stage = false
 [../]
 []
 
