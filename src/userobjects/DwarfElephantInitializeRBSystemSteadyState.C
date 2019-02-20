@@ -385,4 +385,6 @@ DwarfElephantInitializeRBSystemSteadyState::AssignAffineMatricesAndVectors() con
     for (unsigned int i=0; i < _n_outputs; i++)
       for (unsigned int _q=0; _q < _ql[i]; _q++)
         _outputs[i][_q] = _rb_con_ptr->get_output_vector(i,_q);
+
+    _fullFEnonAffineF = _rb_con_ptr->get_nonAffineF();
 }

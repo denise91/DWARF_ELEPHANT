@@ -160,9 +160,11 @@ class DwarfElephantInitializeRBSystemSteadyState :
   std::vector<Real> _continuous_parameter_max_values_RB;
 
   mutable SparseMatrix <Number> * _RB_inner_product_matrix; // To test against EIM example from Martin's publication
+  mutable NumericVector<Number> * _fullFEnonAffineF;
 
     /*Friend Classes*/
     friend class DwarfElephantRBKernel;
+    friend class DwarfElephantFTestKernel;
     friend class DwarfElephantRBDiracKernel;
     friend class DwarfElephantRBNodalBC;
     friend class DwarfElephantRBIntegratedBC;

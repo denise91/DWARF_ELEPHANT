@@ -24,6 +24,7 @@
 // libMesh includes
 #include "libmesh/sparse_matrix.h"
 #include "libmesh/petsc_matrix.h"
+#include "libmesh/numeric_vector.h"
 
 // libMesh includes (RB package)
 #include "libmesh/rb_theta.h"
@@ -118,6 +119,81 @@ public:
   
   virtual void compute_Fq_representor_innerprods(bool compute_inner_products=true) override;
   
+NumericVector<Number> * get_nonAffineF() // To test against EIM example from Martin's publication
+  {
+    return _nonAffineF.get();
+  }
+//  Real train_reduced_basis(const bool resize_rb_eval_data = true);
+
+  void allocate_RB_error_structures() // To test against EIM example from Martin's publication
+  {
+    _nonAffineF = NumericVector<Number>::build(this->comm());
+    _nonAffineF->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+    _nonAffineF->zero();
+  }
+
+Real compute_error_X_norm(NumericVector<Number> _error_vector)// Compute X inner product of the difference between full FE solution and EIM_FE solution
+  {
+    get_non_dirichlet_inner_product_matrix_if_avail()->vector_mult(*inner_product_storage_vector,_error_vector);
+    Number truthError_X_norm = std::sqrt(inner_product_storage_vector->dot(_error_vector));
+    
+    return truthError_X_norm;
+  }
+
+  NumericVector<Number> * find_truth_soln(RBParameters mu)
+  {
+    // compute full FE solution
+      std::unique_ptr<NumericVector<Number>> FullFEsolution;
+      FullFEsolution = NumericVector<Number>::build(this->comm());
+      FullFEsolution->init(this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+
+      FullFEsolution -> zero();
+      FullFEsolution -> close();
+
+
+      this -> matrix -> zero();
+      this -> rhs -> zero();
+      
+      this -> matrix -> close();
+      this -> rhs -> close();
+      
+      matrix -> add(get_rb_theta_expansion().eval_A_theta(0,mu),*get_Aq(0));
+      matrix -> add(get_rb_theta_expansion().eval_A_theta(1,mu),*get_Aq(1));
+      matrix -> add(get_rb_theta_expansion().eval_A_theta(2,mu),*get_Aq(2));
+      matrix -> add(get_rb_theta_expansion().eval_A_theta(3,mu),*get_Aq(3));
+      matrix -> add(get_rb_theta_expansion().eval_A_theta(4,mu),*get_Aq(4));
+      matrix -> add(get_rb_theta_expansion().eval_A_theta(5,mu),*get_Aq(5));
+      matrix -> add(get_rb_theta_expansion().eval_A_theta(6,mu),*get_Aq(6));
+      matrix -> add(get_rb_theta_expansion().eval_A_theta(7,mu),*get_Aq(7));
+      matrix -> add(get_rb_theta_expansion().eval_A_theta(8,mu),*get_Aq(8));
+
+      rhs -> add(*_nonAffineF);
+
+      this -> matrix -> close();
+      this -> rhs -> close();
+      if (extra_linear_solver)
+    {
+      // If extra_linear_solver has been initialized, then we use it for the
+      // truth solves.
+      solve_for_matrix_and_rhs(*extra_linear_solver, *matrix, *rhs);
+
+      if (assert_convergence)
+        check_convergence(*extra_linear_solver);
+    }
+  else
+    {
+      solve_for_matrix_and_rhs(*get_linear_solver(), *matrix, *rhs);
+
+      if (assert_convergence)
+        check_convergence(*get_linear_solver());
+    }
+    FullFEsolution -> add(*solution);
+      
+    return FullFEsolution.get();
+  }
+
+  std::unique_ptr<NumericVector<Number>> _nonAffineF; 
+
   unsigned int u_var;
   std::ofstream GreedyOutputFile;
 };

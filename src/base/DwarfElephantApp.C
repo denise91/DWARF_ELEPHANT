@@ -58,6 +58,7 @@
 #include "DwarfElephantRBDiffusionZY.h"
 #include "DwarfElephantRBRFHeatsourceKernel.h"
 #include "DwarfElephantRBPennesPerfusion.h"
+#include "DwarfElephantFTestKernel.h"
 
 // DiracKernels
 #include "DwarfElephantRBConstantPointSource.h"
@@ -185,6 +186,7 @@ DwarfElephantApp::registerObjects(Factory & factory)
   registerKernel(DwarfElephantRBRFHeatsourceKernel);
   registerKernel(DwarfElephantRBPennesPerfusion);
   registerKernel(DwarfElephantRBThermalConduction);
+  registerKernel(DwarfElephantFTestKernel);
   //DiracKernels
   registerDiracKernel(DwarfElephantRBConstantPointSource);
 
