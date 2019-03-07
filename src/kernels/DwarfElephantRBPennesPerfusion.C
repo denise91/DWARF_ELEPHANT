@@ -33,5 +33,5 @@ DwarfElephantRBPennesPerfusion::computeQpResidual()
 Real
 DwarfElephantRBPennesPerfusion::computeQpJacobian()
 {
-  return 35.0 * 3617.0 * _phi[_j][_qp] * _test[_i][_qp];
+  return 0.0064 * 1050.0 * 3617.0 * _phi[_j][_qp] * _test[_i][_qp];
 }

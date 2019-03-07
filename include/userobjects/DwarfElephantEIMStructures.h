@@ -39,7 +39,7 @@ using libMesh::RealGradient;
 using libMesh::Elem;
 using libMesh::FEBase;
 
-
+/*
 struct ShiftedGaussian : public RBParametrizedFunction
 {
   virtual Number evaluate(const RBParameters & mu,
@@ -84,7 +84,7 @@ struct ShiftedGaussian : public RBParametrizedFunction
     //return exp(-(pow(center_x-p(0),2.) + pow(center_y-p(1),2.))); //Forcing function from libMesh rb example 4
     return exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2))) * Jacobian; // Forcing function for geometrical parametrization example
   }
-};
+};*/
 
 // Expansion of the PDE operator
 //struct DwarfElephantEIMThetaA0 : RBTheta { virtual Number evaluate(const RBParameters &) { return 0.05;  } }; //theta_A0 for libMesh rb example 4

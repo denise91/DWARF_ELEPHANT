@@ -23,7 +23,7 @@ def ReadRBAThetaTextFile(InputFile):
     StructTheta = []
     for string in RBThetaStrings:
         TempString = string.rstrip("\n")
-        StructTheta.append(TempString[12:-1:1])
+        StructTheta.append(TempString[7:-1:1])
     return StructTheta
 
 def ReadRBFThetaTextFile(InputFile):
@@ -99,6 +99,20 @@ def FinalizeRBThetaExpansionCFile(RBThetaExpansionCFile, IncludeGaurdName):
 #endif // """+IncludeGaurdName)
   
 
+def AppendToBCList(BCList,mesh_block_ids,ID_Aq,value,penalty,variable):
+      BCList.append("[./Convection_BC]\n")
+      BCList.append("  type = DwarfElephantRBPenaltyDirichletBC\n")
+      boundary_string = """  boundary = '"""
+      for boundary in mesh_block_ids[:4]:
+        boundary_string = boundary_string + boundary[0] + " "
+      boundary_string = boundary_string + """' """
+      BCList.append(boundary_string + "\n")
+      BCList.append("  ID_Aq = "+str(ID_Aq) + "\n")#37
+      BCList.append("  value = "+str(value) + "\n")#0
+      BCList.append("  penalty = "+str(penalty) + "\n")#6
+      BCList.append(" variable = "+variable + "\n")#temperature
+      BCList.append("matrix_seperation_according_to_subdomains = false" + "\n")
+      BCList.append("[../]" + "\n")
 
 def PrintConvectionBCBlock(mesh_block_ids,ID_Aq,value,penalty,variable): 
       print "[./Convection_BC]"
@@ -125,6 +139,14 @@ def PrintNeumannBCBlock(mesh_block_ids, ID_Fq, value,variable):
       print "  variable = "+variable
       print "matrix_seperation_according_to_subdomains = false"
       print "[../]"      
+
+def AppendToKernelList(KernelList, bln_form,suffix,mesh_block_ids,block_num,ID_Aq):
+      KernelList.append("[./"+bln_form+suffix+"_"+mesh_block_ids[block_num][1]+"]\n")
+      KernelList.append("  type = DwarfElephantRB"+ bln_form+suffix + "\n")
+      KernelList.append("  ID_Aq = "+str(ID_Aq) + "\n")
+      KernelList.append("  block = "+mesh_block_ids[block_num][0] + "\n")
+      KernelList.append("matrix_seperation_according_to_subdomains = false" + "\n")
+      KernelList.append("[../]" + "\n")
 
 def PrintDiffusionBlock(suffix,mesh_block_ids,block_num,ID_Aq):
       print "[./Diffusion"+suffix+"_"+mesh_block_ids[block_num][0]+"]"
@@ -163,7 +185,106 @@ def AttachFqTheta(File, FThetaPrefix, Fq_object):
 def DeclareFqTheta(File, FThetaPrefix, Fq_object):
     File.write("  "+FThetaPrefix+Fq_object[1]+" "+FThetaPrefix+Fq_object[1]+"_0;\n")
 
-def DeclareAqTheta(File, AThetaPrefix, Aq_object):
-    if (Aq_object[1] == "BoundaryTerms"):
+def DeclareAqTheta(File, AThetaPrefix, Aq_object, DefaultThetaObjectExists):
+    if (Aq_object[1] == "BoundaryTerms" and not(DefaultThetaObjectExists)):
       File.write("  RBTheta _rb_theta;\n")
+      DefaultThetaObjectExists = True
     else: File.write("  "+AThetaPrefix+Aq_object[1]+" "+AThetaPrefix+Aq_object[1]+"_0;\n")
+
+AdditionalKernels = """[./EIMF]
+  type = DwarfElephantEIMFKernel
+[../]
+
+[./RB_inner_product_matrix]
+  type = RBInnerProductMatrix
+[../]
+"""
+
+AfterKernelText = """[AuxKernels]
+  [./HeatSourceVisAux]
+    type = FunctionAux
+    function = 'gaussian'#'rf_heat_source'
+    variable = HeatSourceVis
+    execute_on = 'timestep_end'
+  [../]
+[]
+
+[Functions]
+  [./gaussian]
+    type = ParsedFunction
+    value = 'exp(-(x + 0.1)^2 - (y + 0.1)^2)'
+  [../]
+[]
+"""
+
+AfterBCText = """[Problem]
+  type = DwarfElephantRBProblem
+[]
+
+[Executioner]
+  type = DwarfElephantRBExecutioner
+  solve_type = 'Newton'
+  l_tol = 1.0e-8
+  nl_rel_tol = 1.0e-8
+  #offline_stage = false
+  petsc_options_iname = '-pc_type -pc_hypre_type -ksp_gmres_restart'
+  petsc_options_value = 'hypre    boomeramg      101'
+[]
+
+[UserObjects]
+[./initializeRBSystem]
+  type = DwarfElephantInitializeRBSystemSteadyState
+  use_EIM = true
+  N_max_EIM = 5
+  n_training_samples_EIM = 64
+  rel_training_tolerance_EIM = 1e-8
+  abs_training_tolerance_EIM = 1e-8
+  parameter_names_EIM = 'mu_0 mu_1 mu_2 mu_3'# mu_2'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
+  parameter_min_values_EIM = '0.1 0.2 -1 -1'# 0.01'
+  parameter_max_values_EIM = '0.5 1.0 -0.1 -0.1'# 1.0'
+  #parameter_names_EIM = 'mu_0 mu_1'
+  #parameter_min_values_EIM = '-1 -1'
+  #parameter_max_values_EIM = '-0.01 -0.01'
+  deterministic_training_EIM = false
+  best_fit_type_EIM = projection
+  execute_on = 'initial'
+  N_max_RB = 20
+  #offline_stage = false
+  n_training_samples_RB = 64
+  rel_training_tolerance_RB = 1.e-6
+  abs_training_tolerance_RB = 1e-6
+  parameter_names_RB = 'mu_0 mu_1 mu_2 mu_3'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
+  parameter_min_values_RB = '0.1 0.2 -1. -1.'
+  parameter_max_values_RB = '0.5 1.0 -0.1 -0.1'
+  #parameter_names_RB = 'mu_0 mu_1'
+  #parameter_min_values_RB = '-1 -1'
+  #parameter_max_values_RB = '-0.01 -0.01'
+  deterministic_training_RB = false
+  normalize_rb_bound_in_greedy = false
+[../]
+
+[./jEIMInnerProductMatrixComputation]
+  type = DwarfElephantComputeEIMInnerProductMatrixSteadyState
+  execute_on = "EIM"
+  initialize_rb_userobject = initializeRBSystem
+[../]
+
+[./performRBSystem ]
+  type = DwarfElephantOfflineOnlineStageSteadyState
+  #online_stage = true
+  online_mu = '0.3 0.6 -0.6 -0.3'
+  online_N = 40
+  #offline_stage = false
+  execute_on = 'timestep_end'
+[../]
+[]
+
+[Outputs]
+exodus = true
+print_perf_log = true
+  [./console]
+    type = Console
+    outlier_variable_norms = false
+  [../]
+[]
+"""

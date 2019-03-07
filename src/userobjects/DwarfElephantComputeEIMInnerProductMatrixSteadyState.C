@@ -101,6 +101,7 @@ void DwarfElephantComputeEIMInnerProductMatrixSteadyState::finalize()
     _initialize_rb_system._rb_con_ptr -> print_info();
   
     _initialize_rb_system._rb_con_ptr -> initialize_rb_construction(_initialize_rb_system._skip_matrix_assembly_in_rb_system, _initialize_rb_system._skip_vector_assembly_in_rb_system);
+    _initialize_rb_system._rb_con_ptr -> allocate_RB_error_structures();
     // Train reduced basis will be called after the kernel assembles the RB affine matrices and vectors
   
     _initialize_rb_system.AssignAffineMatricesAndVectors();

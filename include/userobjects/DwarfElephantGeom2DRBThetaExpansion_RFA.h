@@ -9,15 +9,15 @@
   */
 
 ///-------------------------------------------------------------------------
-#ifndef DWARFELEPHANTGEOM2DRBTHETAEXPANSION_RBNICS_H
-#define DWARFELEPHANTGEOM2DRBTHETAEXPANSION_RBNICS_H
+#ifndef DWARFELEPHANTGEOM2DRBTHETAEXPANSION_RFA_H
+#define DWARFELEPHANTGEOM2DRBTHETAEXPANSION_RFA_H
 
 ///---------------------------------INCLUDES--------------------------------
 // libMesh includes (RB package)
 #include "libmesh/rb_theta.h"
 #include "libmesh/rb_assembly_expansion.h"
 
-#include "DwarfElephantGeom2DRBTheta_RBNICS.h"
+#include "DwarfElephantGeom2DRBTheta_RFA.h"
 // Forward Declarations
 namespace libMesh
 {
@@ -110,4 +110,4 @@ struct Geom2DRBThetaExpansion : RBThetaExpansion
 };
 
 //------------------------------
-#endif // DWARFELEPHANTGEOM2DRBTHETAEXPANSION_RBNICS_H
+#endif // DWARFELEPHANTGEOM2DRBTHETAEXPANSION_RFA_H

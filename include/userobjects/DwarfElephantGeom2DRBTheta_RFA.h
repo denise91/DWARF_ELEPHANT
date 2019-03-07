@@ -1,6 +1,6 @@
 ///-------------------------------------------------------------------------
-#ifndef DWARFELEPHANTGEOM2DRBTHETA_RBNICS_H
-#define DWARFELEPHANTGEOM2DRBTHETA_RBNICS_H
+#ifndef DWARFELEPHANTGEOM2DRBTHETA_RFA_H
+#define DWARFELEPHANTGEOM2DRBTHETA_RFA_H
 
 ///---------------------------------INCLUDES--------------------------------
 // libMesh includes (RB package)
@@ -367,7 +367,8 @@ struct Geom2DRB_ATheta_DiffusionXX_BoundingBox : RBTheta
   {
     double r = 0.3;
   double  l = 0.6;
-    return r*_mu.get_value("mu_1")/(_mu.get_value("mu_0")*l);
+   double k = 1;
+    return (k*(r*r)*1.0/(_mu.get_value("mu_0")*_mu.get_value("mu_0"))*fabs(_mu.get_value("mu_1")*_mu.get_value("mu_0")))/(fabs(l)*fabs(r));
   }
 };
 struct Geom2DRB_ATheta_DiffusionYY_BoundingBox : RBTheta
@@ -376,7 +377,8 @@ struct Geom2DRB_ATheta_DiffusionYY_BoundingBox : RBTheta
   {
     double r = 0.3;
   double  l = 0.6;
-    return _mu.get_value("mu_0")*l/(r*_mu.get_value("mu_1"));
+   double k = 1;
+    return (k*(l*l)*1.0/(_mu.get_value("mu_1")*_mu.get_value("mu_1"))*fabs(_mu.get_value("mu_1")*_mu.get_value("mu_0")))/(fabs(l)*fabs(r));
   }
 };
 struct Geom2DRB_ATheta_Perfusion_BoundingBox : RBTheta
@@ -384,7 +386,8 @@ struct Geom2DRB_ATheta_Perfusion_BoundingBox : RBTheta
   virtual Number evaluate (const RBParameters & _mu)
   {
     double r = 0.3;
-    return r;
+  double  l = 0.6;
+    return _mu.get_value("mu_0")*_mu.get_value("mu_1")/(r*l);
   }
 };
-#endif //DWARFELEPHANTGEOM2DRBTHETA_RBNICS_H
+#endif //DWARFELEPHANTGEOM2DRBTHETA_RFA_H

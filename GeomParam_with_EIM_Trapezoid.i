@@ -154,8 +154,8 @@
 [./initializeRBSystem]
   type = DwarfElephantInitializeRBSystemSteadyState
   use_EIM = true
-  N_max_EIM = 4
-  n_training_samples_EIM = 16
+  N_max_EIM = 60
+  n_training_samples_EIM = 256
   rel_training_tolerance_EIM = 1e-8
   abs_training_tolerance_EIM = 1e-8
   parameter_names_EIM = 'mu_0 mu_1 mu_2 mu_3'# mu_2'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
@@ -167,9 +167,9 @@
   deterministic_training_EIM = false
   best_fit_type_EIM = projection
   execute_on = 'initial'
-  N_max_RB = 4
+  N_max_RB = 20
   #offline_stage = false
-  n_training_samples_RB = 16
+  n_training_samples_RB = 64
   rel_training_tolerance_RB = 1.e-6
   abs_training_tolerance_RB = 1e-6
   parameter_names_RB = 'mu_0 mu_1 mu_2 mu_3'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
@@ -191,7 +191,7 @@
 [./performRBSystem ]
   type = DwarfElephantOfflineOnlineStageSteadyState
   #online_stage = true
-  online_mu = '1.1 2.1 -0.6 -0.3'
+  online_mu = '1 2 -0.6 -0.3'
   online_N = 40
   #offline_stage = false
   execute_on = 'timestep_end'

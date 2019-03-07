@@ -41,8 +41,10 @@
 
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantRBStructuresT3F1O1SteadyState.h"
-#include "DwarfElephantGeom2DRBThetaExpansion.h"
+#include "DwarfElephantGeom2DRBThetaExpansion_RFA.h"
 #include "DwarfElephantEIMStructures.h"
+#include "libmesh/vtk_io.h"
+#include "DwarfElephantNonAffineFunction.h"
 ///-------------------------------------------------------------------------
 // Forward Declarations
 namespace libMesh
@@ -132,15 +134,43 @@ NumericVector<Number> * get_nonAffineF() // To test against EIM example from Mar
     _nonAffineF->zero();
   }
 
-Real compute_error_X_norm(NumericVector<Number> _error_vector)// Compute X inner product of the difference between full FE solution and EIM_FE solution
+void compute_error_X_norm_vs_N(NumericVector<Number>* _EIMFEsolution, RBParameters _rb_online_mu, EquationSystems & _es)// Compute X inner product of the difference between full FE solution and EIM_FE solution
   {
-    get_non_dirichlet_inner_product_matrix_if_avail()->vector_mult(*inner_product_storage_vector,_error_vector);
-    Number truthError_X_norm = std::sqrt(inner_product_storage_vector->dot(_error_vector));
+    Number truthError_X_norm;
+    std::unique_ptr<NumericVector<Number>> _RB_solution;
+   _RB_solution = NumericVector<Number>::build(this->comm());
+    _RB_solution->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+    _RB_solution->zero();
+
+    get_rb_evaluation().set_parameters(_rb_online_mu);
+    for (int N = 1; N <= get_rb_evaluation().get_n_basis_functions(); N++)
+    {
+      get_rb_evaluation().rb_solve(N);
+      this-> load_rb_solution();
+
+      *_es.get_system("rb0").solution = *_es.get_system("RBSystem").solution;
+      //_fe_problem.getNonlinearSystemBase().update();
+      std::stringstream ss;
+      std::string temp_string;
+      ss << std::setw(2) << std::setfill('0') << N;
+      temp_string = "out_" + ss.str();
+      VTKIO(get_mesh()).write_equation_systems(temp_string+".pvtu", _es);
+      // compute X norm of RB vs EIMFE error.
+      for (int i = 0; i < N; i++)
+      {
+         _RB_solution->add(get_rb_evaluation().RB_solution(i),get_rb_evaluation().get_basis_function(i));     
+      }
+      *_RB_solution-=*_EIMFEsolution;
+      get_non_dirichlet_inner_product_matrix_if_avail()->vector_mult(*inner_product_storage_vector,*(_RB_solution.get()));
+    truthError_X_norm = std::sqrt(inner_product_storage_vector->dot(*(_RB_solution.get())));
+      libMesh::out << "N = " << N << " Error = " << truthError_X_norm << "\n";
+      _RB_solution->zero();
+    }
     
-    return truthError_X_norm;
+    
   }
 
-  NumericVector<Number> * find_truth_soln(RBParameters mu)
+  void do_RB_vs_FE_Error_analysis(RBParameters mu, EquationSystems & _es)
   {
     // compute full FE solution
       std::unique_ptr<NumericVector<Number>> FullFEsolution;
@@ -156,19 +186,14 @@ Real compute_error_X_norm(NumericVector<Number> _error_vector)// Compute X inner
       
       this -> matrix -> close();
       this -> rhs -> close();
+
       
-      matrix -> add(get_rb_theta_expansion().eval_A_theta(0,mu),*get_Aq(0));
-      matrix -> add(get_rb_theta_expansion().eval_A_theta(1,mu),*get_Aq(1));
-      matrix -> add(get_rb_theta_expansion().eval_A_theta(2,mu),*get_Aq(2));
-      matrix -> add(get_rb_theta_expansion().eval_A_theta(3,mu),*get_Aq(3));
-      matrix -> add(get_rb_theta_expansion().eval_A_theta(4,mu),*get_Aq(4));
-      matrix -> add(get_rb_theta_expansion().eval_A_theta(5,mu),*get_Aq(5));
-      matrix -> add(get_rb_theta_expansion().eval_A_theta(6,mu),*get_Aq(6));
-      matrix -> add(get_rb_theta_expansion().eval_A_theta(7,mu),*get_Aq(7));
-      matrix -> add(get_rb_theta_expansion().eval_A_theta(8,mu),*get_Aq(8));
+      for (int i = 0; i < get_rb_theta_expansion().get_n_A_terms(); i++)
+        matrix -> add(get_rb_theta_expansion().eval_A_theta(i,mu),*get_Aq(i));
 
-      rhs -> add(*_nonAffineF);
-
+      for (int i = 0; i < get_rb_theta_expansion().get_n_F_terms(); i++)
+        rhs -> add(get_rb_theta_expansion().eval_F_theta(i,mu),*get_Fq(i));//*_nonAffineF);
+      
       this -> matrix -> close();
       this -> rhs -> close();
       if (extra_linear_solver)
@@ -188,8 +213,9 @@ Real compute_error_X_norm(NumericVector<Number> _error_vector)// Compute X inner
         check_convergence(*get_linear_solver());
     }
     FullFEsolution -> add(*solution);
-      
-    return FullFEsolution.get();
+    ExodusII_IO(get_mesh()).write_equation_systems ("FullFEtruth.e",
+this->get_equation_systems());
+    compute_error_X_norm_vs_N(FullFEsolution.get(), mu, _es);
   }
 
   std::unique_ptr<NumericVector<Number>> _nonAffineF; 
@@ -343,7 +369,7 @@ public:
       this->update_greedy_param_list();
 
       // Perform an Offline truth solve for the current parameter
-      truth_solve(-1);
+      truth_solve(1);
       
       // Add orthogonal part of the snapshot to the RB space
       libMesh::out << "Enriching the RB space" << std::endl;

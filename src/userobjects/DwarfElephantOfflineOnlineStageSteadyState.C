@@ -102,29 +102,19 @@ DwarfElephantOfflineOnlineStageSteadyState::transferAffineVectors()
 void
 DwarfElephantOfflineOnlineStageSteadyState::offlineStageEIM()
 {
+    for (unsigned int  _q = 0; _q != _online_mu_parameters.size(); _q++)
+    {
+        std::string  _mu_name = "mu_" + std::to_string(_q);
+        _rb_online_mu.set_value(_mu_name, _online_mu_parameters[_q]);
+    }
+
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile.open("RBGreedyOutputFile.csv");
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxErrorBound" << std::endl;
     _initialize_rb_system._rb_con_ptr->train_reduced_basis();
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile.close();
-    NumericVector<Number> *_EIMFEsolution;
-    _EIMFEsolution = _initialize_rb_system._rb_con_ptr->find_truth_soln(_rb_online_mu);
-    std::unique_ptr<NumericVector<Number>> _RB_solution;
-   _RB_solution = NumericVector<Number>::build(_initialize_rb_system._rb_con_ptr->comm());
-    _RB_solution->init (_initialize_rb_system._rb_con_ptr->n_dofs(), _initialize_rb_system._rb_con_ptr->n_local_dofs(), false, PARALLEL);
-    _RB_solution->zero();
 
     _initialize_rb_system._rb_eval_ptr ->set_parameters(_rb_online_mu);
-    for (int N = 0; N < _initialize_rb_system._rb_eval_ptr->get_n_basis_functions(); N++)
-    {
-      _initialize_rb_system._rb_eval_ptr->rb_solve(N);
-      // compute X norm of RB vs EIMFE error.
-      for (int i = 0; i < N; i++)
-      {
-         _RB_solution->add(_initialize_rb_system._rb_eval_ptr->RB_solution(i),_initialize_rb_system._rb_eval_ptr->get_basis_function(i));     
-      }
-      _RB_solution->add(-1.0,*_EIMFEsolution);
-      libMesh::out << "N = " << N << " Error = " << _initialize_rb_system._rb_con_ptr->compute_error_X_norm(*(_RB_solution.get()));
-    }
+    _initialize_rb_system._rb_con_ptr->do_RB_vs_FE_Error_analysis(_rb_online_mu, _es);
     #if defined(LIBMESH_HAVE_CAPNPROTO)
       RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
       _rb_eval_writer.write_to_file("rb_eval.bin");
@@ -150,6 +140,8 @@ DwarfElephantOfflineOnlineStageSteadyState::offlineStageRBOnly()
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxErrorBound" << std::endl;
     _initialize_rb_system._rb_con_ptr->train_reduced_basis(); //Errors are here
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile.close();
+    _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
+      _initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
     #if defined(LIBMESH_HAVE_CAPNPROTO)
       RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
       _rb_eval_writer.write_to_file("rb_eval.bin");
