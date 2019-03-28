@@ -39,52 +39,46 @@ using libMesh::RealGradient;
 using libMesh::Elem;
 using libMesh::FEBase;
 
-/*
-struct ShiftedGaussian : public RBParametrizedFunction
+
+struct ShiftedGaussianTest : public RBParametrizedFunction
 {
   virtual Number evaluate(const RBParameters & mu,
                           const Point & p,
                           const Elem & elem)
   {
     
-    Real r_0 = mu.get_value("mu_0");
-    Real l_0 = mu.get_value("mu_1");
-    Real x_prime = mu.get_value("mu_2");
-    Real y_prime = mu.get_value("mu_3");
-    Number result;
-    Number x_new, y_new, Jacobian;
-    double trafo_mat[2][2]={0}, trafo_vec[2][1]={0}, L = 4.0, r = 1.0, l = 2.0;
+    Real _needle_center_x = mu.get_value("mu_0");
+    Real _needle_center_y = mu.get_value("mu_1");
+    Real _needle_axis_theta = pi/2.0;
+    Real _needle_axis_phi = mu.get_value("mu_2");
+    
+    Real _needle_power = 1.0;
 
-    if (elem.subdomain_id() == 1)// Point p is in subdomain 1
-    {  
-       trafo_mat[0][0] = 1.0;
-       trafo_mat[0][1] = (r*2.0-r_0*2.0)/(L-l);
-       trafo_mat[1][1] = (L-l_0)/(L-l);  
-       trafo_vec[0][0] = -(L*(r-r_0))/(L-l);
-       trafo_vec[1][0] = (L*(l-l_0)*(-1.0/2.0))/(L-l);
-       x_new = trafo_mat[0][0]*p(0) + trafo_mat[0][1]*p(1) + trafo_vec[0][0];
-       y_new = trafo_mat[1][0]*p(0) + trafo_mat[1][1]*p(1) + trafo_vec[1][0];
-       Jacobian = (L-l_0)/(L - l);
-    }
-    else
-    {
-       trafo_mat[0][0] = r_0/r;
-       trafo_mat[0][1] = -(L*r-L*r_0)/(L*r-l*r);
-       trafo_mat[1][1] = (L-l_0)/(L-l);  
-       trafo_vec[0][0] = (L*(l*r-l*r_0)*(1.0/2.0))/(L*r-l*r);
-       trafo_vec[1][0] = (L*(l-l_0)*(-1.0/2.0))/(L-l);
-       x_new = trafo_mat[0][0]*p(0) + trafo_mat[0][1]*p(1) + trafo_vec[0][0];
-       y_new = trafo_mat[1][0]*p(0) + trafo_mat[1][1]*p(1) + trafo_vec[1][0];
-       Jacobian = r_0 * (L - l_0)/(r * (L - l));
-    }
-     
-    //Real center_x = mu.get_value("mu_0");
-    //Real center_y = mu.get_value("mu_1");
+ //VectorValue<Real> _X_bar(_needle_active_region_p1_x, _needle_active_region_p1_y, 0.);
+  //VectorValue<Real> _Y_bar(_needle_active_region_p2_x, _needle_active_region_p2_y, 0.);
+  VectorValue<Real> _A_bar(p(0),p(1),0.);
 
-    //return exp(-(pow(center_x-p(0),2.) + pow(center_y-p(1),2.))); //Forcing function from libMesh rb example 4
-    return exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2))) * Jacobian; // Forcing function for geometrical parametrization example
+  //VectorValue<Real> _temp_vec = _X_bar - _Y_bar;
+  //VectorValue<Real> _Z_cap = _temp_vec / _temp_vec.norm(); // Unit vector along needle
+  VectorValue<Real> _Z_cap(std::sin(_needle_axis_theta)*std::cos(_needle_axis_phi),std::sin(_needle_axis_theta)*std::sin(_needle_axis_phi),std::cos(_needle_axis_theta));
+
+  //_temp_vec = _X_bar + _Y_bar;
+  //VectorValue<Real> _O_cap = _temp_vec * 0.5; // position vector of needle center
+  VectorValue<Real> _O_cap(_needle_center_x, _needle_center_y, 0);
+
+  VectorValue<Real> _temp_vec = _A_bar - _O_cap;
+  VectorValue<Real> _r_A_bar = _temp_vec - _Z_cap * (_temp_vec * _Z_cap);
+
+  Real _r_needle = _r_A_bar.norm();
+  Real _z_needle = _temp_vec * _Z_cap; 
+
+  Real Q_G = exp(-pow(_r_needle,2)/(2. * pow(2.201e-3,2)));
+  Real _sigmoid_plus = 1./(1. + exp(-1.303e4*(_z_needle - 1.052e-2)));
+  Real _sigmoid_minus = 1./(1. + exp(-1.303e4*(_z_needle + 1.052e-2)));
+  Real P = (_needle_power * 1.383e15 * pow(_z_needle,4) + 2.624e6)*(_sigmoid_minus *(1. - _sigmoid_plus));
+  return P*Q_G;
   }
-};*/
+};
 
 // Expansion of the PDE operator
 //struct DwarfElephantEIMThetaA0 : RBTheta { virtual Number evaluate(const RBParameters &) { return 0.05;  } }; //theta_A0 for libMesh rb example 4

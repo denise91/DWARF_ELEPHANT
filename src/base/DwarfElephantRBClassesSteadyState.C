@@ -161,9 +161,10 @@ void DwarfElephantRBConstructionSteadyState::compute_Fq_representor_innerprods(b
                          << " in RBConstruction::update_residual_terms() at "
                          << Utility::get_timestamp() << std::endl;
 
+          inner_product_matrix->print_matlab("inner_product_matrix_debug.m");
+          rhs->print_matlab("rhs_debug.m");
           solve_for_matrix_and_rhs(*inner_product_solver, *inner_product_matrix, *rhs);
-          inner_product_matrix->print_matlab("inner_product_matrix.m");
-          rhs->print_matlab("rhs.m");
+          
           if (assert_convergence)
             check_convergence(*inner_product_solver);
 
@@ -259,8 +260,8 @@ DwarfElephantRBEvaluationSteadyState::DwarfElephantRBEvaluationSteadyState(const
     fe_problem(fe_problem)
 {
   //set_rb_theta_expansion(_eim_test_rb_theta_expansion);
-  set_rb_theta_expansion(_goem_2D_rb_theta_expansion);
-  //set_rb_theta_expansion(RBExpansion);
+  //set_rb_theta_expansion(_goem_2D_rb_theta_expansion);
+  set_rb_theta_expansion(RBExpansion);
 }
 
 Real

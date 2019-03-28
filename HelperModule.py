@@ -39,11 +39,11 @@ def WriteRBThetaCFile(FileName, ThetaName, ThetaDefinition):
     NewStructTheta = TempStructTheta.replace("l_0",")(*&")#"""_mu.get_value("mu_1")""")
     
     if "r" in NewStructTheta:
-     FileName.write("    double r = 0.3;\n") 
+     FileName.write("    double r = 0.03;\n") 
     if "l" in NewStructTheta:
-     FileName.write("  double  l = 0.6;\n") 
+     FileName.write("  double  l = 0.06;\n") 
     if "L" in NewStructTheta:
-     FileName.write("  double L = 1;\n")
+     FileName.write("  double L = 0.1;\n")
     if "k" in NewStructTheta:
      FileName.write("   double k = 1;\n")
     TempStructTheta = NewStructTheta.replace("!@#$","""_mu.get_value("mu_0")""")
@@ -240,8 +240,8 @@ AfterBCText = """[Problem]
   rel_training_tolerance_EIM = 1e-8
   abs_training_tolerance_EIM = 1e-8
   parameter_names_EIM = 'mu_0 mu_1 mu_2 mu_3'# mu_2'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_EIM = '0.1 0.2 -1 -1'# 0.01'
-  parameter_max_values_EIM = '0.5 1.0 -0.1 -0.1'# 1.0'
+  parameter_min_values_EIM = '0.01 0.02 -0.05 -0.05'# 0.01'
+  parameter_max_values_EIM = '0.05 0.1 0.05 0.05'# 1.0'
   #parameter_names_EIM = 'mu_0 mu_1'
   #parameter_min_values_EIM = '-1 -1'
   #parameter_max_values_EIM = '-0.01 -0.01'
@@ -254,8 +254,8 @@ AfterBCText = """[Problem]
   rel_training_tolerance_RB = 1.e-6
   abs_training_tolerance_RB = 1e-6
   parameter_names_RB = 'mu_0 mu_1 mu_2 mu_3'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_RB = '0.1 0.2 -1. -1.'
-  parameter_max_values_RB = '0.5 1.0 -0.1 -0.1'
+  parameter_min_values_RB = '0.01 0.02 -0.05 -0.05'
+  parameter_max_values_RB = '0.05 0.1 0.05 0.05'
   #parameter_names_RB = 'mu_0 mu_1'
   #parameter_min_values_RB = '-1 -1'
   #parameter_max_values_RB = '-0.01 -0.01'
@@ -272,7 +272,7 @@ AfterBCText = """[Problem]
 [./performRBSystem ]
   type = DwarfElephantOfflineOnlineStageSteadyState
   #online_stage = true
-  online_mu = '0.3 0.6 -0.6 -0.3'
+  online_mu = '0.3 0.6 -0.04 -0.04'
   online_N = 40
   #offline_stage = false
   execute_on = 'timestep_end'

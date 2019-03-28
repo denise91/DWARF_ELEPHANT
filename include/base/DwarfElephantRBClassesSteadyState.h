@@ -69,7 +69,7 @@ struct CustomRBTheta : RBTheta
 {
 	virtual Number evaluate(const RBParameters &_mu)
 	{
-		return 1;//_mu.get_value("mu_0");
+		return _mu.get_value("mu_0");
 	}
 };
 
@@ -81,7 +81,7 @@ struct CustomRBThetaExpansion : RBThetaExpansion
     
     attach_A_theta(&_rb_theta);
     attach_A_theta(&_rb_theta);
-    attach_F_theta(&_rb_theta);
+    //attach_F_theta(&_rb_theta);
 
     //attach_output_theta(&_rb_theta);
 
@@ -239,8 +239,8 @@ public:
 
   FEProblemBase & fe_problem;
   //DwarfElephantEIMTestRBThetaExpansion _eim_test_rb_theta_expansion;
-  Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
-  //CustomRBThetaExpansion RBExpansion;
+  //Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
+  CustomRBThetaExpansion RBExpansion;
 };
 
 
@@ -252,7 +252,7 @@ public:
   
   virtual ~DwarfElephantEIMEvaluationSteadyState() {}
 
-  ShiftedGaussian sg;
+  ShiftedGaussianTest sg;
 };
 
 // A simple subclass of RBEIMConstruction.
@@ -363,7 +363,7 @@ public:
 
       libMesh::out << "Performing truth solve at parameter:" << std::endl;
       print_parameters();
-      GreedyOutputFile << get_parameters().get_value("mu_0") << ", " << get_parameters().get_value("mu_1") << ", " << training_greedy_error << std::endl; 
+      //GreedyOutputFile << get_parameters().get_value("mu_0") << ", " << get_parameters().get_value("mu_1") << ", " << training_greedy_error << std::endl; 
       
       // Update the list of Greedily selected parameters
       this->update_greedy_param_list();

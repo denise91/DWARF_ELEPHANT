@@ -117,7 +117,7 @@ with open(RBThetaExpansionCFileName,"w") as RBThetaExpansionCFile: # write RB th
 
 # Write input file using the kernel list and BC list
 InputFileName = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/RFAModel2D.i"
-MeshFile = "RFAGeom2D_L1_r3e-1_l6e-1.msh"
+MeshFile = "RFAGeom2D_L1e-1_r3e-2_l6e-2.msh"
 
 PreKernelText = """[Mesh]
  file = """+MeshFile+"""

@@ -68,6 +68,7 @@ DwarfElephantOfflineOnlineStageSteadyState::setAffineMatrices()
     {
       //_rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // for EIM example in Martin's publication
       _initialize_rb_system._jacobian_subdomain[_q] ->close();
+      _initialize_rb_system._inner_product_matrix->add(_mu_bar, *_initialize_rb_system._jacobian_subdomain[_q]);
     }
 
 }
@@ -140,8 +141,8 @@ DwarfElephantOfflineOnlineStageSteadyState::offlineStageRBOnly()
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxErrorBound" << std::endl;
     _initialize_rb_system._rb_con_ptr->train_reduced_basis(); //Errors are here
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile.close();
-    _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
-      _initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
+    //_initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
+      //_initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
     #if defined(LIBMESH_HAVE_CAPNPROTO)
       RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
       _rb_eval_writer.write_to_file("rb_eval.bin");
