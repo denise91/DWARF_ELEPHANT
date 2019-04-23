@@ -139,16 +139,19 @@ DwarfElephantOfflineOnlineStageSteadyState::offlineStageRBOnly()
 {
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile.open("RBGreedyOutputFile.csv");
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxErrorBound" << std::endl;
-    _initialize_rb_system._rb_con_ptr->train_reduced_basis(); //Errors are here
+    _initialize_rb_system._rb_con_ptr->train_reduced_basis(); 
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile.close();
     //_initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
       //_initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
     #if defined(LIBMESH_HAVE_CAPNPROTO)
       RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
       _rb_eval_writer.write_to_file("rb_eval.bin");
+     // RBDataSerialization::RBSCMEvaluationSerialization _rb_scm_eval_writer (_initialize_rb_system._rb_scm_con_ptr->get_rb_scm_evaluation());
+     // _rb_scm_eval_writer.write_to_file("rb_scm_eval.bin");
     #else
       // Write the offline data to file (xdr format).
       _initialize_rb_system._rb_con_ptr->get_rb_evaluation().legacy_write_offline_data_to_files("offline_data");
+     // _initialize_rb_system._rb_scm_con_ptr->get_rb_scm_evaluation().legacy_write_offline_data_to_files("scm_data");
     #endif
 
     // If desired, store the basis functions (xdr format).
@@ -241,8 +244,11 @@ void DwarfElephantOfflineOnlineStageSteadyState::onlineStageRBOnly()
       #if defined(LIBMESH_HAVE_CAPNPROTO)
       RBDataSerialization::RBEvaluationDeserialization rb_eval_reader(_initialize_rb_system._rb_con_ptr -> get_rb_evaluation());
       rb_eval_reader.read_from_file("rb_eval.bin");
+     // RBDataDeserialization::RBSCMEvaluationDeserialization rb_scm_eval_reader(_initialize_rb_system._rb_scm_con_ptr->get_rb_scm_evaluation());
+    //  rb_scm_eval_reader.read_from_file("rb_scm_eval.bin");
       #else
       _initialize_rb_system._rb_con_ptr -> get_rb_evaluation().legacy_read_offline_data_from_files("offline_data");
+     // _initialize_rb_system._rb_scm_con_ptr -> get_rb_scm_evaluation().legacy_read_offline_data_from_files("scm_data");
       #endif
 
       setOnlineParameters();

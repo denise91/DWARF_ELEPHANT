@@ -13,6 +13,7 @@
 #include "libmesh/petsc_matrix.h"
 #include "libmesh/petsc_vector.h"
 
+
 // MOOSE includes
 #include "GeneralUserObject.h"
 #include "DisplacedProblem.h"
@@ -31,6 +32,9 @@ namespace libMesh
   template <typename T> class SparseMatrix;
   template <typename T> class PetscMatrix;
   template <typename T> class PetscVector;
+  
+  class RBSCMEvaluation;
+  class RBSCMConstruction;
 }
 
 class MooseMesh;
@@ -65,14 +69,17 @@ class DwarfElephantInitializeRBSystemSteadyState :
       // Delete statements added to prevent memory leaks
       if (_use_EIM) { delete _eim_eval_ptr;}
       delete _rb_eval_ptr;
+      delete _hp_eim_tree_ptr;
     }
     // Initializes all required matrices and vectors for the RB solve.
     void initializeOfflineStage();
     void initializeOfflineStageEIM();
+    void initialize_hp_EIM();
     void initializeOfflineStageRBOnly();
     
     void processEIMParameters();
     void processRBParameters() const;
+    //void processSCMParameters();
     void initializeEIM();
     void initializeRBOnly();
     void AssignAffineMatricesAndVectors() const;
@@ -130,6 +137,8 @@ class DwarfElephantInitializeRBSystemSteadyState :
     DwarfElephantEIMConstructionSteadyState * _eim_con_ptr;
     DwarfElephantRBEvaluationSteadyState *_rb_eval_ptr;
     DwarfElephantEIMEvaluationSteadyState *_eim_eval_ptr;
+    //RBSCMConstruction *_rb_scm_con_ptr;
+    //RBSCMEvaluation *_rb_scm_eval_ptr;
 
     SparseMatrix <Number> * _inner_product_matrix_eim;
 
@@ -159,9 +168,22 @@ class DwarfElephantInitializeRBSystemSteadyState :
   std::vector<Real> _continuous_parameter_min_values_RB;
   std::vector<Real> _continuous_parameter_max_values_RB;
 
+    //unsigned int _training_parameters_random_seed_SCM;
+    
+    //Real _training_tolerance_SCM;
+    //std::vector<std::string> _continuous_parameters_SCM;
+    //std::vector<Real> _continuous_parameter_min_values_SCM;
+    //std::vector<Real> _continuous_parameter_max_values_SCM;
+    //std::vector<std::string> _discrete_parameters_SCM;
+    //std::map<std::string,std::vector<Real>> _discrete_parameter_values_SCM;
+    //std::vector<Real> _discrete_parameter_values_in_SCM;
+
   mutable SparseMatrix <Number> * _RB_inner_product_matrix; // To test against EIM example from Martin's publication
   mutable NumericVector<Number> * _fullFEnonAffineF;
 
+    DwarfElephanthpEIMM_aryTree *_hp_eim_tree_ptr;
+    EIM_input_data _eim_data_in;
+    
     /*Friend Classes*/
     friend class DwarfElephantRBKernel;
     friend class DwarfElephantFTestKernel;

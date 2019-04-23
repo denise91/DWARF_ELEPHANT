@@ -1,7 +1,7 @@
  ///-------------------------------------------------------------------------
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantInitializeRBSystemSteadyState.h"
-
+#include <chrono>
 template<>
 InputParameters validParams<DwarfElephantInitializeRBSystemSteadyState>()
 {
@@ -45,6 +45,14 @@ InputParameters validParams<DwarfElephantInitializeRBSystemSteadyState>()
   params.addParam<std::vector<std::string>>("discrete_parameter_names_RB", "Discrete parameter names for the RB method.");
   params.addParam<std::vector<Real>>("discrete_parameter_values_RB", "Defines the list of discrete RB parameter values.");
   params.addParam<std::string>("system","rb0","The name of the system that should be read in.");
+  
+  //params.addParam<unsigned int>("training_parameters_random_seed_SCM",-1,"Defines the random seed for the generation of the RB training set.");
+  //params.addParam<Real>("training_tolerance_SCM",1e-5,"Determines the training tolerance for the SCM greedy");
+  //params.addRequiredParam<std::vector<std::string>>("parameter_names_SCM","Parameter names for SCM");
+  //params.addRequiredParam<std::vector<Real>>("parameter_min_values_SCM","Parameter minimum values for SCM");
+  //params.addRequiredParam<std::vector<Real>>("parameter_max_values_SCM","Parameter maximum values for SCM");
+  //params.addParam<std::vector<std::string>>("discrete_parameters_names_SCM","Names of discrete parameters for SCM.");
+  //params.addParam<std::vector<Real>>("discrete_parameter_values_SCM","Discrete parameter values for SCM.");
 
   return params;
 }
@@ -86,7 +94,12 @@ DwarfElephantInitializeRBSystemSteadyState::DwarfElephantInitializeRBSystemStead
   _rel_training_tolerance_RB(getParam<Real>("rel_training_tolerance_RB")),
   _abs_training_tolerance_RB(getParam<Real>("abs_training_tolerance_RB")),
   _continuous_parameter_min_values_RB(getParam<std::vector<Real>>("parameter_min_values_RB")),
-  _continuous_parameter_max_values_RB(getParam<std::vector<Real>>("parameter_max_values_RB"))
+  _continuous_parameter_max_values_RB(getParam<std::vector<Real>>("parameter_max_values_RB"))//,
+  //_training_parameters_random_seed_SCM(getParam<unsigned int>("training_parameters_random_seed_SCM")),
+  //_training_tolerance_SCM(getParam<Real>("training_tolerance_SCM")),
+  //_continuous_parameters_SCM(getParam<std::vector<std::string>>("parameter_names_SCM")),
+  //_continuous_parameter_min_values_SCM(getParam<std::vector<Real>>("parameter_min_values_SCM")),
+ // _continuous_parameter_max_values_SCM(getParam<std::vector<Real>>("parameter_max_values_SCM"))
 {
   if (_use_EIM)
   {
@@ -97,6 +110,19 @@ DwarfElephantInitializeRBSystemSteadyState::DwarfElephantInitializeRBSystemStead
     mooseError("UserObject DwarfElephantInitializeRBSystemSteadyState: _use_EIM flag must be set to true in input file");
 
   std::cout << "Created initialize_rb_system object " << DwarfElephantInitializeRBSystemSteadyState::name() << std::endl;
+  
+  _eim_data_in._N_max = _N_max_EIM;
+  _eim_data_in._abs_tol = _rel_training_tolerance_EIM;
+  _eim_data_in._best_fit_type = _best_fit_type_EIM;
+  _eim_data_in._cont_param = _continuous_parameters_EIM;
+  _eim_data_in._cont_param_max = _continuous_parameter_max_values_EIM;
+  _eim_data_in._cont_param_min = _continuous_parameter_min_values_EIM;
+  _eim_data_in._deterministic_training = _deterministic_training_EIM;
+  _eim_data_in._n_training_samples = _n_training_samples_EIM;
+  _eim_data_in._normalize_bound = _normalize_EIM_bound_in_greedy;
+  _eim_data_in._quiet_mode = _quiet_mode_EIM;
+  _eim_data_in._rel_tol = _rel_training_tolerance_EIM;
+  _eim_data_in._training_random_seed = _training_parameters_random_seed_EIM;
 }
 
 void
@@ -210,7 +236,65 @@ DwarfElephantInitializeRBSystemSteadyState::processRBParameters() const
                                                _deterministic_training_RB);
  
 }
+/*
+void
+DwarfElephantInitializeRBSystemSteadyState::processSCMParameters()
+{
 
+  // End setting parameter values for the RB construction object
+  // Set the random seed for the RNG. By default -1 is set, meaning that std::time is used as a seed for the RNG.
+  _rb_scm_con_ptr->set_training_random_seed(_training_parameters_random_seed_SCM);
+
+
+  // Initialization of the SCM parameters.
+
+  _rb_scm_con_ptr->set_SCM_training_tolerance(_training_tolerance_SCM);
+
+  RBParameters _mu_min_SCM;
+  RBParameters _mu_max_SCM;
+
+  for (unsigned int i=0; i<_continuous_parameters_SCM.size(); i++)
+  {
+    _mu_min_SCM.set_value(_continuous_parameters_SCM[i], _continuous_parameter_min_values_SCM[i]);
+    _mu_max_SCM.set_value(_continuous_parameters_SCM[i], _continuous_parameter_max_values_SCM[i]);
+  }
+
+  for (unsigned int i=0; i<_discrete_parameters_SCM.size(); i++)
+  {
+    _discrete_parameter_values_SCM[_discrete_parameters_SCM[i]] = _discrete_parameter_values_in_SCM;
+  }
+/*
+  std::map<std::string,bool> _log_scaling;
+  RBParameters::const_iterator it     = _mu_min_RB.begin();
+  RBParameters::const_iterator it_end = _mu_min_RB.end();
+  for ( ; it != it_end; ++it)
+    {
+      std::string _param_name = it->first;
+
+      // For now, just set all entries to false.
+      // TODO: Implement a decent way to specify log-scaling true/false
+      // in the input text file
+      _log_scaling[_param_name] = false;
+    }
+*/ /*
+   _rb_scm_con_ptr->initialize_parameters(_mu_min_SCM, _mu_max_SCM, _discrete_parameter_values_SCM);
+
+   std::map<std::string,bool> log_scaling;
+   const RBParameters & mu = _rb_scm_con_ptr->get_parameters();
+   unsigned int i = 0;
+   for (const auto & pr : mu)
+     {
+       const std::string & param_name = pr.first;
+       log_scaling[param_name] = false;
+     }
+
+   _rb_scm_con_ptr->initialize_training_parameters(_rb_scm_con_ptr->get_parameters_min(),
+                                               _rb_scm_con_ptr->get_parameters_max(),
+                                               _n_training_samples_SCM,
+                                               _log_scaling_SCM,
+                                               _deterministic_training_SCM);
+ 
+}*/
 
 void DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStageEIM()
 {
@@ -230,7 +314,9 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStageEIM()
    
 
   // Print the system informations for the RBConstruction system.
-  _eim_con_ptr->print_info(); 
+  _eim_con_ptr->print_info();
+  //_hp_eim_bt_ptr = new DwarfElephanthpEIMBinaryTree(0,0,1.0,0.4);
+  
 }
 
 void DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStageRBOnly()
@@ -239,16 +325,22 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStageRBOnly()
   // offline stage
 
   //libMesh way: //  _rb_con_ptr->process_parameters_file(_parameters_filename);
-  processRBParameters(); // sets parameter values for the EIM construction object
-  _rb_con_ptr->print_info();
-  _rb_con_ptr->initialize_rb_construction(_skip_matrix_assembly_in_rb_system,_skip_vector_assembly_in_rb_system);
+  processRBParameters(); // sets parameter values for the RB construction object
+  // processEIMParameters(); // sets parameter values for the SCM construction object
+  //processSCMParameters();
 
+  _rb_con_ptr->print_info();
+  //_rb_scm_con_ptr->print_info();
+
+  _rb_con_ptr->initialize_rb_construction(_skip_matrix_assembly_in_rb_system,_skip_vector_assembly_in_rb_system);
+  
 
   AssignAffineMatricesAndVectors();
    
 
   // Print the system informations for the RBConstruction system.
   _rb_con_ptr->print_info(); 
+  //_rb_scm_con_ptr->perform_SCM_greedy();
 }
 
 void DwarfElephantInitializeRBSystemSteadyState::initializeEIM()
@@ -261,21 +353,23 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeEIM()
   _eim_con_ptr = &_es.add_system<DwarfElephantEIMConstructionSteadyState>("EIMSystem");
   _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState> ("RBSystem");
 
+
   // Intialization of the added equation system
   _eim_con_ptr->init();
   _eim_con_ptr->get_explicit_system().init();
   _rb_con_ptr->init();
   _es.update();
 
-  //DwarfElephantRBEvaluationSteadyState _rb_eval(_mesh_ptr->comm(), _fe_problem);
-  //DwarfElephantEIMEvaluationSteadyState _eim_eval(_mesh_ptr->comm(), _fe_problem);
   _rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
   _eim_eval_ptr = new DwarfElephantEIMEvaluationSteadyState(_mesh_ptr->comm());
-
+  
   // Pass a pointer of the RBEvaluation object to the
   // RBConstruction object
   _eim_con_ptr->set_rb_evaluation(*_eim_eval_ptr);
   _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);
+
+
+  
 }
 
 void DwarfElephantInitializeRBSystemSteadyState::initializeRBOnly()
@@ -286,23 +380,54 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeRBOnly()
   std::cout << "Starting InitializeRB::initialize()" << std::endl;
   // Add a new equation system for the RB construction.
   _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState> ("RBSystem");
+  //_rb_scm_con_ptr = &_es.add_system<RBSCMConstruction>("RBConvectionDiffusion");
+  //_rb_scm_con_ptr->set_RB_system_name("RBConvectionDiffusion");
+  //_rb_scm_con_ptr->add_variable("p",FIRST);
 
   // Intialization of the added equation system
   _rb_con_ptr->init();
   _es.update();
 
-  //DwarfElephantRBEvaluationSteadyState _rb_eval(_mesh_ptr->comm(), _fe_problem);
-  //DwarfElephantEIMEvaluationSteadyState _eim_eval(_mesh_ptr->comm(), _fe_problem);
+  //_es.parameters.set<unsigned int>("eigenpairs") = 1;
+  //_es.parameters.set<unsigned int>("basis vectors") = 1;
+  //_es.parameters.set<unsigned int>("linear solver maximum iterations") = 1000;
+
   _rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
 
   _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);
+
+  //_rb_scm_eval_ptr = new RBSCMEvaluation(_mesh_ptr->comm());
+  //_rb_scm_eval_ptr->set_rb_theta_expansion(_rb_eval_ptr->get_rb_theta_expansion());
+
+  //_rb_eval_ptr->rb_scm_eval = &(*_rb_scm_eval_ptr);
+  //_rb_scm_con_ptr->set_rb_scm_evaluation(rb_scm_eval);
+}
+
+void
+DwarfElephantInitializeRBSystemSteadyState::initialize_hp_EIM()
+{
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    _hp_eim_tree_ptr= new DwarfElephanthpEIMM_aryTree(_es, _mesh_ptr, _eim_data_in);
+      std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+
+    std::cout << "Time spent in hp eim tree initialization " << duration << std::endl;
 }
 
 void
 DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStage() // make new initializeOfflineStageEIM() and initializeOfflineStageRB() functions and use them with if conditions
 {
   if (_use_EIM)
-    initializeOfflineStageEIM();
+  {
+      std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+      initializeOfflineStageEIM();
+      std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+      std::cout << "Time spent in standard EIM construction initialization " << duration << std::endl;
+      
+      initialize_hp_EIM();
+  }
+  
   else
     initializeOfflineStageRBOnly();
 }
@@ -311,7 +436,13 @@ void
 DwarfElephantInitializeRBSystemSteadyState::initialize() // Make new initializeEIM() initializeRB() functions that can be called depending on whether we need EIM or not.
 {
   if (_use_EIM)
-    initializeEIM();
+  {    
+      std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+      initializeEIM();
+      std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+      std::cout << "Time spent in standard EIM construction allocation " << duration << std::endl;
+  }
   else
      initializeRBOnly();
 

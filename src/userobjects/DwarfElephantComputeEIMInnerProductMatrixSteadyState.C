@@ -1,7 +1,7 @@
 #include "DwarfElephantComputeEIMInnerProductMatrixSteadyState.h"
 #include "DwarfElephantInitializeRBSystemSteadyState.h"
 #include "DwarfElephantAppTypes.h"
-
+#include <chrono>
 //#include "libmesh/quadrature.h"
 
 template <>
@@ -47,7 +47,9 @@ DwarfElephantComputeEIMInnerProductMatrixSteadyState::execute()
       _local_ke(_i, _j) += computeIntegral(_i, _j);
 
   if (_initialize_rb_system._offline_stage)
+  {
       _initialize_rb_system._inner_product_matrix_eim -> add_matrix(_local_ke, _var.dofIndices());
+  }
   // make provision for modifying diagonal values, if required
 }
 
@@ -82,9 +84,15 @@ void DwarfElephantComputeEIMInnerProductMatrixSteadyState::finalize()
   if (_initialize_rb_system._offline_stage)
   {
     _initialize_rb_system._inner_product_matrix_eim -> close();
+    _initialize_rb_system._inner_product_matrix_eim -> print_matlab("eim_inner_product_matrix_check.m");
     _initialize_rb_system._eim_con_ptr->GreedyOutputFile.open("EIMGreedyOutputFile.csv");
     _initialize_rb_system._eim_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxGreedyError" << std::endl;
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     _initialize_rb_system._eim_con_ptr->train_reduced_basis();
+    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+
+    std::cout << "Time spent in standard eim train_reduced_basis() : " << duration << std::endl;
     _initialize_rb_system._eim_con_ptr->GreedyOutputFile.close();
     #if defined(LIBMESH_HAVE_CAPNPROTO)
       RBDataSerialization::RBEvaluationSerialization rb_eim_eval_writer(*(_initialize_rb_system._eim_eval_ptr));
@@ -105,5 +113,14 @@ void DwarfElephantComputeEIMInnerProductMatrixSteadyState::finalize()
     // Train reduced basis will be called after the kernel assembles the RB affine matrices and vectors
   
     _initialize_rb_system.AssignAffineMatricesAndVectors();
+    
+
+    t1 = std::chrono::high_resolution_clock::now();
+    _initialize_rb_system._hp_eim_tree_ptr->train_reduced_basis(_initialize_rb_system._es, _initialize_rb_system._mesh_ptr,_initialize_rb_system._inner_product_matrix_eim);
+    t2 = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+
+    std::cout << "Time spent in hp eim tree train_reduced_basis() : " << duration << std::endl;
+    _initialize_rb_system._hp_eim_tree_ptr->print_info();
   }
 }

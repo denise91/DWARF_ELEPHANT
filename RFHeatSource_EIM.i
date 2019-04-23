@@ -2,12 +2,12 @@
  #file = RFAGeom2D_L1e-1_r3e-2_l6e-2.msh
  type = GeneratedMesh
  nx = 100
- ny = 100
+ #ny = 10
  xmin = -0.05
  xmax = 0.05
- ymin = -0.05
- ymax = 0.05
- dim = 2
+ #ymin = -0.05
+ #ymax = 0.05
+ dim = 1#2
 []
 
 [Variables]
@@ -69,7 +69,7 @@
 [BCs]
 [./Convection_BC]
   type = DwarfElephantRBPenaltyDirichletBC
-  boundary = 'left right top bottom'#'11 12 13 14'
+  boundary = 'left right'# top bottom'#'11 12 13 14'
   ID_Aq = 1#2
   value = 0
   penalty = 6.0
@@ -96,24 +96,24 @@
 [./initializeRBSystem]
   type = DwarfElephantInitializeRBSystemSteadyState
   use_EIM = true
-  N_max_EIM = 90
-  n_training_samples_EIM = 100
-  rel_training_tolerance_EIM = 1e-3
+  N_max_EIM = 5
+  n_training_samples_EIM = 15
+  rel_training_tolerance_EIM = 1e-1
   #abs_training_tolerance_EIM = 1e-8
-  parameter_names_EIM = 'mu_0 mu_1 mu_2' #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_EIM = '-0.05 -0.05 0.'
-  parameter_max_values_EIM = '0.05 0.05 3.14'
+  parameter_names_EIM = 'mu_0'# mu_1 mu_2' #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
+  parameter_min_values_EIM = '-0.05'# -0.05 0.'
+  parameter_max_values_EIM = '0.05'# 0.05 3.14'
   deterministic_training_EIM = false
   best_fit_type_EIM = projection
   execute_on = 'initial'
-  N_max_RB = 10
+  N_max_RB = 5
   #offline_stage = false
-  n_training_samples_RB = 30
+  n_training_samples_RB = 15
   rel_training_tolerance_RB = 1e-2
   #abs_training_tolerance_RB = 1e-6
-  parameter_names_RB = 'mu_0 mu_1 mu_2' #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_RB = '-0.05 -0.05 0.'
-  parameter_max_values_RB = '0.05 0.05 3.14'
+  parameter_names_RB = 'mu_0'# mu_1 mu_2' #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
+  parameter_min_values_RB = '-0.05'# -0.05 0.'
+  parameter_max_values_RB = '0.05'# 0.05 3.14'
   deterministic_training_RB = false
   normalize_rb_bound_in_greedy = false
 [../]
@@ -127,7 +127,7 @@
 [./performRBSystem ]
   type = DwarfElephantOfflineOnlineStageSteadyState
   #online_stage = true
-  online_mu = '-0.029 -0.021 0.1'
+  online_mu = '-0.029'# -0.021 0.1'
   online_N = 40
   #offline_stage = false
   execute_on = 'timestep_end'
