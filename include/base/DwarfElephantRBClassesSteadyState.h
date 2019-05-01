@@ -19,7 +19,7 @@
 
 ///---------------------------------INCLUDES--------------------------------
 //#if defined(LIBMESH_HAVE_SLEPC) && defined(LIBMESH_HAVE_GLPK)
-
+#include <boost/version.hpp>
 #include <fstream>
 #include <limits>
 #include <bitset>
@@ -472,25 +472,28 @@ class DwarfElephanthpEIMNode
     system_name(system_name),
     system_name_suffix(system_name_suffix)
     {
-      for (unsigned int i = 0; i < number_of_subdomains; i++)
-        children.push_back(NULL);
+        _eim_con_ptr =  &_es.add_system<DwarfElephantEIMConstructionSteadyState>(system_name + system_name_suffix);
 
-      _eim_con_ptr =  &_es.add_system<DwarfElephantEIMConstructionSteadyState>(system_name + system_name_suffix);
-      _eim_con_ptr->init();
-      _eim_con_ptr->get_explicit_system().init();
-      _es.update();
-      _eim_eval_ptr = new DwarfElephantEIMEvaluationSteadyState(_mesh_ptr->comm());
+        _eim_con_ptr->init();
+        _eim_con_ptr->get_explicit_system().init();
+        _es.update();
+        _eim_eval_ptr = new DwarfElephantEIMEvaluationSteadyState(_mesh_ptr->comm());
   
-      // Pass a pointer of the RBEvaluation object to the
-      // RBConstruction object
-      _eim_con_ptr->set_rb_evaluation(*_eim_eval_ptr);
+        // Pass a pointer of the RBEvaluation object to the
+        // RBConstruction object
+        _eim_con_ptr->set_rb_evaluation(*_eim_eval_ptr);
 
+        
 
-      _eim_data_child = _eim_data_in;
-      initialize_EIM_parameters(_eim_data_in);
-      _eim_con_ptr->initialize_rb_construction(true,true);
+        _eim_data_child = _eim_data_in;
+        initialize_EIM_parameters(_eim_data_in);
+        _eim_con_ptr->initialize_rb_construction(true,true);
  
-      set_gravity_center();
+        set_gravity_center();
+      
+        children.reserve(number_of_subdomains);
+        for (unsigned int i = 0; i < number_of_subdomains; i++)
+          children[i] = (NULL);
     }
 
     //initialize_EIM_parameters: initializes the parameters in the rb_eim_con and rb_eim_eval objects using data from the input file (through _eim_data_in)
@@ -738,6 +741,7 @@ class DwarfElephanthpEIMNode
     DwarfElephantEIMConstructionSteadyState * _eim_con_ptr;
     DwarfElephantEIMEvaluationSteadyState * _eim_eval_ptr; //contains greedy_param_list
     std::vector<DwarfElephanthpEIMNode*> children;
+    //DwarfElephanthpEIMNode * children;
     unsigned int number_of_params = -1, number_of_subdomains = -1;
     std::vector<double> gravity_center, param_domain_min, param_domain_max;
     Real EIM_error;
@@ -767,7 +771,12 @@ class DwarfElephanthpEIMM_aryTree
     max_leaf_EIM_error(std::numeric_limits<double>::infinity()),
     num_EIM_bases(-1)
     {
+        std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+        std::cout << "Starting root node creation" << std::endl;
         root = new DwarfElephanthpEIMNode(_es, _mesh_ptr, "hp_EIM_System", "_0", _eim_data_in);
+        std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+        std::cout << "Time spent in root node creation" << duration << std::endl;
     }
 
     // train hp EIM basis
@@ -862,6 +871,8 @@ class DwarfElephanthpEIMM_aryTree
       std::cout << "max. leaf EIM basis size = " << max_leaf_EIM_basis_size << std::endl;
       std::cout << "number of EIM approximations = " << num_EIM_bases << std::endl;
       root->print_node();
+      std::cout << "Using BOOST "
+                << BOOST_VERSION << std::endl;
     }
 
     // destructor

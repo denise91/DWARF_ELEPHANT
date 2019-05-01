@@ -348,7 +348,8 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeEIM()
     // Define the parameter file for the libMesh functions.
   // In our case not required, because the read-in is done via the MOOSE inputfile.
   // GetPot infile (_parameters_filename);
-  std::cout << "Starting InitializeRB::initialize()" << std::endl;
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+  std::cout << "Starting InitializeEIM eim and rb con creation" << std::endl;
   // Add a new equation system for the RB construction.
   _eim_con_ptr = &_es.add_system<DwarfElephantEIMConstructionSteadyState>("EIMSystem");
   _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState> ("RBSystem");
@@ -359,7 +360,12 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeEIM()
   _eim_con_ptr->get_explicit_system().init();
   _rb_con_ptr->init();
   _es.update();
-
+std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+    std::cout << "Time spent in eim and rb con creation" << duration << std::endl;
+    
+    t1 = std::chrono::high_resolution_clock::now();
+  std::cout << "Starting eval objects allocation" << std::endl;
   _rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
   _eim_eval_ptr = new DwarfElephantEIMEvaluationSteadyState(_mesh_ptr->comm());
   
@@ -367,9 +373,9 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeEIM()
   // RBConstruction object
   _eim_con_ptr->set_rb_evaluation(*_eim_eval_ptr);
   _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);
-
-
-  
+t2 = std::chrono::high_resolution_clock::now();
+duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+  std::cout << "Time spent in eval objects creation" << duration << std::endl;
 }
 
 void DwarfElephantInitializeRBSystemSteadyState::initializeRBOnly()
