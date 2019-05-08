@@ -97,23 +97,23 @@
   type = DwarfElephantInitializeRBSystemSteadyState
   use_EIM = true
   N_max_EIM = 5
-  n_training_samples_EIM = 15
+  n_training_samples_EIM = 30
   rel_training_tolerance_EIM = 1e-1
   #abs_training_tolerance_EIM = 1e-8
-  parameter_names_EIM = 'mu_0'# mu_1 mu_2' #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_EIM = '-0.05'# -0.05 0.'
-  parameter_max_values_EIM = '0.05'# 0.05 3.14'
+  parameter_names_EIM = 'mu_0 mu_1'# mu_2' #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
+  parameter_min_values_EIM = '-0.05 1e-4'# -0.05 0.'
+  parameter_max_values_EIM = '0.05 1e-3'# 0.05 3.14'
   deterministic_training_EIM = false
   best_fit_type_EIM = projection
   execute_on = 'initial'
-  N_max_RB = 5
+  N_max_RB = 7
   #offline_stage = false
-  n_training_samples_RB = 15
+  n_training_samples_RB = 30
   rel_training_tolerance_RB = 1e-2
   #abs_training_tolerance_RB = 1e-6
-  parameter_names_RB = 'mu_0'# mu_1 mu_2' #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_RB = '-0.05'# -0.05 0.'
-  parameter_max_values_RB = '0.05'# 0.05 3.14'
+  parameter_names_RB = 'mu_0 mu_1'# mu_2' #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
+  parameter_min_values_RB = '-0.05 1e-4'# -0.05 0.'
+  parameter_max_values_RB = '0.05 1e-3'# 0.05 3.14'
   deterministic_training_RB = false
   normalize_rb_bound_in_greedy = false
 [../]
@@ -122,12 +122,13 @@
   type = DwarfElephantComputeEIMInnerProductMatrixSteadyState
   execute_on = "EIM"
   initialize_rb_userobject = initializeRBSystem
+  use_hp_EIM = true
 [../]
 
 [./performRBSystem ]
   type = DwarfElephantOfflineOnlineStageSteadyState
   #online_stage = true
-  online_mu = '-0.029'# -0.021 0.1'
+  online_mu = '-0.029 5e-4'# -0.021 0.1'
   online_N = 40
   #offline_stage = false
   execute_on = 'timestep_end'

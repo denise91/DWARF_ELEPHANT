@@ -123,6 +123,18 @@ DwarfElephantInitializeRBSystemSteadyState::DwarfElephantInitializeRBSystemStead
   _eim_data_in._quiet_mode = _quiet_mode_EIM;
   _eim_data_in._rel_tol = _rel_training_tolerance_EIM;
   _eim_data_in._training_random_seed = _training_parameters_random_seed_EIM;
+  
+  _rb_data_in._N_max = _N_max_RB;
+  _rb_data_in._abs_tol = _rel_training_tolerance_RB;
+  _rb_data_in._cont_param = _continuous_parameters_RB;
+  _rb_data_in._cont_param_max = _continuous_parameter_max_values_RB;
+  _rb_data_in._cont_param_min = _continuous_parameter_min_values_RB;
+  _rb_data_in._deterministic_training_RB = _deterministic_training_RB;
+  _rb_data_in._n_training_samples = _n_training_samples_RB;
+  _rb_data_in._normalize_RB_bound_in_greedy = _normalize_RB_bound_in_greedy;
+  _rb_data_in._quiet_mode_RB = _quiet_mode_RB;
+  _rb_data_in._rel_tol = _rel_training_tolerance_RB;
+  _rb_data_in._training_random_seed = _training_parameters_random_seed_RB;
 }
 
 void
@@ -413,7 +425,7 @@ void
 DwarfElephantInitializeRBSystemSteadyState::initialize_hp_EIM()
 {
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-    _hp_eim_tree_ptr= new DwarfElephanthpEIMM_aryTree(_es, _mesh_ptr, _eim_data_in);
+    _hp_eim_tree_ptr= new DwarfElephanthpEIMM_aryTree(_es, _mesh_ptr, _eim_data_in, "offline");
       std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
 

@@ -23,7 +23,8 @@
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantSystem.h"
 #include "DwarfElephantRBClassesSteadyState.h"
-
+#include <boost/lexical_cast.hpp>
+#include<sstream>
 ///-------------------------------------------------------------------------
 // Forward Declarations
 namespace libMesh
@@ -93,7 +94,10 @@ class DwarfElephantInitializeRBSystemSteadyState :
     // Method not used in this UserObject.
     virtual void finalize() override;
 
-   std::vector<std::vector<NumericVector <Number> *> > getOutputs() const;
+    std::vector<std::vector<NumericVector <Number> *> > getOutputs() const;
+    
+
+   
 //--------------------------------PROTECTED---------------------------------
   protected:
 
@@ -183,6 +187,7 @@ class DwarfElephantInitializeRBSystemSteadyState :
 
     DwarfElephanthpEIMM_aryTree *_hp_eim_tree_ptr;
     EIM_input_data _eim_data_in;
+    RB_input_data _rb_data_in;
     
     /*Friend Classes*/
     friend class DwarfElephantRBKernel;
