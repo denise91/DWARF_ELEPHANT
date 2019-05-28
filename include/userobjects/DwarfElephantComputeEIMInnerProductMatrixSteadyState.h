@@ -47,7 +47,6 @@ protected:
 
   const DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system;
   
-  bool _use_hp_EIM;
   //mutable DwarfElephanthpEIMNode *_hp_eim_node;
   //mutable DwarfElephanthpEIMBinaryTree *_hp_eim_bt;
 };

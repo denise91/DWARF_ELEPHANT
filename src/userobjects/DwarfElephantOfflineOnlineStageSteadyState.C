@@ -327,8 +327,12 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
       if (_initialize_rb_system._use_EIM) 
       { 
           offlineStageEIM();
-          read_and_create_hpEIM_tree(_initialize_rb_system._es, _initialize_rb_system._mesh_ptr, _initialize_rb_system._eim_data_in, "hp_EIM_Tree.txt", _online_hp_eim_tree_ptr);
-          _online_hp_eim_tree_ptr->print_info("online");
+          //read_and_create_hpEIM_tree(_initialize_rb_system._es, _initialize_rb_system._mesh_ptr, _initialize_rb_system._eim_data_in, "hp_EIM_Tree.txt", _online_hp_eim_tree_ptr);
+          //_online_hp_eim_tree_ptr->print_info("online");
+      }
+      else if (_initialize_rb_system._use_hp_EIM)
+      {
+          
       }
       else offlineStageRBOnly();
       _console << std::endl;

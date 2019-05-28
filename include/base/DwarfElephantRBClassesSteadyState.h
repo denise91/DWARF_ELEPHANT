@@ -521,9 +521,9 @@ class DwarfElephanthpEIMNode
  
             set_gravity_center();
       
-            children.reserve(number_of_subdomains);
+            //children.reserve(number_of_subdomains);
             for (unsigned int i = 0; i < number_of_subdomains; i++)
-              children[i] = (NULL);
+              children.push_back(NULL);
         }
         else if (operation_mode == "online")
         {
@@ -643,7 +643,8 @@ class DwarfElephanthpEIMNode
             
             for (unsigned int i = 0; i < _rb_data_in._discrete_parameters_RB.size(); i++)
             {
-                _rb_data_in._discrete_parameter_values_RB[_rb_data_in._discrete_parameters_RB[i]] = _rb_data_in._discrete_parameter_values_in_RB[i];
+                //_rb_data_in._discrete_parameter_values_RB[_rb_data_in._discrete_parameters_RB[i]] = _rb_data_in._discrete_parameter_values_in_RB;
+                _rb_data_in._discrete_parameter_values_RB.insert(std::pair<std::string,std::vector<Real>>(_rb_data_in._discrete_parameters_RB[i],_rb_data_in._discrete_parameter_values_in_RB));
             }
             
             std::map<std::string,bool> _log_scaling;
@@ -736,24 +737,39 @@ class DwarfElephanthpEIMNode
       }
     }
 
-    void train_rb_model(EquationSystems & _es, MooseMesh * _mesh_ptr, FEProblemBase & _fe_problem, RB_input_data _rb_init_data)
+    void train_rb_model(EquationSystems & _es, MooseMesh * _mesh_ptr, FEProblemBase & _fe_problem, RB_input_data _rb_init_data, DwarfElephantRBConstructionSteadyState * _master_rb_con_ptr, unsigned int _eim_f_vec_offset)
     // Train the rb model associated with the hp EIM Node
     {
+        std::unique_ptr<SparseMatrix<Number>> temp_sparse_matrix = SparseMatrix<Number>::build(_rb_con_ptr->comm());
+        DofMap & dof_map = _rb_con_ptr->get_dof_map();
+        dof_map.attach_matrix(*temp_sparse_matrix);
+        temp_sparse_matrix->init();
+        temp_sparse_matrix->zero();
+        
         _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState>("RBSystem"+system_name+system_name_suffix);
         _rb_con_ptr->init();
         _es.update();
         _rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
         _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);
         _rb_data_in = _rb_init_data;
-        initialize_rb_parameters("offline");
+        initialize_rb_parameters("offline"); // TODO: make sure the param min/max values are the correct ones for the leaf node in question
         _eim_eval_ptr->initialize_eim_theta_objects();
         _rb_eval_ptr->get_rb_theta_expansion().attach_multiple_F_theta(_eim_eval_ptr->get_eim_theta_objects());
         _eim_con_ptr->initialize_eim_assembly_objects();
         _rb_con_ptr->print_info();
         _rb_con_ptr->initialize_rb_construction(true,true);
 
-        // Add code to assign affine matrices and vectors
-        // Add code to close assembled affine matrices and vectors (may or may not be necessary)
+        // Copy Affine matrices (all Aq matrices) and only required Fq vectors from _master_rb_con_ptr object
+        for (unsigned int _q = 0; _q < _rb_con_ptr->get_rb_theta_expansion().get_n_A_terms(); _q++)
+        {
+            _master_rb_con_ptr->get_Aq(_q)->get_transpose(static_cast<SparseMatrix<Number>&>(*temp_sparse_matrix));
+            temp_sparse_matrix->get_transpose(static_cast<SparseMatrix<Number>&>(*(_rb_con_ptr->get_Aq(_q))));
+        }
+        
+        for (unsigned int _q = 0; _q < _rb_con_ptr->get_rb_theta_expansion().get_n_F_terms(); _q++)
+        {
+            _master_rb_con_ptr->get_Fq(_q + _eim_f_vec_offset)->swap(static_cast<NumericVector<double>&>(*_rb_con_ptr->get_Fq(_q)));
+        }
         _rb_con_ptr->train_reduced_basis();
         
         #if defined(LIBMESH_HAVE_CAPNPROTO)
@@ -840,7 +856,7 @@ class DwarfElephanthpEIMNode
         flag = flag || (children[i]);
       return !(flag);
    }
-
+    
     void print_node(std::string operation_mode)
     //prints info about the node
     //function takes as input the operation mode (online/offline) in question
@@ -1040,7 +1056,8 @@ class DwarfElephanthpEIMM_aryTree
     EIM_error_tol(_eim_data_in._rel_tol),
     max_leaf_EIM_basis_size(-1),
     max_leaf_EIM_error(std::numeric_limits<double>::infinity()),
-    num_EIM_bases(-1)
+    num_EIM_bases(-1),
+            leaf_nodes_obtained(false)
     {
         //std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
         //std::cout << "Starting root node creation" << std::endl;
@@ -1102,35 +1119,44 @@ class DwarfElephanthpEIMM_aryTree
       }
     }
 
-    void get_leaf_nodes(DwarfElephanthpEIMNode * node)
-    // Gets a vector containing pointers to all leaf nodes of the tree with the given node as root
-    // To get all leaves this function must be called with root node as the argument.
+    void get_leaf_nodes()
     {
-        if (leaf_nodes.size() != 0)
+        if (!leaf_nodes_obtained)
         {
-            while(node->check_existence_of_all_children())
-            {
-                for (int i = 0; i < node->number_of_subdomains; i++)
-                {
-                    node = node->children[i];
-                    get_leaf_nodes(node);
-                }
-            }
-            leaf_nodes.push_back(node);
+            recurse_get_leaf_nodes(root);
+            leaf_nodes_obtained = true;
         }
         else
             mooseError("Leaf nodes already found for hp EIM M-ary tree");
     }
     
-    void train_all_rb_models(EquationSystems & _es, MooseMesh * _mesh_ptr, FEProblemBase & _fe_problem, RB_input_data _rb_init_data)
+    void recurse_get_leaf_nodes(DwarfElephanthpEIMNode * node)
+    // Gets a vector containing pointers to all leaf nodes of the tree with the given node as root
+    // To get all leaves this function must be called with root node as the argument.
+    {
+        if (node->check_existence_of_all_children())
+        {
+            for (int i = 0; i < node->number_of_subdomains; i++)
+                recurse_get_leaf_nodes(node->children[i]);
+        }
+        else
+        {
+            leaf_nodes.push_back(node);
+            std::cout << "Node: " << node->system_name << node->system_name_suffix << std::endl;
+        }
+    }
+    
+    void train_all_rb_models(EquationSystems & _es, MooseMesh * _mesh_ptr, FEProblemBase & _fe_problem, RB_input_data _rb_init_data, DwarfElephantRBConstructionSteadyState * _master_rb_con_ptr)
     // This method performs RB greedy using the EIM bases present in each leaf node of the tree
     // Each leaf node thus has its own RB model
     {
         if (leaf_nodes.size() != 0)
         {
+            unsigned int _eim_f_vec_offset = 0;
             for (int i = 0; i < leaf_nodes.size(); i++)
             {
-                leaf_nodes[i]->train_rb_model(_es, _mesh_ptr, _fe_problem, _rb_init_data);
+                leaf_nodes[i]->train_rb_model(_es, _mesh_ptr, _fe_problem, _rb_init_data, _master_rb_con_ptr, _eim_f_vec_offset);
+                _eim_f_vec_offset += leaf_nodes[i]->_eim_eval_ptr->get_n_basis_functions();
             }
         }
         else
@@ -1179,7 +1205,7 @@ class DwarfElephanthpEIMM_aryTree
         }
     }
     
-    void write_leaf_nodes(std::string operation_mode)
+    void print_leaf_nodes(std::string operation_mode)
     {
         for (int i = 0; i < leaf_nodes.size(); i++)
         {
@@ -1221,6 +1247,7 @@ class DwarfElephanthpEIMM_aryTree
     unsigned int max_leaf_EIM_basis_size; // maximum basis size among all the leaves of the tree
     double max_leaf_EIM_error; // maximum EIM error among all leaves of the tree (should be less than the overall EIM_error_tolerance)
     unsigned int num_EIM_bases; // number of leaves in tree
+    bool leaf_nodes_obtained;
 };
 
 

@@ -125,7 +125,7 @@ class DwarfElephantOfflineOnlineStageSteadyState :
 
     ~DwarfElephantOfflineOnlineStageSteadyState()
     {
-        delete _online_hp_eim_tree_ptr;
+        //delete _online_hp_eim_tree_ptr;
     }
 //--------------------------------PROTECTED---------------------------------
   protected:

@@ -96,6 +96,7 @@
 [./initializeRBSystem]
   type = DwarfElephantInitializeRBSystemSteadyState
   use_EIM = true
+  use_hp_EIM = true
   N_max_EIM = 5
   n_training_samples_EIM = 30
   rel_training_tolerance_EIM = 1e-1
@@ -122,7 +123,6 @@
   type = DwarfElephantComputeEIMInnerProductMatrixSteadyState
   execute_on = "EIM"
   initialize_rb_userobject = initializeRBSystem
-  use_hp_EIM = true
 [../]
 
 [./performRBSystem ]

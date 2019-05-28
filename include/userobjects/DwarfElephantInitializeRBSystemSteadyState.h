@@ -103,6 +103,7 @@ class DwarfElephantInitializeRBSystemSteadyState :
 
     /* Attributes */
     bool _use_EIM;
+    bool _use_hp_EIM;
     bool _use_displaced;
     bool _skip_matrix_assembly_in_rb_system;
     bool _skip_vector_assembly_in_rb_system;

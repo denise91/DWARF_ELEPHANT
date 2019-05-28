@@ -8,6 +8,7 @@ InputParameters validParams<DwarfElephantInitializeRBSystemSteadyState>()
   InputParameters params = validParams<GeneralUserObject>();
 
   params.addParam<bool>("use_EIM",false,"Flag for whether on not to use EIM in current simulation");
+  params.addParam<bool>("use_hp_EIM",false,"Flag for whether on not to use hp-EIM in current simulation");
   params.addParam<bool>("use_displaced", false, "Enable/disable the use of the displaced mesh for the data retrieving.");
   params.addParam<bool>("offline_stage", true, "Determines whether the Offline stage will be calculated or not.");
   //params.addParam<bool>("compliant", true, "Determines whether F is equal to the output vector or not.");
@@ -60,6 +61,7 @@ InputParameters validParams<DwarfElephantInitializeRBSystemSteadyState>()
 DwarfElephantInitializeRBSystemSteadyState::DwarfElephantInitializeRBSystemSteadyState(const InputParameters & params):
   GeneralUserObject(params),
   _use_EIM(getParam<bool>("use_EIM")),
+  _use_hp_EIM(getParam<bool>("use_hp_EIM")),
   _use_displaced(getParam<bool>("use_displaced")),
   _skip_matrix_assembly_in_rb_system(getParam<bool>("skip_matrix_assembly_in_rb_system")),
   _skip_vector_assembly_in_rb_system(getParam<bool>("skip_vector_assembly_in_rb_system")),
