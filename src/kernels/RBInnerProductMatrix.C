@@ -33,10 +33,12 @@ void RBInnerProductMatrix::computeJacobian()
 
           for (_i = 0; _i < _test.size(); _i++)
 	    for (_j = 0; _j < _phi.size(); _j++)  
-        	for (_qp = 0; _qp < _qrule -> n_points(); _qp++)
+            {
+                for (_qp = 0; _qp < _qrule -> n_points(); _qp++)
 		{
 			_local_ke(_i, _j) += _JxW[_qp] * _coord[_qp] * ((_grad_phi[_j][_qp] * _grad_test[_i][_qp]) + _phi[_j][_qp] * _test[_i][_qp]);
 		}
+            }
 	  ke += _local_ke;
 	  if (_fe_problem.getNonlinearSystemBase().getCurrentNonlinearIterationNumber() == 0)		
 	  	_initialize_rb_system._inner_product_matrix -> add_matrix(_local_ke, _var.dofIndices());

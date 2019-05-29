@@ -332,7 +332,7 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
       }
       else if (_initialize_rb_system._use_hp_EIM)
       {
-          
+          _initialize_rb_system._hp_eim_tree_ptr->train_all_rb_models(_initialize_rb_system._es, _mesh_ptr, _fe_problem, _initialize_rb_system._rb_data_in,_initialize_rb_system._rb_con_ptr);
       }
       else offlineStageRBOnly();
       _console << std::endl;

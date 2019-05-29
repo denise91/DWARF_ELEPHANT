@@ -103,28 +103,30 @@ DwarfElephantInitializeRBSystemSteadyState::DwarfElephantInitializeRBSystemStead
   //_continuous_parameter_min_values_SCM(getParam<std::vector<Real>>("parameter_min_values_SCM")),
  // _continuous_parameter_max_values_SCM(getParam<std::vector<Real>>("parameter_max_values_SCM"))
 {
-  if (_use_EIM)
+  if (_use_EIM != _use_hp_EIM)
   {
     if ((_n_training_samples_EIM == -1)||(_N_max_EIM == -1))
       mooseError("UserObject DwarfElephantInitializeRBSystemSteadyState: Insufficient parameters provided for EIM. Look at file src/userobjects/DwarfElephantInitializeRBSystemSteadyState.C for details");
   }
   else if ((_n_training_samples_EIM != -1)||(_N_max_EIM != -1))
-    mooseError("UserObject DwarfElephantInitializeRBSystemSteadyState: _use_EIM flag must be set to true in input file");
+    mooseError("UserObject DwarfElephantInitializeRBSystemSteadyState: (_use_EIM xor _use_hp_EIM) flag must be set to true in input file");
 
   std::cout << "Created initialize_rb_system object " << DwarfElephantInitializeRBSystemSteadyState::name() << std::endl;
-  
-  _eim_data_in._N_max = _N_max_EIM;
-  _eim_data_in._abs_tol = _rel_training_tolerance_EIM;
-  _eim_data_in._best_fit_type = _best_fit_type_EIM;
-  _eim_data_in._cont_param = _continuous_parameters_EIM;
-  _eim_data_in._cont_param_max = _continuous_parameter_max_values_EIM;
-  _eim_data_in._cont_param_min = _continuous_parameter_min_values_EIM;
-  _eim_data_in._deterministic_training = _deterministic_training_EIM;
-  _eim_data_in._n_training_samples = _n_training_samples_EIM;
-  _eim_data_in._normalize_bound = _normalize_EIM_bound_in_greedy;
-  _eim_data_in._quiet_mode = _quiet_mode_EIM;
-  _eim_data_in._rel_tol = _rel_training_tolerance_EIM;
-  _eim_data_in._training_random_seed = _training_parameters_random_seed_EIM;
+
+  if (_use_hp_EIM)
+  {
+      _eim_data_in._N_max = _N_max_EIM;
+      _eim_data_in._abs_tol = _rel_training_tolerance_EIM;
+      _eim_data_in._best_fit_type = _best_fit_type_EIM;
+      _eim_data_in._cont_param = _continuous_parameters_EIM;
+      _eim_data_in._cont_param_max = _continuous_parameter_max_values_EIM;
+      _eim_data_in._cont_param_min = _continuous_parameter_min_values_EIM;
+      _eim_data_in._deterministic_training = _deterministic_training_EIM;
+      _eim_data_in._n_training_samples = _n_training_samples_EIM;
+      _eim_data_in._normalize_bound = _normalize_EIM_bound_in_greedy;
+      _eim_data_in._quiet_mode = _quiet_mode_EIM;
+      _eim_data_in._rel_tol = _rel_training_tolerance_EIM;
+      _eim_data_in._training_random_seed = _training_parameters_random_seed_EIM;
   
   _rb_data_in._N_max = _N_max_RB;
   _rb_data_in._abs_tol = _rel_training_tolerance_RB;
@@ -137,6 +139,7 @@ DwarfElephantInitializeRBSystemSteadyState::DwarfElephantInitializeRBSystemStead
   _rb_data_in._quiet_mode_RB = _quiet_mode_RB;
   _rb_data_in._rel_tol = _rel_training_tolerance_RB;
   _rb_data_in._training_random_seed = _training_parameters_random_seed_RB;
+  }
 }
 
 void
@@ -424,7 +427,7 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeRBOnly()
 }
 
 void
-DwarfElephantInitializeRBSystemSteadyState::initialize_hp_EIM()
+DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStage_hp_EIM()
 {
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     _hp_eim_tree_ptr= new DwarfElephanthpEIMM_aryTree(_es, _mesh_ptr, _eim_data_in, "offline");
@@ -432,6 +435,10 @@ DwarfElephantInitializeRBSystemSteadyState::initialize_hp_EIM()
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
 
     std::cout << "Time spent in hp eim tree initialization " << duration << std::endl;
+    
+    _inner_product_matrix_eim = _hp_eim_tree_ptr->root->_eim_con_ptr->get_inner_product_matrix();
+    PetscMatrix<Number> * _petsc_inner_matrix_eim = dynamic_cast<PetscMatrix<Number>* > (_inner_product_matrix_eim);
+    MatSetOption(_petsc_inner_matrix_eim->mat(), MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
 }
 
 void
@@ -444,8 +451,10 @@ DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStage() // make new
       std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
       auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
       std::cout << "Time spent in standard EIM construction initialization " << duration << std::endl;
-      
-      initialize_hp_EIM();
+  }
+  else if (_use_hp_EIM)
+  {
+      initializeOfflineStage_hp_EIM();
   }
   
   else
@@ -457,11 +466,11 @@ DwarfElephantInitializeRBSystemSteadyState::initialize() // Make new initializeE
 {
   if (_use_EIM)
   {    
-      std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+      //std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
       initializeEIM();
-      std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-      auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-      std::cout << "Time spent in standard EIM construction allocation " << duration << std::endl;
+      //std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+      //auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+      //std::cout << "Time spent in standard EIM construction allocation " << duration << std::endl;
   }
   else
      initializeRBOnly();

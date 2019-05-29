@@ -514,7 +514,7 @@ class DwarfElephanthpEIMNode
             _eim_con_ptr->set_rb_evaluation(*_eim_eval_ptr);
 
         
-
+            _eim_data_this = _eim_data_in;
             _eim_data_child = _eim_data_in;
             initialize_EIM_parameters(_eim_data_in, operation_mode);
             _eim_con_ptr->initialize_rb_construction(true,true);
@@ -621,7 +621,7 @@ class DwarfElephanthpEIMNode
         else mooseError("Invalid string provided for operation_mode");
     }
     
-    void initialize_rb_parameters(std::string operation_mode)
+    void initialize_rb_parameters(RB_input_data _rb_data_in, std::string operation_mode)
     {
         if (operation_mode == "offline")
         {
@@ -635,10 +635,10 @@ class DwarfElephanthpEIMNode
             RBParameters _mu_min_RB;
             RBParameters _mu_max_RB;
             
-            for (unsigned int i = 0; i < _rb_data_in._cont_param.size(); i++)
+            for (unsigned int i = 0; i < _eim_data_this._cont_param.size(); i++)
             {
-                _mu_min_RB.set_value(_rb_data_in._cont_param[i], _rb_data_in._cont_param_min[i]);
-                _mu_max_RB.set_value(_rb_data_in._cont_param[i], _rb_data_in._cont_param_max[i]);
+                _mu_min_RB.set_value(_eim_data_this._cont_param[i], _eim_data_this._cont_param_min[i]);
+                _mu_max_RB.set_value(_eim_data_this._cont_param[i], _eim_data_this._cont_param_max[i]);
             }
             
             for (unsigned int i = 0; i < _rb_data_in._discrete_parameters_RB.size(); i++)
@@ -739,27 +739,28 @@ class DwarfElephanthpEIMNode
 
     void train_rb_model(EquationSystems & _es, MooseMesh * _mesh_ptr, FEProblemBase & _fe_problem, RB_input_data _rb_init_data, DwarfElephantRBConstructionSteadyState * _master_rb_con_ptr, unsigned int _eim_f_vec_offset)
     // Train the rb model associated with the hp EIM Node
-    {
-        std::unique_ptr<SparseMatrix<Number>> temp_sparse_matrix = SparseMatrix<Number>::build(_rb_con_ptr->comm());
-        DofMap & dof_map = _rb_con_ptr->get_dof_map();
-        dof_map.attach_matrix(*temp_sparse_matrix);
-        temp_sparse_matrix->init();
-        temp_sparse_matrix->zero();
-        
+    {        
         _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState>("RBSystem"+system_name+system_name_suffix);
         _rb_con_ptr->init();
         _es.update();
         _rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
         _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);
         _rb_data_in = _rb_init_data;
-        initialize_rb_parameters("offline"); // TODO: make sure the param min/max values are the correct ones for the leaf node in question
+        initialize_rb_parameters(_rb_data_in,"offline"); // TODO: make arrangements to handle the case where there are non-EIM parameters involved
         _eim_eval_ptr->initialize_eim_theta_objects();
         _rb_eval_ptr->get_rb_theta_expansion().attach_multiple_F_theta(_eim_eval_ptr->get_eim_theta_objects());
         _eim_con_ptr->initialize_eim_assembly_objects();
         _rb_con_ptr->print_info();
         _rb_con_ptr->initialize_rb_construction(true,true);
-
-        // Copy Affine matrices (all Aq matrices) and only required Fq vectors from _master_rb_con_ptr object
+        
+        std::unique_ptr<SparseMatrix<Number>> temp_sparse_matrix = SparseMatrix<Number>::build(_rb_con_ptr->comm());
+        DofMap & dof_map = _rb_con_ptr->get_dof_map();
+        dof_map.attach_matrix(*temp_sparse_matrix);
+        temp_sparse_matrix->init();
+        temp_sparse_matrix->zero();
+        
+        // Copy Affine matrices (all Aq matrices), required Fq vectors, and rb inner product matrix from _master_rb_con_ptr object
+        _master_rb_con_ptr->get_inner_product_matrix()->get_transpose(static_cast<SparseMatrix<Number>&>(*(_rb_con_ptr->get_inner_product_matrix())));
         for (unsigned int _q = 0; _q < _rb_con_ptr->get_rb_theta_expansion().get_n_A_terms(); _q++)
         {
             _master_rb_con_ptr->get_Aq(_q)->get_transpose(static_cast<SparseMatrix<Number>&>(*temp_sparse_matrix));
@@ -1032,7 +1033,7 @@ class DwarfElephanthpEIMNode
     std::vector<Real> gravity_center, param_domain_min, param_domain_max;
     Real EIM_error;
     std::string system_name, system_name_suffix, operation_mode;
-    EIM_input_data _eim_data_in;
+    EIM_input_data _eim_data_this;
     EIM_input_data _eim_data_child;
     RB_input_data _rb_data_in;
 };
@@ -1071,7 +1072,7 @@ class DwarfElephanthpEIMM_aryTree
     // Input parameters:
     // _es: Moose/Libmesh equation system object
     // _mesh_ptr: Moose mesh pointer
-    void train_EIM_basis(EquationSystems & _es, MooseMesh * _mesh_ptr, SparseMatrix<Number> *InnerProductMatrix)
+    void train_EIM_basis(EquationSystems & _es, MooseMesh * _mesh_ptr)
     {
       if (max_leaf_EIM_error < EIM_error_tol)
         std::cout << "hp EIM h error is already below the required tolerance" << std::endl;
@@ -1081,7 +1082,6 @@ class DwarfElephanthpEIMM_aryTree
         DwarfElephanthpEIMNode *node = root;
         max_leaf_EIM_basis_size = 0;
         num_EIM_bases = 0;
-        root->attach_inner_product_matrix(InnerProductMatrix);
         root->_eim_con_ptr->get_inner_product_matrix()->close();
         root->_eim_con_ptr->train_reduced_basis();
         root->EIM_error = root->_eim_con_ptr->compute_max_error_bound();
@@ -1120,6 +1120,7 @@ class DwarfElephanthpEIMM_aryTree
     }
 
     void get_leaf_nodes()
+    // stores a vector containing pointers to all the leaf nodes as a member of the hp EIM tree
     {
         if (!leaf_nodes_obtained)
         {
@@ -1161,6 +1162,8 @@ class DwarfElephanthpEIMM_aryTree
         }
         else
             mooseError("hp EIM basis not generated properly");
+        // TODO: add lines to write out generated tree
+        write_tree("hpEIMtree.txt");
     }
     
     // find_EIM_basis
@@ -1195,6 +1198,7 @@ class DwarfElephanthpEIMM_aryTree
     }
 
     void write_nodes(DwarfElephanthpEIMNode * node, std::ofstream & outfile)
+    // writes all nodes of the hpEIM tree to file recursively in depth first order
     {
         node->write_to_file(outfile);
         

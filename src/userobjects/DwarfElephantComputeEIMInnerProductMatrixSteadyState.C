@@ -88,7 +88,7 @@ void DwarfElephantComputeEIMInnerProductMatrixSteadyState::finalize()
         _initialize_rb_system._inner_product_matrix_eim -> close();
  
         //t1 = std::chrono::high_resolution_clock::now();
-        _initialize_rb_system._hp_eim_tree_ptr->train_EIM_basis(_initialize_rb_system._es, _initialize_rb_system._mesh_ptr,_initialize_rb_system._inner_product_matrix_eim);
+        _initialize_rb_system._hp_eim_tree_ptr->train_EIM_basis(_initialize_rb_system._es, _initialize_rb_system._mesh_ptr);
         //t2 = std::chrono::high_resolution_clock::now();
         //duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
 
