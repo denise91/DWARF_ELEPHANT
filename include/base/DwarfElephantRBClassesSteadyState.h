@@ -503,9 +503,10 @@ class DwarfElephanthpEIMNode
         if (operation_mode == "offline")
         {
             _eim_con_ptr =  &_es.add_system<DwarfElephantEIMConstructionSteadyState>("hp_EIM_System" + system_name + system_name_suffix);
-
+            _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState>("RB_System" + system_name + system_name_suffix);
             _eim_con_ptr->init();
             _eim_con_ptr->get_explicit_system().init();
+            _rb_con_ptr->init();
             _es.update();
             _eim_eval_ptr = new DwarfElephantEIMEvaluationSteadyState(_mesh_ptr->comm());
   
@@ -740,9 +741,8 @@ class DwarfElephanthpEIMNode
     void train_rb_model(EquationSystems & _es, MooseMesh * _mesh_ptr, FEProblemBase & _fe_problem, RB_input_data _rb_init_data, DwarfElephantRBConstructionSteadyState * _master_rb_con_ptr, unsigned int _eim_f_vec_offset)
     // Train the rb model associated with the hp EIM Node
     {        
-        _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState>("RBSystem"+system_name+system_name_suffix);
-        _rb_con_ptr->init();
-        _es.update();
+        //_rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState>("RBSystem"+system_name+system_name_suffix);
+        //_rb_con_ptr->init();
         _rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
         _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);
         _rb_data_in = _rb_init_data;
@@ -794,7 +794,8 @@ class DwarfElephanthpEIMNode
         _rb_con_ptr->get_rb_evaluation().write_out_basis_functions(*_rb_con_ptr,"offline_data"+system_name+system_name_suffix);    
         
         _rb_eval_ptr->clear();
-        _rb_con_ptr->clear();
+        //_rb_con_ptr->clear();
+        _es.delete_system("RB_System" + system_name + system_name_suffix);
     }
         
     double get_child_subdomain_min(unsigned int param_number, unsigned int child_subdomain_number)
@@ -1115,6 +1116,8 @@ class DwarfElephanthpEIMM_aryTree
         {
           max_leaf_EIM_error = std::max(max_leaf_EIM_error, node->EIM_error);
           num_EIM_bases += 1;
+          if (max_leaf_EIM_basis_size < node->_eim_eval_ptr->get_n_basis_functions())
+              max_leaf_EIM_basis_size = node->_eim_eval_ptr->get_n_basis_functions();
         }
       }
     }
@@ -1162,7 +1165,6 @@ class DwarfElephanthpEIMM_aryTree
         }
         else
             mooseError("hp EIM basis not generated properly");
-        // TODO: add lines to write out generated tree
         write_tree("hpEIMtree.txt");
     }
     
