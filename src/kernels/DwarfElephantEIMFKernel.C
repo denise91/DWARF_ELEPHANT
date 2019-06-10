@@ -27,7 +27,7 @@ void DwarfElephantEIMFKernel::computeResidual()
     DenseVector<Number> 	& re = _assembly.residualBlock(_var.number());
     _local_re.resize(re.size());
     const DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemSteadyState>("initial_rb_userobject");
-    if (_initialize_rb_system._use_hp_EIM)
+    if (_initialize_rb_system._use_hp_EIM && _initialize_rb_system._offline_stage)
     {
         unsigned int _i_overall_eim_basis_function = 0;
         for (unsigned int _i_hp_eim_leaf = 0; _i_hp_eim_leaf < _initialize_rb_system._hp_eim_tree_ptr->leaf_nodes.size(); _i_hp_eim_leaf++)
@@ -47,7 +47,7 @@ void DwarfElephantEIMFKernel::computeResidual()
             }
         }
     }
-    else 
+   if (_initialize_rb_system._use_EIM) 
     {
         for (unsigned int _i_eim_basis_function = 0; _i_eim_basis_function < _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().get_n_basis_functions(); _i_eim_basis_function++)
         {

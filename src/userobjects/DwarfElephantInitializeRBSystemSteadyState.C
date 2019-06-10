@@ -362,11 +362,6 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStageRBOnly()
 
 void DwarfElephantInitializeRBSystemSteadyState::initializeEIM()
 {
-    // Define the parameter file for the libMesh functions.
-  // In our case not required, because the read-in is done via the MOOSE inputfile.
-  // GetPot infile (_parameters_filename);
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-  std::cout << "Starting InitializeEIM eim and rb con creation" << std::endl;
   // Add a new equation system for the RB construction.
   _eim_con_ptr = &_es.add_system<DwarfElephantEIMConstructionSteadyState>("EIMSystem");
   _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState> ("RBSystem");
@@ -377,12 +372,7 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeEIM()
   _eim_con_ptr->get_explicit_system().init();
   _rb_con_ptr->init();
   _es.update();
-std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-    std::cout << "Time spent in eim and rb con creation" << duration << std::endl;
-    
-    t1 = std::chrono::high_resolution_clock::now();
-  std::cout << "Starting eval objects allocation" << std::endl;
+
   _rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
   _eim_eval_ptr = new DwarfElephantEIMEvaluationSteadyState(_mesh_ptr->comm());
   
@@ -390,9 +380,6 @@ std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution
   // RBConstruction object
   _eim_con_ptr->set_rb_evaluation(*_eim_eval_ptr);
   _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);
-t2 = std::chrono::high_resolution_clock::now();
-duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-  std::cout << "Time spent in eval objects creation" << duration << std::endl;
 }
 
 void DwarfElephantInitializeRBSystemSteadyState::initializeRBOnly()
@@ -429,12 +416,7 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeRBOnly()
 void
 DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStage_hp_EIM()
 {
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     _hp_eim_tree_ptr= new DwarfElephanthpEIMM_aryTree(_es, _mesh_ptr, _eim_data_in, "offline");
-      std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-
-    std::cout << "Time spent in hp eim tree initialization " << duration << std::endl;
     
     _inner_product_matrix_eim = _hp_eim_tree_ptr->root->_eim_con_ptr->get_inner_product_matrix();
     PetscMatrix<Number> * _petsc_inner_matrix_eim = dynamic_cast<PetscMatrix<Number>* > (_inner_product_matrix_eim);
@@ -442,15 +424,32 @@ DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStage_hp_EIM()
 }
 
 void
+DwarfElephantInitializeRBSystemSteadyState::initializehpEIMOnline()
+{   
+    read_and_create_hpEIM_tree(_es, _mesh_ptr, _eim_data_in, "hpEIMtree.txt",_online_hp_eim_tree_ptr);
+    _online_hp_eim_tree_ptr->get_leaf_nodes();
+    
+    _online_hp_eim_tree_ptr->set_up_online_rb_objects(_es, _mesh_ptr, _fe_problem);
+    _online_hp_eim_tree_ptr->print_info("online");
+    
+    processRBParameters();
+    for (unsigned int i = 0; i < _online_hp_eim_tree_ptr->leaf_nodes.size(); i++)
+    {
+        //_online_hp_eim_tree_ptr->leaf_nodes[i]->_eim_eval_ptr->initialize_eim_theta_objects();
+        _rb_eval_ptr->get_rb_theta_expansion().attach_multiple_F_theta(_online_hp_eim_tree_ptr->leaf_nodes[i]->_eim_eval_ptr->get_eim_theta_objects());
+        _online_hp_eim_tree_ptr->leaf_nodes[i]->_eim_con_ptr->initialize_eim_assembly_objects();
+    }
+    _rb_con_ptr -> print_info();  
+    _rb_con_ptr -> initialize_rb_construction(_skip_matrix_assembly_in_rb_system, _skip_vector_assembly_in_rb_system);
+    AssignAffineMatricesAndVectors();  
+}
+
+void
 DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStage() // make new initializeOfflineStageEIM() and initializeOfflineStageRB() functions and use them with if conditions
 {
   if (_use_EIM)
   {
-      std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
       initializeOfflineStageEIM();
-      std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-      auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-      std::cout << "Time spent in standard EIM construction initialization " << duration << std::endl;
   }
   else if (_use_hp_EIM)
   {
@@ -478,6 +477,14 @@ DwarfElephantInitializeRBSystemSteadyState::initialize() // Make new initializeE
   if (_offline_stage) // location of _offline_stage if statement changed for compatibility with EIM.
   {
     initializeOfflineStage();
+  }
+  else
+  {
+      if (_use_hp_EIM)
+      {
+          //initializeOfflineStageRBOnly();
+          initializehpEIMOnline();   
+      }
   }
   std::cout << "Initialized initialize_rb_system object" << std::endl;
 }

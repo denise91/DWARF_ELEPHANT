@@ -435,6 +435,8 @@ struct EIM_input_data{
         unsigned int _n_training_samples;
         unsigned int _training_random_seed;
         unsigned int _N_max;
+        
+        double EIM_error, RB_error_bound;
     };
     
     struct RB_input_data
@@ -529,6 +531,9 @@ class DwarfElephanthpEIMNode
         else if (operation_mode == "online")
         {
             initialize_EIM_parameters(_eim_data_in, operation_mode);
+            EIM_error = _eim_data_in.EIM_error;
+            RB_Error_bound = _eim_data_in.RB_error_bound;
+            
             children.reserve(number_of_subdomains);
             for (unsigned int i = 0; i < number_of_subdomains; i++)
               children[i] = (NULL);
@@ -772,12 +777,13 @@ class DwarfElephanthpEIMNode
             _master_rb_con_ptr->get_Fq(_q + _eim_f_vec_offset)->swap(static_cast<NumericVector<double>&>(*_rb_con_ptr->get_Fq(_q)));
         }
         _rb_con_ptr->train_reduced_basis();
+        RB_Error_bound = _rb_con_ptr->compute_max_error_bound();
         
         #if defined(LIBMESH_HAVE_CAPNPROTO)
             RBDataSerialization::RBEIMEvaluationSerialization rb_eim_eval_writer(_eim__eval_ptr);
             rb_eim_eval_writer.write_to_file("rb_eim_eval.bin"+system_name+system_name_suffix);
         #else
-            _eim_con_ptr->get_rb_evaluation().legacy_write_offline_data_to_files("eim_data"+system_name+system_name_suffix);
+            _eim_con_ptr->get_rb_evaluation().legacy_write_offline_data_to_files("eim_offline_data"+system_name+system_name_suffix);
         #endif
       
         #if defined(LIBMESH_HAVE_CAPNPROTO)
@@ -790,8 +796,8 @@ class DwarfElephanthpEIMNode
 
         // If desired, store the basis functions (xdr format).
   
-        _eim_con_ptr -> get_rb_evaluation().write_out_basis_functions(_eim_con_ptr->get_explicit_system(),"eim_data"+system_name+system_name_suffix);  
-        _rb_con_ptr->get_rb_evaluation().write_out_basis_functions(*_rb_con_ptr,"offline_data"+system_name+system_name_suffix);    
+        _eim_con_ptr -> get_rb_evaluation().write_out_basis_functions(_eim_con_ptr->get_explicit_system(),"eim_offline_data"+system_name+system_name_suffix);  
+        _rb_con_ptr->get_rb_evaluation().write_out_basis_functions(*_rb_con_ptr,"rb_offline_data"+system_name+system_name_suffix);    
         
         _rb_eval_ptr->clear();
         //_rb_con_ptr->clear();
@@ -866,7 +872,7 @@ class DwarfElephanthpEIMNode
         if (operation_mode == "offline")
         {
             
-            std::cout << std::endl << "New node" << std::endl;
+            std::cout << std::endl << "Node id: " << system_name << system_name_suffix << std::endl;
 
             for (unsigned int param_number = 0; param_number < number_of_params; param_number++)
             {  
@@ -877,7 +883,8 @@ class DwarfElephanthpEIMNode
 
             libMesh::out << "EIMSystem Name: " << _eim_con_ptr->name() << std::endl;
             _eim_con_ptr->print_info();
-            std::cout << "Basis error = " << EIM_error << std::endl;
+            std::cout << "EIM Basis error = " << EIM_error << std::endl;
+            std::cout << "RB Error bound = " << RB_Error_bound << std::endl;
             if (check_existence_of_all_children())
             {
                 for (unsigned int i = 0; i < number_of_subdomains; i++)
@@ -893,11 +900,13 @@ class DwarfElephanthpEIMNode
         }
         else if (operation_mode == "online")
         {
-            std::cout << std::endl << "New node" << std::endl;
+            std::cout << std::endl << "Node id: " << system_name << system_name_suffix << std::endl;
             for (unsigned int i = 0; i < number_of_params; i++)
                 std::cout << "For param " << i << ": param modain ["  << std::setprecision(std::numeric_limits<long double>::digits10) << param_domain_min[i] << ", "  << std::setprecision(std::numeric_limits<long double>::digits10) << param_domain_max[i] << "] " << std::endl;
             
             std::cout << "Number of subdomains = " << number_of_subdomains << std::endl;
+            std::cout << "EIM Basis error = " << EIM_error << std::endl;
+            std::cout << "RB Error bound = " << RB_Error_bound << std::endl;
             
             if (check_existence_of_all_children())
             {
@@ -921,6 +930,10 @@ class DwarfElephanthpEIMNode
         
         outfile << check_existence_of_all_children() << "," << number_of_params;
         
+        outfile << "," << EIM_error << ",";
+        if (!isnan(RB_Error_bound))
+            outfile << RB_Error_bound;
+                
         for (int i = 0; i < number_of_params; i++)
             outfile << "," << std::setprecision(std::numeric_limits<long double>::digits10) << param_domain_min[i];
             //node_info = node_info + "," + std::to_string(param_domain_min[i]);
@@ -941,27 +954,31 @@ class DwarfElephanthpEIMNode
         bool grandchildren_exist;
         int number_of_params;
         std::vector<double> param_min, param_max;
-        
+        double EIM_error_child, RB_error_bound_child;
+                
         if (children_exist)
         {
             for (unsigned int i = 0; i < number_of_subdomains; i++)
             {
-                extract_hpEIM_node_info(infile, grandchildren_exist, number_of_params, param_min, param_max);
+                extract_hpEIM_node_info(infile, grandchildren_exist, number_of_params, EIM_error_child, RB_error_bound_child, param_min, param_max);
                 for (int i = 0; i < param_max.size(); i++)
                 {
                     _eim_data_in._cont_param_max[i] = param_max[i];
                     _eim_data_in._cont_param_min[i] = param_min[i];
                 }
+                _eim_data_in.EIM_error = EIM_error_child;
+                _eim_data_in.RB_error_bound = RB_error_bound_child;
+                
                 children[i] = new DwarfElephanthpEIMNode(_es, _mesh_ptr,system_name+system_name_suffix, "_" + std::to_string(i+1), _eim_data_in, "online");
                 children[i]->read_and_extend_hpEIM_tree(_es, _mesh_ptr, _eim_data_in, infile, grandchildren_exist);
-                std::cout << param_max[0] << " " << param_min[0] << std::endl;
+                //std::cout << param_max[0] << " " << param_min[0] << std::endl;
                 param_max.clear();
                 param_min.clear();
             }
         }
     }
     
-    void extract_hpEIM_node_info(std::ifstream & input_file, bool children_exist, int & number_of_params, std::vector<Real> & param_min, std::vector<Real> & param_max)
+    void extract_hpEIM_node_info(std::ifstream & input_file, bool & children_exist, int & number_of_params, double & EIM_error, double & RB_error_bound, std::vector<Real> & param_min, std::vector<Real> & param_max)
     // extracts info on existence of children and param domain min/max values from the input file stream provided
     // Input Parameters:
     // input_file: input file stream. The tree is stored in this file after the offline phase
@@ -977,9 +994,17 @@ class DwarfElephanthpEIMNode
         std::string word_in;
         std::getline(input_file,word_in,','); // read child_exist flag
         children_exist = boost::lexical_cast<bool>(word_in);
-        std::getline(input_file,word_in,',');
+        std::getline(input_file,word_in,','); // read number of params
         number_of_params = boost::lexical_cast<int>(word_in);
-        std::getline(input_file,word_in,'\n');
+        std::getline(input_file,word_in,','); // read Eim_error
+        EIM_error = boost::lexical_cast<double>(word_in);
+        std::getline(input_file,word_in,','); // read RB_error_bound
+        if (word_in != "")
+            RB_error_bound = boost::lexical_cast<double>(word_in);
+        else
+            RB_error_bound = std::sqrt(-1);
+        
+        std::getline(input_file,word_in,'\n'); // read param limits
         std::stringstream ss(word_in);
 
         Real temp_double;
@@ -1025,14 +1050,14 @@ class DwarfElephanthpEIMNode
     }
 
     DwarfElephantEIMConstructionSteadyState * _eim_con_ptr;
-    DwarfElephantEIMEvaluationSteadyState * _eim_eval_ptr; //contains greedy_param_list
+    DwarfElephantEIMEvaluationSteadyState * _eim_eval_ptr = NULL; //contains greedy_param_list
     DwarfElephantRBConstructionSteadyState * _rb_con_ptr;
     DwarfElephantRBEvaluationSteadyState * _rb_eval_ptr = NULL;
     std::vector<DwarfElephanthpEIMNode*> children;
     //DwarfElephanthpEIMNode * children;
     unsigned int number_of_params = -1, number_of_subdomains = -1;
     std::vector<Real> gravity_center, param_domain_min, param_domain_max;
-    Real EIM_error;
+    Real EIM_error = std::sqrt(-1), RB_Error_bound = std::sqrt(-1);
     std::string system_name, system_name_suffix, operation_mode;
     EIM_input_data _eim_data_this;
     EIM_input_data _eim_data_child;
@@ -1168,16 +1193,144 @@ class DwarfElephanthpEIMM_aryTree
         write_tree("hpEIMtree.txt");
     }
     
+    void set_up_online_rb_objects(EquationSystems & _es, MooseMesh * _mesh_ptr,FEProblemBase & _fe_problem)
+    {
+        if (!leaf_nodes_obtained) {   mooseError("Leaf nodes of hpEIM tree not obtained.");}
+        else
+        {
+            for (unsigned int i = 0; i < leaf_nodes.size(); i++)
+            {
+                leaf_nodes[i]->_eim_con_ptr = &_es.add_system<DwarfElephantEIMConstructionSteadyState>("hp_EIM_System" + leaf_nodes[i]->system_name + leaf_nodes[i]->system_name_suffix);
+                leaf_nodes[i]->_rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState>("RB_System" + leaf_nodes[i]->system_name + leaf_nodes[i]->system_name_suffix);
+                leaf_nodes[i]->_eim_con_ptr->init();
+                leaf_nodes[i]->_eim_con_ptr->get_explicit_system().init();
+                leaf_nodes[i]->_rb_con_ptr->init();
+                _es.update();
+                leaf_nodes[i]->_eim_eval_ptr = new DwarfElephantEIMEvaluationSteadyState(_mesh_ptr->comm());
+  
+                // Pass a pointer of the RBEvaluation object to the
+                // RBConstruction object
+                leaf_nodes[i]->_eim_con_ptr->set_rb_evaluation(*leaf_nodes[i]->_eim_eval_ptr);
+                leaf_nodes[i]->_rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
+                leaf_nodes[i]->_rb_con_ptr->set_rb_evaluation(*leaf_nodes[i]->_rb_eval_ptr);
+                
+                #if defined(LIBMESH_HAVE_CAPNPROTO)
+                RBDataDeserialization::RBEIMEvaluationDeserialization _rb_eim_eval_reader(leaf_nodes[i]->_eim_con_ptr -> get_rb_evaluation());
+                rb_eim_eval_reader.read_from_file("rb_eim_eval.bin");
+                #else
+                leaf_nodes[i]->_eim_con_ptr -> get_rb_evaluation().legacy_read_offline_data_from_files("eim_offline_data" + leaf_nodes[i]->system_name + leaf_nodes[i]->system_name_suffix);
+                #endif
+                leaf_nodes[i]->_eim_eval_ptr->read_in_basis_functions(leaf_nodes[i]->_eim_con_ptr->get_explicit_system(),"eim_offline_data"+leaf_nodes[i]->system_name+leaf_nodes[i]->system_name_suffix);
+                
+                leaf_nodes[i]->_eim_eval_ptr->initialize_eim_theta_objects();
+                leaf_nodes[i]->_rb_eval_ptr->get_rb_theta_expansion().attach_multiple_F_theta(leaf_nodes[i]->_eim_eval_ptr->get_eim_theta_objects());
+                
+                #if defined(LIBMESH_HAVE_CAPNPROTO)
+                RBDataSerialization::RBEvaluationDeserialization rb_eval_reader(leaf_nodes[i]->_rb_con_ptr -> get_rb_evaluation());
+                rb_eval_reader.read_from_file("rb_eval.bin");
+                #else
+                leaf_nodes[i]->_rb_con_ptr -> get_rb_evaluation().legacy_read_offline_data_from_files("rb_offline_data" + leaf_nodes[i]->system_name + leaf_nodes[i]->system_name_suffix);
+                #endif
+
+                
+            }
+        }
+            
+    }
+    
+    void online_solve(RBParameters _rb_online_mu, unsigned int _online_N, bool _output_file, EquationSystems & _es, FEProblemBase & _fe_problem, MooseMesh * _mesh_ptr, DwarfElephantRBConstructionSteadyState * _master_rb_con_ptr)
+    {
+        DwarfElephanthpEIMNode * _required_node = find_EIM_basis(_rb_online_mu);
+        std::cout << std::endl << "RB System chosen for online solve: ";
+        _required_node->print_node("online");
+        _required_node->_rb_eval_ptr->set_parameters(_rb_online_mu);
+        _required_node->_rb_eval_ptr->print_parameters();
+        _required_node->_rb_eval_ptr->rb_solve(_required_node->_rb_eval_ptr->get_n_basis_functions());
+        
+        // Code for testing of hpEIM online implementation
+        unsigned int _eim_f_vec_offset = 0;
+        for (int i = 0; i < leaf_nodes.size(); i++)
+        {
+            if (leaf_nodes[i]->system_name+leaf_nodes[i]->system_name_suffix == _required_node->system_name+_required_node->system_name_suffix)
+                break;
+            _eim_f_vec_offset += leaf_nodes[i]->_eim_eval_ptr->get_n_basis_functions();
+        }
+        
+        std::unique_ptr<SparseMatrix<Number>> temp_sparse_matrix = SparseMatrix<Number>::build(_master_rb_con_ptr->comm());
+        DofMap & dof_map = _master_rb_con_ptr->get_dof_map();
+        dof_map.attach_matrix(*temp_sparse_matrix);
+        temp_sparse_matrix->init();
+        temp_sparse_matrix->zero();
+        
+        // Copy Affine matrices (all Aq matrices), required Fq vectors, and rb inner product matrix from _master_rb_con_ptr object
+        _master_rb_con_ptr->get_inner_product_matrix()->get_transpose(static_cast<SparseMatrix<Number>&>(*(_required_node->_rb_con_ptr->get_inner_product_matrix())));
+        for (unsigned int _q = 0; _q < _master_rb_con_ptr->get_rb_theta_expansion().get_n_A_terms(); _q++)
+        {
+            _master_rb_con_ptr->get_Aq(_q)->get_transpose(static_cast<SparseMatrix<Number>&>(*temp_sparse_matrix));
+            temp_sparse_matrix->get_transpose(static_cast<SparseMatrix<Number>&>(*(_required_node->_rb_con_ptr->get_Aq(_q))));
+        }
+        
+        for (unsigned int _q = 0; _q < _required_node->_rb_con_ptr->get_rb_theta_expansion().get_n_F_terms(); _q++)
+        {
+            _master_rb_con_ptr->get_Fq(_q + _eim_f_vec_offset)->swap(static_cast<NumericVector<double>&>(*_required_node->_rb_con_ptr->get_Fq(_q)));   
+        }
+        
+        _required_node->_rb_con_ptr->allocate_RB_error_structures();
+        _required_node->_rb_con_ptr->do_RB_vs_FE_Error_analysis(_rb_online_mu, _es);
+        // Code for testing of hpEIM online implementation
+        
+        if(_output_file)
+        {
+            //_required_node->_eim_con_ptr -> get_rb_evaluation().read_in_basis_functions(_required_node->_eim_con_ptr->get_explicit_system(),"eim_offline_data"+_required_node->system_name+_required_node->system_name_suffix);
+            _required_node->_rb_con_ptr -> get_rb_evaluation().read_in_basis_functions(*_required_node->_rb_con_ptr,"rb_offline_data"+_required_node->system_name+_required_node->system_name_suffix);
+
+            _required_node->_eim_con_ptr -> load_rb_solution();
+            _required_node->_rb_con_ptr -> load_rb_solution();
+            
+            *_es.get_system("rb0").solution = *_es.get_system("RB_System"+_required_node->system_name+_required_node->system_name_suffix).solution;
+            *_es.get_system("aux0").solution = *_es.get_system("hp_EIM_System"+_required_node->system_name+_required_node->system_name_suffix+"_explicit_sys").solution;
+            //_fe_problem.getNonlinearSystemBase().update();
+            unsigned int num_sys = _es.n_systems();
+            std::vector<std::string> sys_names;
+            for (unsigned int i = 0; i < num_sys; i++)
+                sys_names.push_back(_es.get_system(i).name());
+            
+            for (unsigned int i = 0; _es.n_systems() > 2; i++)
+            {
+               
+                if ((sys_names[i] != "rb0") && (sys_names[i] != "aux0"))
+                {    
+                    _es.delete_system(sys_names[i]);
+                }
+                std::cout <<"Number of systems left" <<  _es.n_systems() << std::endl;
+            }
+            
+            std::stringstream ss;
+           
+            ss << std::setw(2) << std::setfill('0') << _online_N;
+         
+	    #ifdef LIBMESH_HAVE_EXODUS_API
+	    ExodusII_IO(_mesh_ptr->getMesh()).write_equation_systems("RB_sol_DwarfElephant.e-s"+ss.str(),_es);
+	    #endif
+            VTKIO(_mesh_ptr->getMesh()).write_equation_systems("out.pvtu", _es);
+        }
+    }
     // find_EIM_basis
     // Input parameters:
     // param_value: array containing all parameter values
-    DwarfElephanthpEIMNode * find_EIM_basis(std::vector<double> param_value)
+    DwarfElephanthpEIMNode * find_EIM_basis(RBParameters _rb_online_mu)
     {
       bool subdomain_match = 1;
       DwarfElephanthpEIMNode *node = root;
+      std::vector<double> param_value;
+      
+      
 
       for (unsigned int j = 0; j < root->number_of_params; j++) // check if param_value is in root parameter domain
-        subdomain_match = subdomain_match & ((param_value[j] >= node->param_domain_min[j]) & (param_value[j] <= node->param_domain_max[j]));
+      {
+          param_value.push_back(_rb_online_mu.get_value("mu_" + std::to_string(j)));
+          subdomain_match = subdomain_match & ((param_value[j] >= node->param_domain_min[j]) & (param_value[j] <= node->param_domain_max[j]));
+      }
       if (!subdomain_match)
         mooseError("hp M-ary Tree: param_value searched for is outside original parameter domain");
 

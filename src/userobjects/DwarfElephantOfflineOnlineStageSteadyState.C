@@ -9,6 +9,7 @@
 #include "libmesh/vtk_io.h"
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantOfflineOnlineStageSteadyState.h"
+#include "DwarfElephantRBClassesSteadyState.h"
 
 ///----------------------------INPUT PARAMETERS-----------------------------
 template<>
@@ -173,6 +174,19 @@ DwarfElephantOfflineOnlineStageSteadyState::setOnlineParameters()
     }
 }
 
+void DwarfElephantOfflineOnlineStageSteadyState::onlineStagehpEIM()
+{
+    //Moose::perf_log.push("onlineStage()", "Execution");
+    
+    setOnlineParameters();
+    _initialize_rb_system._online_hp_eim_tree_ptr->online_solve(_rb_online_mu, _online_N, true, _es, _fe_problem, _mesh_ptr, _initialize_rb_system._rb_con_ptr);
+    // model now ready for operation in online multiple query context
+    // search for _rb_online_mu in the hp EIM tree
+    // do an rb_solve
+    
+}
+
+
 void DwarfElephantOfflineOnlineStageSteadyState::onlineStageEIM()
 {
       Moose::perf_log.push("onlineStage()", "Execution");
@@ -333,6 +347,7 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
       else if (_initialize_rb_system._use_hp_EIM)
       {
           _initialize_rb_system._hp_eim_tree_ptr->train_all_rb_models(_initialize_rb_system._es, _mesh_ptr, _fe_problem, _initialize_rb_system._rb_data_in,_initialize_rb_system._rb_con_ptr);
+          _initialize_rb_system._hp_eim_tree_ptr->write_tree("hpEIMtree.txt");
       }
       else offlineStageRBOnly();
       _console << std::endl;
@@ -341,6 +356,7 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
     if(_online_stage)
     {
         if (_initialize_rb_system._use_EIM) { onlineStageEIM();}
+        if (_initialize_rb_system._use_hp_EIM) { onlineStagehpEIM();}
         else onlineStageRBOnly();
 //        How to write own Exodus file  // not required anymore
 //        Moose::perf_log.push("write_Exodus()", "Output");
