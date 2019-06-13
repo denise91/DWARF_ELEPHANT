@@ -161,7 +161,6 @@ void DwarfElephantRBConstructionSteadyState::compute_Fq_representor_innerprods(b
                          << " in RBConstruction::update_residual_terms() at "
                          << Utility::get_timestamp() << std::endl;
 
-          inner_product_matrix->print_matlab("inner_product_matrix_debug.m");
           rhs->print_matlab("rhs_debug.m");
           solve_for_matrix_and_rhs(*inner_product_solver, *inner_product_matrix, *rhs);
           

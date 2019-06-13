@@ -46,7 +46,7 @@ InputParameters validParams<DwarfElephantInitializeRBSystemSteadyState>()
   params.addParam<std::vector<std::string>>("discrete_parameter_names_RB", "Discrete parameter names for the RB method.");
   params.addParam<std::vector<Real>>("discrete_parameter_values_RB", "Defines the list of discrete RB parameter values.");
   params.addParam<std::string>("system","rb0","The name of the system that should be read in.");
-  
+  params.addParam<bool>("hp_EIM_testing",false,"Determines whether the hp EIM implementation is to be tested.");
   //params.addParam<unsigned int>("training_parameters_random_seed_SCM",-1,"Defines the random seed for the generation of the RB training set.");
   //params.addParam<Real>("training_tolerance_SCM",1e-5,"Determines the training tolerance for the SCM greedy");
   //params.addRequiredParam<std::vector<std::string>>("parameter_names_SCM","Parameter names for SCM");
@@ -96,7 +96,8 @@ DwarfElephantInitializeRBSystemSteadyState::DwarfElephantInitializeRBSystemStead
   _rel_training_tolerance_RB(getParam<Real>("rel_training_tolerance_RB")),
   _abs_training_tolerance_RB(getParam<Real>("abs_training_tolerance_RB")),
   _continuous_parameter_min_values_RB(getParam<std::vector<Real>>("parameter_min_values_RB")),
-  _continuous_parameter_max_values_RB(getParam<std::vector<Real>>("parameter_max_values_RB"))//,
+  _continuous_parameter_max_values_RB(getParam<std::vector<Real>>("parameter_max_values_RB")),
+  _hp_EIM_testing(getParam<bool>("hp_EIM_testing"))      
   //_training_parameters_random_seed_SCM(getParam<unsigned int>("training_parameters_random_seed_SCM")),
   //_training_tolerance_SCM(getParam<Real>("training_tolerance_SCM")),
   //_continuous_parameters_SCM(getParam<std::vector<std::string>>("parameter_names_SCM")),
@@ -426,18 +427,18 @@ DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStage_hp_EIM()
 void
 DwarfElephantInitializeRBSystemSteadyState::initializehpEIMOnline()
 {   
-    read_and_create_hpEIM_tree(_es, _mesh_ptr, _eim_data_in, "hpEIMtree.txt",_online_hp_eim_tree_ptr);
-    _online_hp_eim_tree_ptr->get_leaf_nodes();
+    read_and_create_hpEIM_tree(_es, _mesh_ptr, _eim_data_in, "hpEIMtree.txt",_hp_eim_tree_ptr);
+    _hp_eim_tree_ptr->get_leaf_nodes();
     
-    _online_hp_eim_tree_ptr->set_up_online_rb_objects(_es, _mesh_ptr, _fe_problem);
-    _online_hp_eim_tree_ptr->print_info("online");
+    _hp_eim_tree_ptr->set_up_online_rb_objects(_es, _mesh_ptr, _fe_problem);
+    _hp_eim_tree_ptr->print_info("online");
     
     processRBParameters();
-    for (unsigned int i = 0; i < _online_hp_eim_tree_ptr->leaf_nodes.size(); i++)
+    for (unsigned int i = 0; i < _hp_eim_tree_ptr->leaf_nodes.size(); i++)
     {
-        //_online_hp_eim_tree_ptr->leaf_nodes[i]->_eim_eval_ptr->initialize_eim_theta_objects();
-        _rb_eval_ptr->get_rb_theta_expansion().attach_multiple_F_theta(_online_hp_eim_tree_ptr->leaf_nodes[i]->_eim_eval_ptr->get_eim_theta_objects());
-        _online_hp_eim_tree_ptr->leaf_nodes[i]->_eim_con_ptr->initialize_eim_assembly_objects();
+        //_hp_eim_tree_ptr->leaf_nodes[i]->_eim_eval_ptr->initialize_eim_theta_objects();
+        _rb_eval_ptr->get_rb_theta_expansion().attach_multiple_F_theta(_hp_eim_tree_ptr->leaf_nodes[i]->_eim_eval_ptr->get_eim_theta_objects());
+        _hp_eim_tree_ptr->leaf_nodes[i]->_eim_con_ptr->initialize_eim_assembly_objects();
     }
     _rb_con_ptr -> print_info();  
     _rb_con_ptr -> initialize_rb_construction(_skip_matrix_assembly_in_rb_system, _skip_vector_assembly_in_rb_system);

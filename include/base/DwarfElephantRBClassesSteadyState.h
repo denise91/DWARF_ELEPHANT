@@ -165,7 +165,9 @@ void compute_error_X_norm_vs_N(NumericVector<Number>* _EIMFEsolution, RBParamete
     get_rb_evaluation().set_parameters(_rb_online_mu);
     for (int N = 1; N <= get_rb_evaluation().get_n_basis_functions(); N++)
     {
-      get_rb_evaluation().rb_solve(N);
+      Real online_error_bound;
+      online_error_bound = get_rb_evaluation().rb_solve(N);
+      
       this-> load_rb_solution();
 
       *_es.get_system("rb0").solution = *_es.get_system("RBSystem").solution;
@@ -174,7 +176,7 @@ void compute_error_X_norm_vs_N(NumericVector<Number>* _EIMFEsolution, RBParamete
       std::string temp_string;
       ss << std::setw(2) << std::setfill('0') << N;
       temp_string = "out_" + ss.str();
-      VTKIO(get_mesh()).write_equation_systems(temp_string+".pvtu", _es);
+      //VTKIO(get_mesh()).write_equation_systems(temp_string+".pvtu", _es);
       // compute X norm of RB vs EIMFE error.
       for (int i = 0; i < N; i++)
       {
@@ -183,7 +185,8 @@ void compute_error_X_norm_vs_N(NumericVector<Number>* _EIMFEsolution, RBParamete
       *_RB_solution-=*_EIMFEsolution;
       get_non_dirichlet_inner_product_matrix_if_avail()->vector_mult(*inner_product_storage_vector,*(_RB_solution.get()));
     truthError_X_norm = std::sqrt(inner_product_storage_vector->dot(*(_RB_solution.get())));
-      libMesh::out << "N = " << N << " Error = " << truthError_X_norm << "\n";
+      libMesh::out << "N = " << N << " Error = " << truthError_X_norm  << " Error bound = " << online_error_bound << "\n";
+      if (truthError_X_norm > online_error_bound) {libMesh::out << "                  ^^^^^^^^^              Error is larger than error bound!" << "\n";}
       _RB_solution->zero();
     }
     
@@ -436,7 +439,7 @@ struct EIM_input_data{
         unsigned int _training_random_seed;
         unsigned int _N_max;
         
-        double EIM_error, RB_error_bound;
+        Real EIM_error, RB_error_bound;
     };
     
     struct RB_input_data
@@ -721,7 +724,7 @@ class DwarfElephanthpEIMNode
     // _es: Moose equation system object
     // _mesh_ptr: Moose mesh pointer object
     {
-      std::vector<double> new_subdomain_min, new_subdomain_max;
+      std::vector<Real> new_subdomain_min, new_subdomain_max;
 
       if (check_non_existence_of_all_children()) // if all children are NULL
       {
@@ -766,6 +769,7 @@ class DwarfElephanthpEIMNode
         
         // Copy Affine matrices (all Aq matrices), required Fq vectors, and rb inner product matrix from _master_rb_con_ptr object
         _master_rb_con_ptr->get_inner_product_matrix()->get_transpose(static_cast<SparseMatrix<Number>&>(*(_rb_con_ptr->get_inner_product_matrix())));
+        
         for (unsigned int _q = 0; _q < _rb_con_ptr->get_rb_theta_expansion().get_n_A_terms(); _q++)
         {
             _master_rb_con_ptr->get_Aq(_q)->get_transpose(static_cast<SparseMatrix<Number>&>(*temp_sparse_matrix));
@@ -774,7 +778,7 @@ class DwarfElephanthpEIMNode
         
         for (unsigned int _q = 0; _q < _rb_con_ptr->get_rb_theta_expansion().get_n_F_terms(); _q++)
         {
-            _master_rb_con_ptr->get_Fq(_q + _eim_f_vec_offset)->swap(static_cast<NumericVector<double>&>(*_rb_con_ptr->get_Fq(_q)));
+            _master_rb_con_ptr->get_Fq(_q + _eim_f_vec_offset)->swap(static_cast<NumericVector<Real>&>(*_rb_con_ptr->get_Fq(_q)));
         }
         _rb_con_ptr->train_reduced_basis();
         RB_Error_bound = _rb_con_ptr->compute_max_error_bound();
@@ -804,13 +808,13 @@ class DwarfElephanthpEIMNode
         _es.delete_system("RB_System" + system_name + system_name_suffix);
     }
         
-    double get_child_subdomain_min(unsigned int param_number, unsigned int child_subdomain_number)
+    Real get_child_subdomain_min(unsigned int param_number, unsigned int child_subdomain_number)
     //get_child_subdomain_min: gets the minimum values of the parameters for a particular child subdomain
     //Input parameters:
     //param_number: number of the parameter for which the min value is to be found
     //child_subdomain_number: number of the child_subdomain in question
     {
-      double result;
+      Real result;
       
       if (0 >= param_number && (param_number > number_of_params))
         mooseError("Invalid input to function hpEIMNode::get_child_subdomain(int,int)");
@@ -829,9 +833,9 @@ class DwarfElephanthpEIMNode
     //Input parameters:
     //param_number: number of the parameter for which the max value is to be found
     //child_subdomain_number: number of the child_subdomain in question
-    double get_child_subdomain_max(unsigned int param_number, unsigned int child_subdomain_number)
+    Real get_child_subdomain_max(unsigned int param_number, unsigned int child_subdomain_number)
     {
-      double result;
+      Real result;
       
       if (0 >= param_number && (param_number > number_of_params))
         mooseError("Invalid input to function hpEIMNode::get_child_subdomain(int,int)");
@@ -953,8 +957,8 @@ class DwarfElephanthpEIMNode
     {
         bool grandchildren_exist;
         int number_of_params;
-        std::vector<double> param_min, param_max;
-        double EIM_error_child, RB_error_bound_child;
+        std::vector<Real> param_min, param_max;
+        Real EIM_error_child, RB_error_bound_child;
                 
         if (children_exist)
         {
@@ -978,7 +982,7 @@ class DwarfElephanthpEIMNode
         }
     }
     
-    void extract_hpEIM_node_info(std::ifstream & input_file, bool & children_exist, int & number_of_params, double & EIM_error, double & RB_error_bound, std::vector<Real> & param_min, std::vector<Real> & param_max)
+    void extract_hpEIM_node_info(std::ifstream & input_file, bool & children_exist, int & number_of_params, Real & EIM_error, Real & RB_error_bound, std::vector<Real> & param_min, std::vector<Real> & param_max)
     // extracts info on existence of children and param domain min/max values from the input file stream provided
     // Input Parameters:
     // input_file: input file stream. The tree is stored in this file after the offline phase
@@ -1026,7 +1030,7 @@ class DwarfElephanthpEIMNode
         }
     }
     
-    double get_error()
+    Real get_error()
     //gets the EIM approximation error for the basis in the current node
     {
       if (std::isnan(EIM_error))
@@ -1122,7 +1126,7 @@ class DwarfElephanthpEIMM_aryTree
     // error_tol: error tolerance to be achieved
     // _es: Moose/libmesh equation system object
     // _mesh_ptr: Moose mesh pointer
-    void split_leaves(DwarfElephanthpEIMNode *node, double error_tol, EquationSystems & _es, MooseMesh * _mesh_ptr)
+    void split_leaves(DwarfElephanthpEIMNode *node, Real error_tol, EquationSystems & _es, MooseMesh * _mesh_ptr)
     {
       if (node->check_existence_of_all_children())
       {
@@ -1238,51 +1242,61 @@ class DwarfElephanthpEIMM_aryTree
             
     }
     
-    void online_solve(RBParameters _rb_online_mu, unsigned int _online_N, bool _output_file, EquationSystems & _es, FEProblemBase & _fe_problem, MooseMesh * _mesh_ptr, DwarfElephantRBConstructionSteadyState * _master_rb_con_ptr)
+    void online_solve(RBParameters _rb_online_mu, unsigned int _online_N, bool _output_file, EquationSystems & _es, FEProblemBase & _fe_problem, MooseMesh * _mesh_ptr, DwarfElephantRBConstructionSteadyState * _master_rb_con_ptr, bool hpEIMTesting)
     {
         DwarfElephanthpEIMNode * _required_node = find_EIM_basis(_rb_online_mu);
         std::cout << std::endl << "RB System chosen for online solve: ";
         _required_node->print_node("online");
+        _required_node->_rb_con_ptr -> get_rb_evaluation().read_in_basis_functions(*_required_node->_rb_con_ptr,"rb_offline_data"+_required_node->system_name+_required_node->system_name_suffix);
         _required_node->_rb_eval_ptr->set_parameters(_rb_online_mu);
         _required_node->_rb_eval_ptr->print_parameters();
         _required_node->_rb_eval_ptr->rb_solve(_required_node->_rb_eval_ptr->get_n_basis_functions());
         
         // Code for testing of hpEIM online implementation
-        unsigned int _eim_f_vec_offset = 0;
-        for (int i = 0; i < leaf_nodes.size(); i++)
+        if (hpEIMTesting)
         {
-            if (leaf_nodes[i]->system_name+leaf_nodes[i]->system_name_suffix == _required_node->system_name+_required_node->system_name_suffix)
-                break;
-            _eim_f_vec_offset += leaf_nodes[i]->_eim_eval_ptr->get_n_basis_functions();
+            unsigned int _eim_f_vec_offset = 0;
+            for (int i = 0; i < leaf_nodes.size(); i++)
+            {
+                if (leaf_nodes[i]->system_name+leaf_nodes[i]->system_name_suffix == _required_node->system_name+_required_node->system_name_suffix)
+                    break;
+                _eim_f_vec_offset += leaf_nodes[i]->_eim_eval_ptr->get_n_basis_functions();
+            }
+        
+            std::unique_ptr<SparseMatrix<Number>> temp_sparse_matrix = SparseMatrix<Number>::build(_master_rb_con_ptr->comm());
+            DofMap & dof_map = _master_rb_con_ptr->get_dof_map();
+            dof_map.attach_matrix(*temp_sparse_matrix);
+            temp_sparse_matrix->init();
+            temp_sparse_matrix->zero();
+            temp_sparse_matrix->close();
+        
+            // Copy Affine matrices (all Aq matrices), required Fq vectors, and rb inner product matrix from _master_rb_con_ptr object
+            _required_node->_rb_con_ptr->initialize_rb_construction(true,true);
+            //_required_node->_rb_con_ptr->get_inner_product_matrix()->close();
+        
+            _master_rb_con_ptr->get_inner_product_matrix()->get_transpose(static_cast<SparseMatrix<Number>&>(*(_required_node->_rb_con_ptr->get_inner_product_matrix())));
+            _required_node->_rb_con_ptr->get_inner_product_matrix()->close();
+            _required_node->_rb_con_ptr->get_inner_product_matrix()->print_matlab("rb_ip_mat_online.m");
+            for (unsigned int _q = 0; _q < _master_rb_con_ptr->get_rb_theta_expansion().get_n_A_terms(); _q++)
+            {
+                _master_rb_con_ptr->get_Aq(_q)->get_transpose(static_cast<SparseMatrix<Number>&>(*temp_sparse_matrix));
+                temp_sparse_matrix->get_transpose(static_cast<SparseMatrix<Number>&>(*(_required_node->_rb_con_ptr->get_Aq(_q))));
+            }
+        
+            for (unsigned int _q = 0; _q < _required_node->_rb_con_ptr->get_rb_theta_expansion().get_n_F_terms(); _q++)
+            {
+                _master_rb_con_ptr->get_Fq(_q + _eim_f_vec_offset)->swap(static_cast<NumericVector<Real>&>(*_required_node->_rb_con_ptr->get_Fq(_q)));   
+            }
+        
+            _required_node->_rb_con_ptr->allocate_RB_error_structures();
+            _required_node->_rb_con_ptr->do_RB_vs_FE_Error_analysis(_rb_online_mu, _es);
         }
-        
-        std::unique_ptr<SparseMatrix<Number>> temp_sparse_matrix = SparseMatrix<Number>::build(_master_rb_con_ptr->comm());
-        DofMap & dof_map = _master_rb_con_ptr->get_dof_map();
-        dof_map.attach_matrix(*temp_sparse_matrix);
-        temp_sparse_matrix->init();
-        temp_sparse_matrix->zero();
-        
-        // Copy Affine matrices (all Aq matrices), required Fq vectors, and rb inner product matrix from _master_rb_con_ptr object
-        _master_rb_con_ptr->get_inner_product_matrix()->get_transpose(static_cast<SparseMatrix<Number>&>(*(_required_node->_rb_con_ptr->get_inner_product_matrix())));
-        for (unsigned int _q = 0; _q < _master_rb_con_ptr->get_rb_theta_expansion().get_n_A_terms(); _q++)
-        {
-            _master_rb_con_ptr->get_Aq(_q)->get_transpose(static_cast<SparseMatrix<Number>&>(*temp_sparse_matrix));
-            temp_sparse_matrix->get_transpose(static_cast<SparseMatrix<Number>&>(*(_required_node->_rb_con_ptr->get_Aq(_q))));
-        }
-        
-        for (unsigned int _q = 0; _q < _required_node->_rb_con_ptr->get_rb_theta_expansion().get_n_F_terms(); _q++)
-        {
-            _master_rb_con_ptr->get_Fq(_q + _eim_f_vec_offset)->swap(static_cast<NumericVector<double>&>(*_required_node->_rb_con_ptr->get_Fq(_q)));   
-        }
-        
-        _required_node->_rb_con_ptr->allocate_RB_error_structures();
-        _required_node->_rb_con_ptr->do_RB_vs_FE_Error_analysis(_rb_online_mu, _es);
         // Code for testing of hpEIM online implementation
         
         if(_output_file)
         {
             //_required_node->_eim_con_ptr -> get_rb_evaluation().read_in_basis_functions(_required_node->_eim_con_ptr->get_explicit_system(),"eim_offline_data"+_required_node->system_name+_required_node->system_name_suffix);
-            _required_node->_rb_con_ptr -> get_rb_evaluation().read_in_basis_functions(*_required_node->_rb_con_ptr,"rb_offline_data"+_required_node->system_name+_required_node->system_name_suffix);
+            
 
             _required_node->_eim_con_ptr -> load_rb_solution();
             _required_node->_rb_con_ptr -> load_rb_solution();
@@ -1322,7 +1336,7 @@ class DwarfElephanthpEIMM_aryTree
     {
       bool subdomain_match = 1;
       DwarfElephanthpEIMNode *node = root;
-      std::vector<double> param_value;
+      std::vector<Real> param_value;
       
       
 
@@ -1402,9 +1416,9 @@ class DwarfElephanthpEIMM_aryTree
 
     DwarfElephanthpEIMNode *root; // pointer to the root node of the tree
     std::vector<DwarfElephanthpEIMNode *> leaf_nodes; // stores pointers to all leaf nodes of the tree
-    double EIM_error_tol; // EIM error tolerance to be achieved
+    Real EIM_error_tol; // EIM error tolerance to be achieved
     unsigned int max_leaf_EIM_basis_size; // maximum basis size among all the leaves of the tree
-    double max_leaf_EIM_error; // maximum EIM error among all leaves of the tree (should be less than the overall EIM_error_tolerance)
+    Real max_leaf_EIM_error; // maximum EIM error among all leaves of the tree (should be less than the overall EIM_error_tolerance)
     unsigned int num_EIM_bases; // number of leaves in tree
     bool leaf_nodes_obtained;
 };

@@ -61,17 +61,15 @@ DwarfElephantOfflineOnlineStageSteadyState::DwarfElephantOfflineOnlineStageStead
 
 void
 DwarfElephantOfflineOnlineStageSteadyState::setAffineMatrices()
-{
-   _initialize_rb_system._inner_product_matrix -> close();
-   
-   //_initialize_rb_system._inner_product_matrix->close();
+{  
+   _initialize_rb_system._inner_product_matrix->close();
     for(unsigned int _q=0; _q<_initialize_rb_system._qa; _q++)
     {
       //_rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // for EIM example in Martin's publication
       _initialize_rb_system._jacobian_subdomain[_q] ->close();
       _initialize_rb_system._inner_product_matrix->add(_mu_bar, *_initialize_rb_system._jacobian_subdomain[_q]);
     }
-
+    _initialize_rb_system._inner_product_matrix -> close();
 }
 
 void
@@ -179,7 +177,7 @@ void DwarfElephantOfflineOnlineStageSteadyState::onlineStagehpEIM()
     //Moose::perf_log.push("onlineStage()", "Execution");
     
     setOnlineParameters();
-    _initialize_rb_system._online_hp_eim_tree_ptr->online_solve(_rb_online_mu, _online_N, true, _es, _fe_problem, _mesh_ptr, _initialize_rb_system._rb_con_ptr);
+    _initialize_rb_system._hp_eim_tree_ptr->online_solve(_rb_online_mu, _online_N, true, _es, _fe_problem, _mesh_ptr, _initialize_rb_system._rb_con_ptr, _initialize_rb_system._hp_EIM_testing);
     // model now ready for operation in online multiple query context
     // search for _rb_online_mu in the hp EIM tree
     // do an rb_solve
@@ -356,7 +354,17 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
     if(_online_stage)
     {
         if (_initialize_rb_system._use_EIM) { onlineStageEIM();}
-        if (_initialize_rb_system._use_hp_EIM) { onlineStagehpEIM();}
+        if (_initialize_rb_system._use_hp_EIM) 
+        { 
+            if(_skip_vector_assembly_in_rb_system)
+                transferAffineVectors(); // runs fine
+
+            // Transfer the affine matrices to the RB system.
+            if(_skip_matrix_assembly_in_rb_system)
+                setAffineMatrices(); // problem
+            
+            onlineStagehpEIM();
+        }
         else onlineStageRBOnly();
 //        How to write own Exodus file  // not required anymore
 //        Moose::perf_log.push("write_Exodus()", "Output");

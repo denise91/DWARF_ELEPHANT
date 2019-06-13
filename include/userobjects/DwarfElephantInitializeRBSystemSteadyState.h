@@ -71,7 +71,7 @@ class DwarfElephantInitializeRBSystemSteadyState :
       if (_use_EIM) { delete _eim_eval_ptr;}
       delete _rb_eval_ptr;
       if (_use_hp_EIM && _offline_stage) { delete _hp_eim_tree_ptr;}
-      if (_use_hp_EIM && !_offline_stage) { delete _online_hp_eim_tree_ptr;}
+      if (_use_hp_EIM && !_offline_stage) { delete _hp_eim_tree_ptr;}
     }
     // Initializes all required matrices and vectors for the RB solve.
     void initializeOfflineStage();
@@ -260,9 +260,10 @@ class DwarfElephantInitializeRBSystemSteadyState :
   mutable NumericVector<Number> * _fullFEnonAffineF;
 
     DwarfElephanthpEIMM_aryTree *_hp_eim_tree_ptr;
-    DwarfElephanthpEIMM_aryTree *_online_hp_eim_tree_ptr;
+    
     EIM_input_data _eim_data_in;
     RB_input_data _rb_data_in;
+    bool _hp_EIM_testing;
     
     /*Friend Classes*/
     friend class DwarfElephantRBKernel;

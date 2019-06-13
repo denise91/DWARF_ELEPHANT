@@ -206,7 +206,7 @@ DwarfElephantRBKernel::computeJacobian()
     if (_ID_Aq >= _initialize_rb_system._qa)
       mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
 
-    if(_initialize_rb_system._offline_stage)
+    if(_initialize_rb_system._offline_stage || _initialize_rb_system._hp_EIM_testing)
     // Add the calculated matrices to the Aq matrices from the RB system.
     if (_fe_problem.getNonlinearSystemBase().getCurrentNonlinearIterationNumber() == 0)
         _initialize_rb_system._jacobian_subdomain[_ID_Aq] -> add_matrix(_local_ke, _var.dofIndices());

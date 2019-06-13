@@ -144,12 +144,13 @@ DwarfElephantRBNodalBC::computeJacobian()
               //_rb_problem->rbAssembly(0).cacheJacobianContribution(cached_row, cached_row, cached_val); // For EIM example in Martin's publication
             }
            }
-           else{
+           else
+           {
              if (_ID_Aq >= _initialize_rb_system._qa)
               mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
 
 	           _rb_problem->rbAssembly(_ID_Aq).cacheJacobianContribution(cached_row, cached_row, cached_val);
-          }
+           }
         }
       }
     }
