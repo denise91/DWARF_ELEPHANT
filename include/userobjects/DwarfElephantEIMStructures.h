@@ -48,25 +48,19 @@ struct ShiftedGaussianTest : public RBParametrizedFunction
   {
     
     Real _needle_center_x = mu.get_value("mu_0");
-    Real _variance = mu.get_value("mu_1");
+    //Real _variance = mu.get_value("mu_1");
     
-    /*
+    
     Real _needle_center_y = mu.get_value("mu_1");
     Real _needle_axis_theta = pi/2.0;
-    Real _needle_axis_phi = mu.get_value("mu_2");
+    Real _needle_axis_phi = 0;//mu.get_value("mu_2");
     
     Real _needle_power = 1.0;
 
- //VectorValue<Real> _X_bar(_needle_active_region_p1_x, _needle_active_region_p1_y, 0.);
-  //VectorValue<Real> _Y_bar(_needle_active_region_p2_x, _needle_active_region_p2_y, 0.);
   VectorValue<Real> _A_bar(p(0),p(1),0.);
 
-  //VectorValue<Real> _temp_vec = _X_bar - _Y_bar;
-  //VectorValue<Real> _Z_cap = _temp_vec / _temp_vec.norm(); // Unit vector along needle
   VectorValue<Real> _Z_cap(std::sin(_needle_axis_theta)*std::cos(_needle_axis_phi),std::sin(_needle_axis_theta)*std::sin(_needle_axis_phi),std::cos(_needle_axis_theta));
 
-  //_temp_vec = _X_bar + _Y_bar;
-  //VectorValue<Real> _O_cap = _temp_vec * 0.5; // position vector of needle center
   VectorValue<Real> _O_cap(_needle_center_x, _needle_center_y, 0);
 
   VectorValue<Real> _temp_vec = _A_bar - _O_cap;
@@ -79,8 +73,8 @@ struct ShiftedGaussianTest : public RBParametrizedFunction
   Real _sigmoid_plus = 1./(1. + exp(-1.303e4*(_z_needle - 1.052e-2)));
   Real _sigmoid_minus = 1./(1. + exp(-1.303e4*(_z_needle + 1.052e-2)));
   Real P = (_needle_power * 1.383e15 * pow(_z_needle,4) + 2.624e6)*(_sigmoid_minus *(1. - _sigmoid_plus));
-  return P*Q_G;*/
-    return exp(-pow(_needle_center_x - p(0),2)/_variance); //5e-4);
+  return P*Q_G;
+    //return exp(-pow(_needle_center_x - p(0),2)/_variance); //5e-4);
   }
 };
 

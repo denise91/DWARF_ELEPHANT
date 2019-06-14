@@ -283,7 +283,7 @@ DwarfElephantRBEvaluationSteadyState::get_stability_lower_bound()
   return min_mu; */
   // rb_scm_eval->set_parameters(get_parameters());
   // return rb_scm_eval->get_SCM_LB();
-  return 1.0;
+  return 0.1;
 }
 
 DwarfElephantEIMEvaluationSteadyState::DwarfElephantEIMEvaluationSteadyState(const libMesh::Parallel::Communicator & comm) :
@@ -291,7 +291,6 @@ DwarfElephantEIMEvaluationSteadyState::DwarfElephantEIMEvaluationSteadyState(con
   {
     attach_parametrized_function(&sg);
   }
-
 
   /**
    * Constructor.

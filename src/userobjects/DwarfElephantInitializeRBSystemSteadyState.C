@@ -22,7 +22,7 @@ InputParameters validParams<DwarfElephantInitializeRBSystemSteadyState>()
   params.addParam<unsigned int>("N_max_EIM",-1, "Defines the maximum number of EIM basis functions."); // Do not make this a required parameter
   params.addParam<Real>("rel_training_tolerance_EIM", 1.0e-4, "Defines the relative training tolerance for the EIM Greedy.");
   params.addParam<Real>("abs_training_tolerance_EIM", 1.0e-12, "Defines the relative training tolerance for the EIM Greedy.");
-  params.addParam<bool>("normalize_EIM_bound_in_greedy", false, "Determines whether the normalized EIM bound is used in the Greedy or not.");
+  params.addParam<bool>("normalize_EIM_bound_in_greedy", true, "Determines whether the normalized EIM bound is used in the Greedy or not.");
   params.addParam<std::vector<std::string>>("parameter_names_EIM","Parameter names for the EIM."); // do not make this a required parameter
   params.addParam<std::vector<Real>>("parameter_min_values_EIM", "Defines the lower bound of the EIM parameter range.");
   params.addParam<std::vector<Real>>("parameter_max_values_EIM", "Defines the upper bound of the EIM parameter range.");

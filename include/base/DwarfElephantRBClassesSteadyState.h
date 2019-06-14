@@ -85,13 +85,15 @@ namespace libMesh
 //class DwarfElephantInitializeRBSystemSteadyState;
 
 
-//struct CustomRBTheta : RBTheta
-//{
-//	virtual Number evaluate(const RBParameters &_mu)
-//	{
-//		return _mu.get_value("mu_0");
-//	}
-//};
+/*
+struct CustomRBTheta : RBTheta
+{
+    virtual Number evaluate(const RBParameters &_mu)
+    {
+        return _mu.get_value("mu_2");
+    }
+};
+ */
 
 struct CustomRBThetaExpansion : RBThetaExpansion
 {
@@ -273,6 +275,7 @@ class DwarfElephantEIMEvaluationSteadyState : public RBEIMEvaluation
 public:
 
   DwarfElephantEIMEvaluationSteadyState(const libMesh::Parallel::Communicator & comm);
+
   
   virtual ~DwarfElephantEIMEvaluationSteadyState() {}
 
@@ -301,6 +304,11 @@ public:
   virtual std::unique_ptr<ElemAssembly> build_eim_assembly(unsigned int index);
   
   virtual void init_data();
+  
+  Real get_error_bound_normalization()
+  {
+      return _error_bound_normalization;
+  }
   
   /**
    * Initialize the implicit system that is used to perform L2 projections.
@@ -384,6 +392,8 @@ public:
           if (greedy_termination_test(training_greedy_error, initial_greedy_error, count))
             break;
         }
+      if (count == 1)
+          _error_bound_normalization = training_greedy_error;
 
       libMesh::out << "Performing truth solve at parameter:" << std::endl;
       print_parameters();
@@ -421,6 +431,8 @@ public:
 
   std::vector<std::unique_ptr<DwarfElephantEIMFAssembly>> _rb_eim_assembly_objects_new;
   std::ofstream GreedyOutputFile;
+  
+  Real _error_bound_normalization;
 };
 
 struct EIM_input_data{
@@ -650,6 +662,12 @@ class DwarfElephanthpEIMNode
                 _mu_max_RB.set_value(_eim_data_this._cont_param[i], _eim_data_this._cont_param_max[i]);
             }
             
+            for (unsigned int i = _eim_data_this._cont_param.size(); i < _rb_data_in._cont_param.size(); i++)
+            {
+                _mu_min_RB.set_value(_rb_data_in._cont_param[i], _rb_data_in._cont_param_min[i]);
+                _mu_max_RB.set_value(_rb_data_in._cont_param[i], _rb_data_in._cont_param_max[i]);
+            }
+            
             for (unsigned int i = 0; i < _rb_data_in._discrete_parameters_RB.size(); i++)
             {
                 //_rb_data_in._discrete_parameter_values_RB[_rb_data_in._discrete_parameters_RB[i]] = _rb_data_in._discrete_parameter_values_in_RB;
@@ -724,26 +742,25 @@ class DwarfElephanthpEIMNode
     // _es: Moose equation system object
     // _mesh_ptr: Moose mesh pointer object
     {
-      std::vector<Real> new_subdomain_min, new_subdomain_max;
+        std::vector<Real> new_subdomain_min, new_subdomain_max;
 
-      if (check_non_existence_of_all_children()) // if all children are NULL
-      {
-        for (unsigned int subdomain_number = 0; subdomain_number < number_of_subdomains; subdomain_number++)
+        if (check_non_existence_of_all_children()) // if all children are NULL
         {
-          for (unsigned int param_number = 0; param_number < number_of_params; param_number++)
-          {
-            _eim_data_child._cont_param_min[param_number] = get_child_subdomain_min(param_number+1,subdomain_number+1);
-            _eim_data_child._cont_param_max[param_number] = get_child_subdomain_max(param_number+1,subdomain_number+1);
-          }
-          // update _eim_data_child with the min and max param values
-          children[subdomain_number] = new DwarfElephanthpEIMNode(_es, _mesh_ptr, system_name + system_name_suffix, "_" + std::to_string(subdomain_number + 1), _eim_data_child, operation_mode);
-          children[subdomain_number]->attach_inner_product_matrix(_eim_con_ptr->get_inner_product_matrix());
-          children[subdomain_number]->_eim_con_ptr->get_inner_product_matrix()->close();
-          children[subdomain_number]->_eim_con_ptr->train_reduced_basis();
-          children[subdomain_number]->EIM_error = children[subdomain_number]->_eim_con_ptr->compute_max_error_bound();
-          
+            for (unsigned int subdomain_number = 0; subdomain_number < number_of_subdomains; subdomain_number++)
+            {
+                for (unsigned int param_number = 0; param_number < number_of_params; param_number++)
+                {
+                    _eim_data_child._cont_param_min[param_number] = get_child_subdomain_min(param_number+1,subdomain_number+1);
+                    _eim_data_child._cont_param_max[param_number] = get_child_subdomain_max(param_number+1,subdomain_number+1);
+                }
+                // update _eim_data_child with the min and max param values
+                children[subdomain_number] = new DwarfElephanthpEIMNode(_es, _mesh_ptr, system_name + system_name_suffix, "_" + std::to_string(subdomain_number + 1), _eim_data_child, operation_mode);
+                children[subdomain_number]->attach_inner_product_matrix(_eim_con_ptr->get_inner_product_matrix());
+                children[subdomain_number]->_eim_con_ptr->get_inner_product_matrix()->close();
+                children[subdomain_number]->_eim_con_ptr->train_reduced_basis();
+                children[subdomain_number]->EIM_error = children[subdomain_number]->_eim_con_ptr->compute_max_error_bound()/children[subdomain_number]->_eim_con_ptr->get_error_bound_normalization(); 
+            }
         }
-      }
     }
 
     void train_rb_model(EquationSystems & _es, MooseMesh * _mesh_ptr, FEProblemBase & _fe_problem, RB_input_data _rb_init_data, DwarfElephantRBConstructionSteadyState * _master_rb_con_ptr, unsigned int _eim_f_vec_offset)
@@ -1059,8 +1076,8 @@ class DwarfElephanthpEIMNode
     DwarfElephantRBEvaluationSteadyState * _rb_eval_ptr = NULL;
     std::vector<DwarfElephanthpEIMNode*> children;
     //DwarfElephanthpEIMNode * children;
-    unsigned int number_of_params = -1, number_of_subdomains = -1;
-    std::vector<Real> gravity_center, param_domain_min, param_domain_max;
+    unsigned int number_of_params = -1/* number parameters involved in the non-affine function only */, number_of_subdomains = -1;
+    std::vector<Real> gravity_center, param_domain_min, param_domain_max; // these are only for the parameters involved in EIM
     Real EIM_error = std::sqrt(-1), RB_Error_bound = std::sqrt(-1);
     std::string system_name, system_name_suffix, operation_mode;
     EIM_input_data _eim_data_this;
@@ -1114,7 +1131,7 @@ class DwarfElephanthpEIMM_aryTree
         num_EIM_bases = 0;
         root->_eim_con_ptr->get_inner_product_matrix()->close();
         root->_eim_con_ptr->train_reduced_basis();
-        root->EIM_error = root->_eim_con_ptr->compute_max_error_bound();
+        root->EIM_error = root->_eim_con_ptr->compute_max_error_bound()/root->_eim_con_ptr->get_error_bound_normalization();
         
         split_leaves(node, EIM_error_tol, _es, _mesh_ptr);
       }
@@ -1137,9 +1154,11 @@ class DwarfElephanthpEIMM_aryTree
       {
         if (node->get_error() >= error_tol)
         {
-          node->split_param_domain(_es, _mesh_ptr);
-          for (unsigned int i = 0; i < root->number_of_subdomains; i++)
-            split_leaves(node->children[i], error_tol, _es, _mesh_ptr);
+            std::cout << "Splitting following node because current EIM error: " << node->get_error() << ", which is larger than user-set error tolerance of " << error_tol;
+            node->print_node("offline");
+            node->split_param_domain(_es, _mesh_ptr);
+            for (unsigned int i = 0; i < root->number_of_subdomains; i++)
+                split_leaves(node->children[i], error_tol, _es, _mesh_ptr);
         }
         else
         {
