@@ -10,7 +10,7 @@
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantOfflineOnlineStageSteadyState.h"
 #include "DwarfElephantRBClassesSteadyState.h"
-
+#include <random>
 ///----------------------------INPUT PARAMETERS-----------------------------
 template<>
 InputParameters validParams<DwarfElephantOfflineOnlineStageSteadyState>()
@@ -175,9 +175,33 @@ DwarfElephantOfflineOnlineStageSteadyState::setOnlineParameters()
 void DwarfElephantOfflineOnlineStageSteadyState::onlineStagehpEIM()
 {
     //Moose::perf_log.push("onlineStage()", "Execution");
+//        std::random_device rd;
+//    std::mt19937 gen(rd());
+//    std::uniform_real_distribution<> dis(-0.03,0.03);
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();    
+    //setOnlineParameters();
+    //_initialize_rb_system._hp_eim_tree_ptr->online_solve(_rb_online_mu, _online_N, true, _es, _fe_problem, _mesh_ptr, _initialize_rb_system._rb_con_ptr, _initialize_rb_system._hp_EIM_testing);
+    unsigned int testcases = 40;
+    for (unsigned int i = 0; i < testcases; i++)
+    { 
+        for (unsigned int j = 0; j < testcases; j++)
+        {
+            //for (unsigned int  _q = 0; _q < _online_mu_parameters.size(); _q++)
+            //{
+                //std::string  _mu_name = "mu_" + std::to_string(_q);
+                //_rb_online_mu.set_value(_mu_name, dis(gen));
+            //}
+            _rb_online_mu.set_value("mu_0", -0.03 + 0.06*static_cast<double>(i)/(testcases-1));
+            _rb_online_mu.set_value("mu_1", -0.03 + 0.06*static_cast<double>(j)/(testcases-1));
+            std::cout << "Online params: " << -0.03 + 0.06*static_cast<double>(i)/(testcases-1) << " " << -0.03 + 0.06*static_cast<double>(j)/(testcases-1) << std::endl;
+            _initialize_rb_system._hp_eim_tree_ptr->online_solve(_rb_online_mu, _online_N, false, _es, _fe_problem, _mesh_ptr, _initialize_rb_system._rb_con_ptr, _initialize_rb_system._hp_EIM_testing);
+        }
+    }
     
-    setOnlineParameters();
-    _initialize_rb_system._hp_eim_tree_ptr->online_solve(_rb_online_mu, _online_N, true, _es, _fe_problem, _mesh_ptr, _initialize_rb_system._rb_con_ptr, _initialize_rb_system._hp_EIM_testing);
+    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    std::cout << "Average time taken per online solve: " << duration/(1e6*std::pow(testcases,2)) << " seconds." << std::endl;
+    
     // model now ready for operation in online multiple query context
     // search for _rb_online_mu in the hp EIM tree
     // do an rb_solve
@@ -356,12 +380,15 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
         if (_initialize_rb_system._use_EIM) { onlineStageEIM();}
         if (_initialize_rb_system._use_hp_EIM) 
         { 
-            if(_skip_vector_assembly_in_rb_system)
-                transferAffineVectors(); // runs fine
+            if (_initialize_rb_system._hp_EIM_testing)
+            {
+                if(_skip_vector_assembly_in_rb_system)
+                    transferAffineVectors(); // runs fine
 
-            // Transfer the affine matrices to the RB system.
-            if(_skip_matrix_assembly_in_rb_system)
-                setAffineMatrices(); // problem
+                // Transfer the affine matrices to the RB system.
+                if(_skip_matrix_assembly_in_rb_system)
+                    setAffineMatrices(); // problem
+            }
             
             onlineStagehpEIM();
         }

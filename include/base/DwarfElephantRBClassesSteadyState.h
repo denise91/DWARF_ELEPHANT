@@ -515,7 +515,8 @@ class DwarfElephanthpEIMNode
     number_of_subdomains(-1),
     system_name(system_name),
     system_name_suffix(system_name_suffix),
-    operation_mode(operation_mode)
+    operation_mode(operation_mode),
+            online_objects_initialized(false)
     {
         if (operation_mode == "offline")
         {
@@ -1083,6 +1084,7 @@ class DwarfElephanthpEIMNode
     EIM_input_data _eim_data_this;
     EIM_input_data _eim_data_child;
     RB_input_data _rb_data_in;
+    bool online_objects_initialized;
 };
 
 class DwarfElephanthpEIMM_aryTree
@@ -1194,7 +1196,7 @@ class DwarfElephanthpEIMM_aryTree
         else
         {
             leaf_nodes.push_back(node);
-            std::cout << "Node: " << node->system_name << node->system_name_suffix << std::endl;
+            //std::cout << "Node: " << node->system_name << node->system_name_suffix << std::endl;
         }
     }
     
@@ -1254,8 +1256,7 @@ class DwarfElephanthpEIMM_aryTree
                 #else
                 leaf_nodes[i]->_rb_con_ptr -> get_rb_evaluation().legacy_read_offline_data_from_files("rb_offline_data" + leaf_nodes[i]->system_name + leaf_nodes[i]->system_name_suffix);
                 #endif
-
-                
+                leaf_nodes[i]->online_objects_initialized = true;
             }
         }
             
@@ -1264,9 +1265,49 @@ class DwarfElephanthpEIMM_aryTree
     void online_solve(RBParameters _rb_online_mu, unsigned int _online_N, bool _output_file, EquationSystems & _es, FEProblemBase & _fe_problem, MooseMesh * _mesh_ptr, DwarfElephantRBConstructionSteadyState * _master_rb_con_ptr, bool hpEIMTesting)
     {
         DwarfElephanthpEIMNode * _required_node = find_EIM_basis(_rb_online_mu);
+        
+        //if (!(_required_node->online_objects_initialized)) // Find better way to manage this since _required_node goes out of scope (and gets deleted) when function terminates
+        //{
+            _required_node->_eim_con_ptr = &_es.add_system<DwarfElephantEIMConstructionSteadyState>("hp_EIM_System" + _required_node->system_name + _required_node->system_name_suffix);
+            _required_node->_rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionSteadyState>("RB_System" + _required_node->system_name + _required_node->system_name_suffix);
+            if (_es.n_systems() <= 2)
+            {
+                std::cout << "New systems not being added." << std::endl;
+            }
+            _required_node->_eim_con_ptr->init();
+            _required_node->_eim_con_ptr->get_explicit_system().init();
+            _required_node->_rb_con_ptr->init();
+            _es.update();
+            _required_node->_eim_eval_ptr = new DwarfElephantEIMEvaluationSteadyState(_mesh_ptr->comm());
+  
+            // Pass a pointer of the RBEvaluation object to the
+            // RBConstruction object
+            _required_node->_eim_con_ptr->set_rb_evaluation(*_required_node->_eim_eval_ptr);
+            _required_node->_rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
+            _required_node->_rb_con_ptr->set_rb_evaluation(*_required_node->_rb_eval_ptr);
+                
+            #if defined(LIBMESH_HAVE_CAPNPROTO)
+            RBDataDeserialization::RBEIMEvaluationDeserialization _rb_eim_eval_reader(leaf_nodes[i]->_eim_con_ptr -> get_rb_evaluation());
+            rb_eim_eval_reader.read_from_file("rb_eim_eval.bin");
+            #else
+            _required_node->_eim_con_ptr -> get_rb_evaluation().legacy_read_offline_data_from_files("eim_offline_data" + _required_node->system_name + _required_node->system_name_suffix);
+            #endif
+            _required_node->_eim_eval_ptr->read_in_basis_functions(_required_node->_eim_con_ptr->get_explicit_system(),"eim_offline_data"+_required_node->system_name+_required_node->system_name_suffix);
+                
+            _required_node->_eim_eval_ptr->initialize_eim_theta_objects();
+            _required_node->_rb_eval_ptr->get_rb_theta_expansion().attach_multiple_F_theta(_required_node->_eim_eval_ptr->get_eim_theta_objects());
+                
+            #if defined(LIBMESH_HAVE_CAPNPROTO)
+            RBDataSerialization::RBEvaluationDeserialization rb_eval_reader(leaf_nodes[i]->_rb_con_ptr -> get_rb_evaluation());
+            rb_eval_reader.read_from_file("rb_eval.bin");
+            #else
+            _required_node->_rb_con_ptr -> get_rb_evaluation().legacy_read_offline_data_from_files("rb_offline_data" + _required_node->system_name + _required_node->system_name_suffix);
+            #endif
+            _required_node->_rb_eval_ptr ->read_in_basis_functions(*_required_node->_rb_con_ptr,"rb_offline_data"+_required_node->system_name+_required_node->system_name_suffix);
+            //_required_node->online_objects_initialized = true;
+        //}
         std::cout << std::endl << "RB System chosen for online solve: ";
         _required_node->print_node("online");
-        _required_node->_rb_con_ptr -> get_rb_evaluation().read_in_basis_functions(*_required_node->_rb_con_ptr,"rb_offline_data"+_required_node->system_name+_required_node->system_name_suffix);
         _required_node->_rb_eval_ptr->set_parameters(_rb_online_mu);
         _required_node->_rb_eval_ptr->print_parameters();
         _required_node->_rb_eval_ptr->rb_solve(_required_node->_rb_eval_ptr->get_n_basis_functions());
@@ -1335,7 +1376,7 @@ class DwarfElephanthpEIMM_aryTree
                 {    
                     _es.delete_system(sys_names[i]);
                 }
-                std::cout <<"Number of systems left" <<  _es.n_systems() << std::endl;
+                //std::cout <<"Number of systems left" <<  _es.n_systems() << std::endl;
             }
             
             std::stringstream ss;
@@ -1347,6 +1388,20 @@ class DwarfElephanthpEIMM_aryTree
 	    #endif
             VTKIO(_mesh_ptr->getMesh()).write_equation_systems("out.pvtu", _es);
         }
+
+        delete _required_node->_rb_eval_ptr;
+        delete _required_node->_eim_eval_ptr;
+        
+        _required_node->_rb_eval_ptr = NULL;
+        _required_node->_eim_eval_ptr = NULL;
+        
+        std::string eim_sys_name = _required_node->_eim_con_ptr->name();
+        std::string eim_expl_sys_name = _required_node->_eim_con_ptr->get_explicit_system().name();
+        std::string rb_sys_name = _required_node->_rb_con_ptr->name();
+        
+        _es.delete_system(rb_sys_name);
+        _es.delete_system(eim_expl_sys_name);
+        _es.delete_system(eim_sys_name);       
     }
     // find_EIM_basis
     // Input parameters:

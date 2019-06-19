@@ -87,7 +87,7 @@
   solve_type = 'Newton'
   l_tol = 1.0e-8
   nl_rel_tol = 1.0e-8
-  #offline_stage = false # comment this line out in case you are testing hp EIM
+  offline_stage = false # comment this line out in case you are testing hp EIM
   petsc_options_iname = '-pc_type -pc_hypre_type -ksp_gmres_restart'
   petsc_options_value = 'hypre    boomeramg      101'
 []
@@ -98,7 +98,7 @@
   use_EIM = false
   use_hp_EIM = true
   #hp_EIM_testing = true #only use during the online phase
-  #offline_stage = false
+  offline_stage = false
   N_max_EIM = 20
   n_training_samples_EIM = 100
   rel_training_tolerance_EIM = 1e-3
@@ -128,10 +128,10 @@
 
 [./performRBSystem ]
   type = DwarfElephantOfflineOnlineStageSteadyState
-  #online_stage = true
-  online_mu = '0.02 -0.01'# 2.0'# -0.021 0.1'
+  online_stage = true
+  online_mu = '-0.02 0.01'# 2.0'# -0.021 0.1'
   online_N = 20
-  #offline_stage = false
+  offline_stage = false
   execute_on = 'timestep_end'
 [../]
 []

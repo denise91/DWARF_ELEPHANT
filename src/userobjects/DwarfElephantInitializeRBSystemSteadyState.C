@@ -427,22 +427,38 @@ DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStage_hp_EIM()
 void
 DwarfElephantInitializeRBSystemSteadyState::initializehpEIMOnline()
 {   
+    // read offline data and set up objects for online solves
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    
     read_and_create_hpEIM_tree(_es, _mesh_ptr, _eim_data_in, "hpEIMtree.txt",_hp_eim_tree_ptr);
-    _hp_eim_tree_ptr->get_leaf_nodes();
+    _hp_eim_tree_ptr->get_leaf_nodes();    
+    //_hp_eim_tree_ptr->set_up_online_rb_objects(_es, _mesh_ptr, _fe_problem);
+    //_hp_eim_tree_ptr->print_info("online");
     
-    _hp_eim_tree_ptr->set_up_online_rb_objects(_es, _mesh_ptr, _fe_problem);
-    _hp_eim_tree_ptr->print_info("online");
+    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    std::cout << "Time taken to read offline data and set up objects for online solves: " << duration/1e6 << " seconds." << std::endl;
     
-    processRBParameters();
-    for (unsigned int i = 0; i < _hp_eim_tree_ptr->leaf_nodes.size(); i++)
+    if (_hp_EIM_testing)
     {
-        //_hp_eim_tree_ptr->leaf_nodes[i]->_eim_eval_ptr->initialize_eim_theta_objects();
-        _rb_eval_ptr->get_rb_theta_expansion().attach_multiple_F_theta(_hp_eim_tree_ptr->leaf_nodes[i]->_eim_eval_ptr->get_eim_theta_objects());
-        _hp_eim_tree_ptr->leaf_nodes[i]->_eim_con_ptr->initialize_eim_assembly_objects();
+        std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+        
+        processRBParameters();
+        for (unsigned int i = 0; i < _hp_eim_tree_ptr->leaf_nodes.size(); i++)
+        {
+            //_hp_eim_tree_ptr->leaf_nodes[i]->_eim_eval_ptr->initialize_eim_theta_objects();
+            _rb_eval_ptr->get_rb_theta_expansion().attach_multiple_F_theta(_hp_eim_tree_ptr->leaf_nodes[i]->_eim_eval_ptr->get_eim_theta_objects());
+            _hp_eim_tree_ptr->leaf_nodes[i]->_eim_con_ptr->initialize_eim_assembly_objects();
+        }
+        _rb_con_ptr -> print_info();  
+        _rb_con_ptr -> initialize_rb_construction(_skip_matrix_assembly_in_rb_system, _skip_vector_assembly_in_rb_system);
+        AssignAffineMatricesAndVectors();
+        
+        std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+        duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+        std::cout << "Time taken to set up hp EIM testing functionality: " << duration/1e6 << " seconds." << std::endl;
+        
     }
-    _rb_con_ptr -> print_info();  
-    _rb_con_ptr -> initialize_rb_construction(_skip_matrix_assembly_in_rb_system, _skip_vector_assembly_in_rb_system);
-    AssignAffineMatricesAndVectors();  
 }
 
 void
