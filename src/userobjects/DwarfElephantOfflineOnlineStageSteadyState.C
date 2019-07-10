@@ -178,9 +178,10 @@ void DwarfElephantOfflineOnlineStageSteadyState::onlineStagehpEIM()
 //        std::random_device rd;
 //    std::mt19937 gen(rd());
 //    std::uniform_real_distribution<> dis(-0.03,0.03);
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();    
-    //setOnlineParameters();
-    //_initialize_rb_system._hp_eim_tree_ptr->online_solve(_rb_online_mu, _online_N, true, _es, _fe_problem, _mesh_ptr, _initialize_rb_system._rb_con_ptr, _initialize_rb_system._hp_EIM_testing);
+    //std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();    
+    setOnlineParameters();
+    _initialize_rb_system._hp_eim_tree_ptr->online_solve(_rb_online_mu, _online_N, true, _es, _fe_problem, _mesh_ptr, _initialize_rb_system._rb_con_ptr, _initialize_rb_system._hp_EIM_testing);
+    /*
     unsigned int testcases = 40;
     for (unsigned int i = 0; i < testcases; i++)
     { 
@@ -196,11 +197,11 @@ void DwarfElephantOfflineOnlineStageSteadyState::onlineStagehpEIM()
             std::cout << "Online params: " << -0.03 + 0.06*static_cast<double>(i)/(testcases-1) << " " << -0.03 + 0.06*static_cast<double>(j)/(testcases-1) << std::endl;
             _initialize_rb_system._hp_eim_tree_ptr->online_solve(_rb_online_mu, _online_N, false, _es, _fe_problem, _mesh_ptr, _initialize_rb_system._rb_con_ptr, _initialize_rb_system._hp_EIM_testing);
         }
-    }
+    }*/
     
-    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    std::cout << "Average time taken per online solve: " << duration/(1e6*std::pow(testcases,2)) << " seconds." << std::endl;
+    //std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    //auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    //std::cout << "Average time taken per online solve: " << duration/(1e6*std::pow(testcases,2)) << " seconds." << std::endl;
     
     // model now ready for operation in online multiple query context
     // search for _rb_online_mu in the hp EIM tree

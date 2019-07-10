@@ -1388,20 +1388,22 @@ class DwarfElephanthpEIMM_aryTree
 	    #endif
             VTKIO(_mesh_ptr->getMesh()).write_equation_systems("out.pvtu", _es);
         }
-
-        delete _required_node->_rb_eval_ptr;
-        delete _required_node->_eim_eval_ptr;
+        else
+        {
+            delete _required_node->_rb_eval_ptr;
+            delete _required_node->_eim_eval_ptr;
         
-        _required_node->_rb_eval_ptr = NULL;
-        _required_node->_eim_eval_ptr = NULL;
+            _required_node->_rb_eval_ptr = NULL;
+            _required_node->_eim_eval_ptr = NULL;
         
-        std::string eim_sys_name = _required_node->_eim_con_ptr->name();
-        std::string eim_expl_sys_name = _required_node->_eim_con_ptr->get_explicit_system().name();
-        std::string rb_sys_name = _required_node->_rb_con_ptr->name();
+            std::string eim_sys_name = _required_node->_eim_con_ptr->name();
+            std::string eim_expl_sys_name = _required_node->_eim_con_ptr->get_explicit_system().name();
+            std::string rb_sys_name = _required_node->_rb_con_ptr->name();
         
-        _es.delete_system(rb_sys_name);
-        _es.delete_system(eim_expl_sys_name);
-        _es.delete_system(eim_sys_name);       
+            _es.delete_system(rb_sys_name);
+            _es.delete_system(eim_expl_sys_name);
+            _es.delete_system(eim_sys_name);       
+        }
     }
     // find_EIM_basis
     // Input parameters:

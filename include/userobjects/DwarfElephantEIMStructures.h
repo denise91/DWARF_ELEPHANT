@@ -53,7 +53,7 @@ struct ShiftedGaussianTest : public RBParametrizedFunction
     
     Real _needle_center_y = mu.get_value("mu_1");
     Real _needle_axis_theta = pi/2.0;
-    Real _needle_axis_phi = 0;//mu.get_value("mu_2");
+    Real _needle_axis_phi = mu.get_value("mu_2");
     
     Real _needle_power = 1.0;
 
