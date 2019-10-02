@@ -66,6 +66,12 @@ struct DwarfElephantRBT6F4O1M3TransientExpansion : TransientRBThetaExpansion
   DwarfElephantThetaA3EqualMu3 _theta_m_0;
   DwarfElephantThetaA4EqualMu4 _theta_m_1;
   DwarfElephantThetaA5EqualMu5 _theta_f_0;
+
+  // //DwarfElephantThetaA3EqualMu3 _theta_m_0;
+  // DwarfElephantThetaA1EqualMu1 _theta_m_0;
+  // //DwarfElephantThetaA4EqualMu4 _theta_m_1;
+  // DwarfElephantThetaA3EqualMu3 _theta_f_0;
+  // // //DwarfElephantThetaA5EqualMu5 _theta_f_0;
   RBTheta _rb_theta;         // Default RBTheta object, simply returns one.
 };
 

@@ -57,18 +57,18 @@ DwarfElephantFEFilePointValues::execute()
      * If we get exactly zero, we don't know if the locator couldn't find an element, or
      * if the solution is truly zero, more checking is needed.
      */
-     // if (MooseUtils::absoluteFuzzyEqual(_values[i], 0.0))
-     // {
-     //   auto pl = _subproblem.mesh().getPointLocator();
-     //   pl->enable_out_of_mesh_mode();
-     //
-     //   auto * elem = (*pl)(_point);
-     //   auto elem_id = elem ? elem->id() : DofObject::invalid_id;
-     //   gatherMin(elem_id);
-     //
-     //   if (elem_id == DofObject::invalid_id)
-     //     mooseError("No element located at ", _point, " in PointValue Postprocessor named: ", name());
-     // }
+     if (MooseUtils::absoluteFuzzyEqual(_values[i], 0.0))
+     {
+       auto pl = _subproblem.mesh().getPointLocator();
+       pl->enable_out_of_mesh_mode();
+
+       auto * elem = (*pl)(_point);
+       auto elem_id = elem ? elem->id() : DofObject::invalid_id;
+       gatherMin(elem_id);
+
+       if (elem_id == DofObject::invalid_id)
+         mooseError("No element located at ", _point, " in PointValue Postprocessor named: ", name());
+     }
   }
 }
 

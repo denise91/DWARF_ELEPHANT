@@ -738,6 +738,19 @@ DwarfElephantRBConstructionTransient::init_data()
   #endif
           }
 
+          // std::ostringstream file_name;
+          // file_name << "truth"
+          // << get_rb_evaluation().get_n_basis_functions()
+          // << "."
+          // << std::setprecision(0)
+          // << std::setfill('0')
+          // << std::right
+          // << time_level
+          // <<".e";
+          //
+          // ExodusII_IO(get_mesh()).write_equation_systems (file_name.str(),
+          //                                                 this->get_equation_systems());
+
           if(varying_timesteps)
           {
             if(dt < threshold){
