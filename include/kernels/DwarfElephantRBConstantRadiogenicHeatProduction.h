@@ -35,7 +35,14 @@ protected:
   virtual Real computeQpJacobian() override;
 
   Real _radiogenic_heat_production;
-  Real _norm_value;
+  Real _norm_value_radiogenic_heat_production;
+
+  bool _transient;
+
+  Real _density;
+  Real _specific_heat;
+  Real _norm_value_density;
+  Real _norm_value_specific_heat;
 };
 
 ///-------------------------------------------------------------------------

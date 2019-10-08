@@ -1,31 +1,25 @@
-/**
- * This Kernel is implements a constant radiogenic heat production using the full
- * Finite Element solution. It is included in this package for validation
- * purposes.
- */
-
 ///-------------------------------------------------------------------------
-#ifndef DWARFELEPHANTFECONSTANTRADIOGENICHEATPRODUCTION_H
-#define DWARFELEPHANTFECONSTANTRADIOGENICHEATPRODUCTION_H
+#ifndef DWARFELEPHANTFENORMEDTIMEDERIVATIVE_H
+#define DWARFELEPHANTFENORMEDTIMEDERIVATIVE_H
 
 ///---------------------------------INCLUDES--------------------------------
 // MOOSE includes
-#include "Kernel.h"
+#include "TimeDerivative.h"
 
 ///-------------------------------------------------------------------------
 // Forward Declarations
-class DwarfElephantFEConstantRadiogenicHeatProduction;
+class DwarfElephantFENormedTimeDerivative;
 
 ///----------------------------INPUT PARAMETERS-----------------------------
 template<>
-InputParameters validParams<DwarfElephantFEConstantRadiogenicHeatProduction>();
+InputParameters validParams<DwarfElephantFENormedTimeDerivative>();
 
 ///This Kernel is implements a constant radiogenic heat production using the full Finite Element solution. It is included in this package for validation purposes.
-class DwarfElephantFEConstantRadiogenicHeatProduction : public Kernel
+class DwarfElephantFENormedTimeDerivative : public TimeDerivative
 {
 //----------------------------------PUBLIC----------------------------------
 public:
-  DwarfElephantFEConstantRadiogenicHeatProduction(const InputParameters & parameters);
+  DwarfElephantFENormedTimeDerivative(const InputParameters & parameters);
 
 //--------------------------------PROTECTED---------------------------------
 protected:
@@ -34,16 +28,8 @@ protected:
   virtual Real computeQpResidual() override;
   virtual Real computeQpJacobian() override;
 
-  Real _radiogenic_heat_production;
-  Real _norm_value_radiogenic_heat_production;
-
-  bool _transient;
-
-  Real _density;
-  Real _specific_heat;
-  Real _norm_value_density;
-  Real _norm_value_specific_heat;
+  Real _norm_value;
 };
 
 ///-------------------------------------------------------------------------
-#endif // DWARFELEPHANTFECONSTANTRADIOGENICHEATPRODUCTION_H
+#endif // DWARFELEPHANTFENORMEDTIMEDERIVATIVE_H

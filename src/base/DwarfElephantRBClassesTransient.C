@@ -16,7 +16,9 @@ DwarfElephantRBConstructionTransient::DwarfElephantRBConstructionTransient (Equa
   varying_timesteps(false),
   growth_rate(1.0),
   delta_t_init(1.0),
-  time_dependent_parameter(false)
+  time_dependent_parameter(false),
+  time_dependent_boundary(false),
+  _IDs_time_dependent_boundary(0)
 {}
 
 void
@@ -514,7 +516,7 @@ DwarfElephantRBConstructionTransient::init_data()
       this->update_greedy_param_list();
 
       // Perform an Offline truth solve for the current parameter
-      if(varying_timesteps || time_dependent_parameter)
+      if(varying_timesteps || time_dependent_parameter || time_dependent_boundary)
         truth_solve_mod(-1);
       else
         truth_solve(-1);
@@ -602,9 +604,11 @@ DwarfElephantRBConstructionTransient::init_data()
     RBParameters mu_time;
     RBParameters mu_init;
 
-    if(time_dependent_parameter)
-    {
+    if(time_dependent_parameter || time_dependent_boundary)
       time = 0;
+
+    if(time_dependent_parameter)
+      {
       mu_time = calculate_time_dependent_mu(mu, time, ID_param);
       for(unsigned int i = 0; i< mu.n_parameters(); i++)
       {
@@ -613,6 +617,9 @@ DwarfElephantRBConstructionTransient::init_data()
       }
       set_parameters(mu_time);
     }
+
+    DwarfElephantRBEvaluationTransient & trans_rb_eval = cast_ref<DwarfElephantRBEvaluationTransient &>(get_rb_evaluation());
+    DwarfElephantRBProblem * _rb_problem = cast_ptr<DwarfElephantRBProblem *>(&trans_rb_eval.get_fe_problem());
 
     const unsigned int n_time_steps = get_n_time_steps();
 
@@ -669,11 +676,22 @@ DwarfElephantRBConstructionTransient::init_data()
 
         RBParameters mu_time;
 
+        if(time_dependent_parameter || time_dependent_boundary)
+          time += dt;
+
         if(time_dependent_parameter)
         {
-          time += dt;
           mu_time = calculate_time_dependent_mu(mu_init, time, ID_param);
           set_parameters(mu_time);
+        }
+
+        if(time_dependent_boundary) // important: the moose system needs the correct time
+        {
+          _rb_problem->time()=time;
+          _rb_problem->computeResidualSys(_rb_problem->getNonlinearSystem().sys(), *solution, *_rb_problem->getNonlinearSystem().sys().rhs);
+
+          for(unsigned int i = 0; i<_IDs_time_dependent_boundary.size(); i++)
+            _rb_problem->rbAssembly(i).setCachedResidual(*get_Fq(i));
         }
 
         // We assume that the truth assembly has been attached to the system

@@ -140,6 +140,9 @@ public:
   Real end_time;
 
   bool time_dependent_parameter;
+  bool time_dependent_boundary;
+
+  std::vector<unsigned int> _IDs_time_dependent_boundary;
 
   Real time;
   std::vector<unsigned int> ID_param;

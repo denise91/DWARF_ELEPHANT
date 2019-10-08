@@ -22,12 +22,22 @@ InputParameters validParams<DwarfElephantRBDiffusion>()
   InputParameters params = validParams<DwarfElephantRBKernel>();
   params.addClassDescription("Implements a Diffusion problem using \
                              the RBKernel.");
+  params.addParam<Real>("density", 1.0, "Defines the bulk density.");
+  params.addParam<Real>("specific_heat", 1.0, "Defines the bulk specific heat.");
+  params.addParam<Real>("norm_value_density", 1.0, "Defines the normalization value.");
+  params.addParam<Real>("norm_value_specific_heat", 1.0, "Defines the normalization value.");
+  params.addParam<bool>("transient", false, "Determines whether the problem is transient or steady state.");
   return params;
 }
 
 //-------------------------------CONSTRUCTOR-------------------------------
 DwarfElephantRBDiffusion::DwarfElephantRBDiffusion(const InputParameters & parameters) :
-  DwarfElephantRBKernel(parameters)
+  DwarfElephantRBKernel(parameters),
+  _transient(getParam<bool>("transient")),
+  _density(getParam<Real>("density")),
+  _specific_heat(getParam<Real>("specific_heat")),
+  _norm_value_density(getParam<Real>("norm_value_density")),
+  _norm_value_specific_heat(getParam<Real>("norm_value_specific_heat"))
 {
 }
 
@@ -35,13 +45,21 @@ DwarfElephantRBDiffusion::DwarfElephantRBDiffusion(const InputParameters & param
 Real
 DwarfElephantRBDiffusion::computeQpResidual()
 {
-  return -(_grad_u[_qp] * _grad_test[_i][_qp]);
+  if(!_transient)
+    return -(_grad_u[_qp] * _grad_test[_i][_qp]);
+  else
+    return -((_norm_value_density*_norm_value_specific_heat)/(_density*_specific_heat)) *
+         (_grad_u[_qp] * _grad_test[_i][_qp]);
 }
 
 Real
 DwarfElephantRBDiffusion::computeQpJacobian()
 {
-  return _grad_phi[_j][_qp] * _grad_test[_i][_qp];
+  if(!_transient)
+    return _grad_phi[_j][_qp] * _grad_test[_i][_qp];
+  else
+    return ((_norm_value_density*_norm_value_specific_heat)/(_density*_specific_heat)) *
+           _grad_phi[_j][_qp] * _grad_test[_i][_qp];
 }
 
 Real

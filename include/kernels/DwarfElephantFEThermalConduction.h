@@ -36,8 +36,15 @@ protected:
 
   /* Attributes */
 //  const MaterialProperty<Real> &_lambda; // for future use in case of varying material properties
-  Real _lambda;
-  Real _norm_value;
+  Real _thermal_conductivity;
+  Real _norm_value_thermal_conductivity;
+
+  bool _transient;
+
+  Real _density;
+  Real _specific_heat;
+  Real _norm_value_density;
+  Real _norm_value_specific_heat;
 };
 
 ///-------------------------------------------------------------------------
