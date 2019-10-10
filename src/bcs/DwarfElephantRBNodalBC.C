@@ -69,7 +69,7 @@ DwarfElephantRBNodalBC::computeResidual() // DwarfElephantRBNodalBC::computeResi
   if (_var.isNodalDefined())
   {
     const dof_id_type & dof_idx = _var.nodalDofIndex();
-    _qp = 0;
+    // _qp = 0;
     Real res = computeQpResidual();
     // residual.set(dof_idx, res);
 

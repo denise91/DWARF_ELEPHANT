@@ -18,7 +18,7 @@ DwarfElephantRBConstructionTransient::DwarfElephantRBConstructionTransient (Equa
   delta_t_init(1.0),
   time_dependent_parameter(false),
   time_dependent_boundary(false),
-  _IDs_time_dependent_boundary(0)
+  IDs_time_dependent_boundary(0)
 {}
 
 void
@@ -688,10 +688,14 @@ DwarfElephantRBConstructionTransient::init_data()
         if(time_dependent_boundary) // important: the moose system needs the correct time
         {
           _rb_problem->time()=time;
-          _rb_problem->computeResidualSys(_rb_problem->getNonlinearSystem().sys(), *solution, *_rb_problem->getNonlinearSystem().sys().rhs);
+          libMesh::out << _rb_problem->time() << std::endl;
+          _rb_problem->computeJacobianSys(_rb_problem->getNonlinearSystem().sys(), *solution, *_rb_problem->getNonlinearSystem().sys().matrix);
 
-          for(unsigned int i = 0; i<_IDs_time_dependent_boundary.size(); i++)
-            _rb_problem->rbAssembly(i).setCachedResidual(*get_Fq(i));
+          for(unsigned int i = 0; i<IDs_time_dependent_boundary.size(); i++)
+          {
+            _rb_problem->rbAssembly(i).setCachedJacobianContributions(*get_Aq(i));
+            get_Aq(i)->close();
+          }
         }
 
         // We assume that the truth assembly has been attached to the system

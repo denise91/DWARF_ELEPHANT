@@ -38,9 +38,11 @@ InputParameters validParams<DwarfElephantInitializeRBSystemTransient>()
   params.addParam<std::vector<Real>>("discrete_parameter_values", "Defines the list of parameters.");
   params.addParam<bool>("varying_timesteps", false, "Determines whether the time steps vary.");
   params.addParam<bool>("time_dependent_parameter", false, "Determines whether some training parameters are time depedent.");
+  params.addParam<bool>("time_dependent_boundary", false, "Determines whether the boundary condition is time depedent.");
   params.addParam<Real>("growth_rate", 1.0,"The growth rate for the timesteps.");
   params.addParam<Real>("threshold", 1.0e30,"Threshold for the growth of dt.");
   params.addParam<std::vector<unsigned int>>("ID_time_dependent_param", std::vector<unsigned int> {0}, "The IDs of the time dependent paramters.");
+  params.addParam<std::vector<unsigned int>>("IDs_time_dependent_boundary", std::vector<unsigned int> {0}, "The IDs of the time dependent boundary conditions.");
   params.addParam<Real>("start_time", 0.0,"The start time for the time dependent parameter.");
   params.addParam<Real>("end_time", 0.0,"The end time for the time dependent parameter.");
 
@@ -83,9 +85,11 @@ DwarfElephantInitializeRBSystemTransient::DwarfElephantInitializeRBSystemTransie
   _sys(&_es.get_system<TransientNonlinearImplicitSystem>(_system_name)),
   _varying_timesteps(getParam<bool>("varying_timesteps")),
   _time_dependent_parameter(getParam<bool>("time_dependent_parameter")),
+  _time_dependent_boundary(getParam<bool>("time_dependent_boundary")),
   _growth_rate(getParam<Real>("growth_rate")),
   _threshold(getParam<Real>("threshold")),
   _ID_time_dependent_param(getParam<std::vector<unsigned int>>("ID_time_dependent_param")),
+  _IDs_time_dependent_boundary(getParam<std::vector<unsigned int>>("IDs_time_dependent_boundary")),
   _start_time(getParam<Real>("start_time")),
   _end_time(getParam<Real>("end_time"))
 {
@@ -181,6 +185,14 @@ DwarfElephantInitializeRBSystemTransient::processParameters()
     _dwarf_elephant_rb_con_ptr->start_time = _start_time;
     _dwarf_elephant_rb_con_ptr->end_time = _end_time;
   }
+
+  if(_time_dependent_boundary)
+  {
+    DwarfElephantRBConstructionTransient * _dwarf_elephant_rb_con_ptr = dynamic_cast<DwarfElephantRBConstructionTransient * > (_rb_con_ptr);
+    _dwarf_elephant_rb_con_ptr->time_dependent_boundary = _time_dependent_boundary;
+    _dwarf_elephant_rb_con_ptr->IDs_time_dependent_boundary = _IDs_time_dependent_boundary;
+  }
+
 }
 
 void

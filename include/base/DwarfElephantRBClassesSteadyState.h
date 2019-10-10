@@ -76,6 +76,7 @@
 #include "DwarfElephantRBStructuresT14F14O30SteadyState.h"
 #include "DwarfElephantRBStructuresT14F14O84SteadyState.h"
 #include "DwarfElephantRBStructuresT14F14O983SteadyState.h"
+#include "DwarfElephantRBStructuresT14F15O1SteadyState.h"
 #include "DwarfElephantRBStructuresT15F8O80SteadyState.h"
 #include "DwarfElephantRBStructuresT15F16O80SteadyState.h"
 #include "DwarfElephantRBStructuresT16F16O80SteadyState.h"
@@ -296,6 +297,7 @@ public:
   // DwarfElephantRBT4F1O32SteadyStateExpansion _rb_theta_expansion;
   // DwarfElephantRBT14F14O84SteadyStateExpansion _rb_theta_expansion;
     DwarfElephantRBT18F19O1SteadyStateExpansion _rb_theta_expansion;
+    // DwarfElephantRBT14F15O1SteadyStateExpansion _rb_theta_expansion;
 };
 
 ///-------------------------------------------------------------------------

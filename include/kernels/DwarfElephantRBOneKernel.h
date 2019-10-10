@@ -29,6 +29,13 @@ protected:
   /* Methods */
   virtual Real computeQpResidual() override;
   virtual Real computeQpJacobian() override;
+
+  bool _transient;
+
+  Real _density;
+  Real _specific_heat;
+  Real _norm_value_density;
+  Real _norm_value_specific_heat;
 };
 
 ///-------------------------------------------------------------------------

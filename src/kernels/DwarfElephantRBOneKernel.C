@@ -9,12 +9,22 @@ template<>
 InputParameters validParams<DwarfElephantRBOneKernel>()
 {
   InputParameters params = validParams<DwarfElephantRBKernel>();
+  params.addParam<Real>("density", 1.0, "Defines the bulk density.");
+  params.addParam<Real>("specific_heat", 1.0, "Defines the bulk specific heat.");
+  params.addParam<Real>("norm_value_density", 1.0, "Defines the normalization value.");
+  params.addParam<Real>("norm_value_specific_heat", 1.0, "Defines the normalization value.");
+  params.addParam<bool>("transient", false, "Determines whether the problem is transient or steady state.");
   return params;
 }
 
 //-------------------------------CONSTRUCTOR-------------------------------
 DwarfElephantRBOneKernel::DwarfElephantRBOneKernel(const InputParameters & parameters) :
-  DwarfElephantRBKernel(parameters)
+  DwarfElephantRBKernel(parameters),
+  _transient(getParam<bool>("transient")),
+  _density(getParam<Real>("density")),
+  _specific_heat(getParam<Real>("specific_heat")),
+  _norm_value_density(getParam<Real>("norm_value_density")),
+  _norm_value_specific_heat(getParam<Real>("norm_value_specific_heat"))
 {
 }
 
@@ -23,7 +33,10 @@ DwarfElephantRBOneKernel::DwarfElephantRBOneKernel(const InputParameters & param
 Real
 DwarfElephantRBOneKernel::computeQpResidual()
 {
-  return _test[_i][_qp];
+  if(!_transient)
+    return _test[_i][_qp];
+    else
+      return  ((_norm_value_density*_norm_value_specific_heat)/(_density*_specific_heat)) * _test[_i][_qp];
 }
 
 Real

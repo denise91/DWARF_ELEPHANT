@@ -22,7 +22,7 @@ void
 DwarfElephantRBPresetNodalBC::computeValue(NumericVector<Number> & current_solution)
 {
   const dof_id_type & dof_idx = _var.nodalDofIndex();
-  _qp = 0;
+  // _qp = 0;
   current_solution.set(dof_idx, computeQpValue());
 }
 

@@ -36,6 +36,13 @@ protected:
 
   /* Attributes */
   const Function * _lifting_function;
+
+  bool _transient;
+
+  Real _density;
+  Real _specific_heat;
+  Real _norm_value_density;
+  Real _norm_value_specific_heat;
 };
 
 ///-------------------------------------------------------------------------
