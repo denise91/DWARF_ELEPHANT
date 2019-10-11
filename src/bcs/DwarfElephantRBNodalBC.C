@@ -121,7 +121,7 @@ DwarfElephantRBNodalBC::computeJacobian()
   // all the assembly is done.
   if (_var.isNodalDefined())
   {
-    _qp = 0;
+    // _qp = 0;
     Real cached_val = computeQpJacobian();
     dof_id_type cached_row = _var.nodalDofIndex();
 

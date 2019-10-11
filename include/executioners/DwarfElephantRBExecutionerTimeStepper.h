@@ -4,28 +4,28 @@
  */
 
 ///-------------------------------------------------------------------------
-#ifndef DWARFELEPHANTRBEXECUTIONER_H
-#define DWARFELEPHANTRBEXECUTIONER_H
+#ifndef DWARFELEPHANTRBEXECUTIONERTIMESTEPPER_H
+#define DWARFELEPHANTRBEXECUTIONERTIMESTEPPER_H
 
 ///---------------------------------INCLUDES--------------------------------
 // MOOSE includes
-#include "Steady.h"
+#include "Transient.h"
 
 ///-------------------------------------------------------------------------
 // Forward Declarations
-class DwarfElephantRBExecutioner;
+class DwarfElephantRBExecutionerTimeStepper;
 
 //----------------------------INPUT PARAMETERS-----------------------------
 template<>
-InputParameters validParams<DwarfElephantRBExecutioner>();
+InputParameters validParams<DwarfElephantRBExecutionerTimeStepper>();
 
 ///This Executioner class is required to execute the RB method directly over the libMesh system. It is for both the steady state and transient case.
-class DwarfElephantRBExecutioner :
-  public Steady
+class DwarfElephantRBExecutionerTimeStepper :
+  public Transient
 {
 //----------------------------------PUBLIC----------------------------------
   public:
-    DwarfElephantRBExecutioner(const InputParameters & params);
+    DwarfElephantRBExecutionerTimeStepper(const InputParameters & params);
 
     /*Methods*/
     void execute() override;
@@ -33,8 +33,7 @@ class DwarfElephantRBExecutioner :
 //--------------------------------PROTECTED---------------------------------
   protected:
     /*Attributes*/
-    // std::string _simulation_type;
     bool _offline_stage;
 };
 ///-------------------------------------------------------------------------
-#endif // DWARFELEPHANTRBEXECUTIONER_H
+#endif // DWARFELEPHANTRBEXECUTIONERTIMESTEPPER_H

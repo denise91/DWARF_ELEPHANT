@@ -1,27 +1,25 @@
  ///-------------------------------------------------------------------------
 // MOOSE includes (DwarfElephant package)
-#include "DwarfElephantRBExecutioner.h"
+#include "DwarfElephantRBExecutionerTimeStepper.h"
 
-registerMooseObject("DwarfElephantApp", DwarfElephantRBExecutioner);
+registerMooseObject("DwarfElephantApp", DwarfElephantRBExecutionerTimeStepper);
 
 template<>
-InputParameters validParams<DwarfElephantRBExecutioner>()
+InputParameters validParams<DwarfElephantRBExecutionerTimeStepper>()
 {
-  InputParameters params = validParams<Steady>();
-    // params.addParam<std::string>("simulation_type", "steady", "Determines whether the simulation is steady state or transient.");
+  InputParameters params = validParams<Transient>();
   params.addParam<bool>("offline_stage", true, "Determines whether the Offline stage will be calculated or not.");
   return params;
 }
 
-DwarfElephantRBExecutioner::DwarfElephantRBExecutioner(const InputParameters & params):
-  Steady(params),
-  // _simulation_type(getParam<std::string>("simulation_type")),
+DwarfElephantRBExecutionerTimeStepper::DwarfElephantRBExecutionerTimeStepper(const InputParameters & params):
+  Transient(params),
   _offline_stage(getParam<bool>("offline_stage"))
 {
 }
 
 void
-DwarfElephantRBExecutioner::execute()
+DwarfElephantRBExecutionerTimeStepper::execute()
 {
   if (_app.isRecovering())
     return;
@@ -31,8 +29,8 @@ DwarfElephantRBExecutioner::execute()
   _problem.advanceState();
 
   // first step in any steady state solve is always 1 (preserving backwards compatibility)
-  _time_step = 1;
-  _time = _time_step;                 // need to keep _time in sync with _time_step to get correct output
+  // _time_step = 1;
+  _time = _t_step;                 // need to keep _time in sync with _time_step to get correct output
 
 // #ifdef LIBMESH_ENABLE_AMR
 //

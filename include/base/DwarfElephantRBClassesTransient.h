@@ -23,6 +23,7 @@
 ///-------------------------------------------------------------------------
 #include "FEProblemBase.h"
 #include "Executioner.h"
+#include "DwarfElephantRBExecutionerTimeStepper.h"
 #include "DwarfElephantRBProblem.h"
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantInitializeRBSystemTransient.h"
@@ -50,6 +51,7 @@
 #include "DwarfElephantRBStructuresT5F5O3M1Transient.h"
 #include "DwarfElephantRBStructuresT5F4O1M2Transient.h"
 #include "DwarfElephantRBStructuresT6F4O1M3Transient.h"
+#include "DwarfElephantRBStructuresT6F6O1M1Transient.h"
 #include "DwarfElephantRBStructuresT6F1O1M1IC3Transient.h"
 #include "DwarfElephantRBStructuresT6F5O27M1IC1Transient.h"
 #include "DwarfElephantRBStructuresT7F5O1M1IC1Transient.h"
@@ -203,7 +205,7 @@ public:
 
   // DwarfElephantRBT5F5O1M1TransientExpansion _rb_theta_expansion;
   // DwarfElephantRBT5F4O1M2TransientExpansion _rb_theta_expansion;
-  DwarfElephantRBT6F4O1M3TransientExpansion _rb_theta_expansion;
+  DwarfElephantRBT6F6O1M1TransientExpansion _rb_theta_expansion;
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTRBCLASSESTRANSIENT_H
