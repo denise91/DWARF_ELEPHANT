@@ -126,8 +126,8 @@ class DwarfElephantInitializeRBSystemTransient :
     bool _varying_timesteps;
     bool _time_dependent_parameter;
     bool _time_dependent_boundary;
-    Real _growth_rate;
-    Real _threshold;
+    // Real _growth_rate;
+    // Real _threshold;
     std::vector<unsigned int> _ID_time_dependent_param;
     std::vector<unsigned int> _IDs_time_dependent_boundary;
     Real _start_time;

@@ -23,8 +23,11 @@
 ///-------------------------------------------------------------------------
 #include "FEProblemBase.h"
 #include "Executioner.h"
-#include "DwarfElephantRBExecutionerTimeStepper.h"
+// #include "TimeStepper.h"
+// #include "DwarfElephantRBExecutionerTimeStepper.h"
 #include "DwarfElephantRBProblem.h"
+// #include "DwarfElephantRBTimeSequenceStepper.h"
+#include "DwarfElephantRBGrowthRateTimeStepper.h"
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantInitializeRBSystemTransient.h"
 #include "DwarfElephantOfflineOnlineStageTransient.h"
@@ -134,8 +137,8 @@ public:
   bool parameter_dependent_IC;
   bool varying_timesteps;
 
-  Real growth_rate;
-  Real threshold;
+  // Real growth_rate;
+  // Real threshold;
   Real delta_t_init;
 
   Real start_time;
@@ -195,8 +198,8 @@ public:
 
   bool parameter_dependent_IC;
   Real delta_t_init;
-  Real growth_rate;
-  Real threshold;
+  // Real growth_rate;
+  // Real threshold;
 
   std::vector<DenseVector<Number>> RB_IC_q_vector;
 

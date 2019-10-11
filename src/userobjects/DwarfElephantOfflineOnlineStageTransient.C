@@ -255,7 +255,7 @@ DwarfElephantOfflineOnlineStageTransient::execute()
      {
        DwarfElephantRBEvaluationTransient & _dwarf_elephant_trans_rb_eval = cast_ref<DwarfElephantRBEvaluationTransient &>(_rb_eval);
        _dwarf_elephant_trans_rb_eval.varying_timesteps = true;
-       _dwarf_elephant_trans_rb_eval.growth_rate = _initialize_rb_system._growth_rate;
+       // _dwarf_elephant_trans_rb_eval.growth_rate = _initialize_rb_system._growth_rate;
      }
 
       Real _error_bound_final_time = _rb_eval.rb_solve(_online_N);

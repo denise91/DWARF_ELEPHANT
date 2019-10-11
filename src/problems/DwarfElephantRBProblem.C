@@ -19,6 +19,9 @@ InputParameters validParams<DwarfElephantRBProblem>()
   params.addParam<UserObjectName>("initial_rb_userobject", "","Name of the UserObject for initializing the RB system.");
   params.addParam<std::string>("file", "Name and path of the data file, valid delimiter is new line.");
   params.addParam<std::string>("offline_data_name","offline_data","Folder where the offline data should be stored.");
+  params.addParam<Real>("growth_rate", 1.0,"The growth rate for the timesteps.");
+  params.addParam<Real>("threshold", 1.0e30,"Threshold for the growth of dt.");
+  params.addParam<std::vector<Real>>("time_sequence",std::vector<Real> {0}, "Time sequence for the time stepper.");
   return params;
 }
 
@@ -29,7 +32,10 @@ DwarfElephantRBProblem::DwarfElephantRBProblem(const InputParameters & params):
   _user_defined_assembly_size(getParam<bool>("user_defined_assembly_size")),
   _assembly_size(getParam<unsigned int>("assembly_size")),
   _initial_rb_userobject(getParam<UserObjectName>("initial_rb_userobject")),
-  _offline_data_name(getParam<std::string>("offline_data_name"))
+  _offline_data_name(getParam<std::string>("offline_data_name")),
+  _growth_rate(getParam<Real>("growth_rate")),
+  _threshold(getParam<Real>("threshold")),
+  _time_sequence(getParam<std::vector<Real>>("time_sequence"))
 {
     _nl = _nl_sys;
     _aux = std::make_shared<AuxiliarySystem>(*this, "aux0");

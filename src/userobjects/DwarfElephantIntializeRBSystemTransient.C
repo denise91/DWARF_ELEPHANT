@@ -39,8 +39,8 @@ InputParameters validParams<DwarfElephantInitializeRBSystemTransient>()
   params.addParam<bool>("varying_timesteps", false, "Determines whether the time steps vary.");
   params.addParam<bool>("time_dependent_parameter", false, "Determines whether some training parameters are time depedent.");
   params.addParam<bool>("time_dependent_boundary", false, "Determines whether the boundary condition is time depedent.");
-  params.addParam<Real>("growth_rate", 1.0,"The growth rate for the timesteps.");
-  params.addParam<Real>("threshold", 1.0e30,"Threshold for the growth of dt.");
+  // params.addParam<Real>("growth_rate", 1.0,"The growth rate for the timesteps.");
+  // params.addParam<Real>("threshold", 1.0e30,"Threshold for the growth of dt.");
   params.addParam<std::vector<unsigned int>>("ID_time_dependent_param", std::vector<unsigned int> {0}, "The IDs of the time dependent paramters.");
   params.addParam<std::vector<unsigned int>>("IDs_time_dependent_boundary", std::vector<unsigned int> {0}, "The IDs of the time dependent boundary conditions.");
   params.addParam<Real>("start_time", 0.0,"The start time for the time dependent parameter.");
@@ -86,8 +86,8 @@ DwarfElephantInitializeRBSystemTransient::DwarfElephantInitializeRBSystemTransie
   _varying_timesteps(getParam<bool>("varying_timesteps")),
   _time_dependent_parameter(getParam<bool>("time_dependent_parameter")),
   _time_dependent_boundary(getParam<bool>("time_dependent_boundary")),
-  _growth_rate(getParam<Real>("growth_rate")),
-  _threshold(getParam<Real>("threshold")),
+  // _growth_rate(getParam<Real>("growth_rate")),
+  // _threshold(getParam<Real>("threshold")),
   _ID_time_dependent_param(getParam<std::vector<unsigned int>>("ID_time_dependent_param")),
   _IDs_time_dependent_boundary(getParam<std::vector<unsigned int>>("IDs_time_dependent_boundary")),
   _start_time(getParam<Real>("start_time")),
@@ -167,8 +167,8 @@ DwarfElephantInitializeRBSystemTransient::processParameters()
   {
     DwarfElephantRBConstructionTransient * _dwarf_elephant_rb_con_ptr = dynamic_cast<DwarfElephantRBConstructionTransient * > (_rb_con_ptr);
     _dwarf_elephant_rb_con_ptr->varying_timesteps = _varying_timesteps;
-    _dwarf_elephant_rb_con_ptr->growth_rate = _growth_rate;
-    _dwarf_elephant_rb_con_ptr->threshold = _threshold;
+    // _dwarf_elephant_rb_con_ptr->growth_rate = _growth_rate;
+    // _dwarf_elephant_rb_con_ptr->threshold = _threshold;
   }
 
   if(_parameter_dependent_IC)

@@ -14,7 +14,7 @@ DwarfElephantRBConstructionTransient::DwarfElephantRBConstructionTransient (Equa
   : Parent(es, name_in, number_in),
   parameter_dependent_IC(false),
   varying_timesteps(false),
-  growth_rate(1.0),
+  // growth_rate(1.0),
   delta_t_init(1.0),
   time_dependent_parameter(false),
   time_dependent_boundary(false),
@@ -438,8 +438,8 @@ DwarfElephantRBConstructionTransient::init_data()
 
     _dwarf_elephant_trans_rb_eval.varying_timesteps = varying_timesteps;
     _dwarf_elephant_trans_rb_eval.delta_t_init = delta_t_init;
-    _dwarf_elephant_trans_rb_eval.growth_rate = growth_rate;
-    _dwarf_elephant_trans_rb_eval.threshold = threshold;
+    // _dwarf_elephant_trans_rb_eval.growth_rate = growth_rate;
+    // _dwarf_elephant_trans_rb_eval.threshold = threshold;
   }
 
   // initialize rb_eval's parameters
@@ -604,7 +604,7 @@ DwarfElephantRBConstructionTransient::init_data()
     RBParameters mu_time;
     RBParameters mu_init;
 
-    if(time_dependent_parameter || time_dependent_boundary)
+    if(time_dependent_parameter || time_dependent_boundary || varying_timesteps)
       time = 0;
 
     if(time_dependent_parameter)
@@ -676,14 +676,19 @@ DwarfElephantRBConstructionTransient::init_data()
 
         RBParameters mu_time;
 
-        if(time_dependent_parameter || time_dependent_boundary)
+        if(time_dependent_parameter || time_dependent_boundary || varying_timesteps)
+        {
           time += dt;
+        }
 
         if(time_dependent_parameter)
         {
           mu_time = calculate_time_dependent_mu(mu_init, time, ID_param);
           set_parameters(mu_time);
         }
+
+        if(varying_timesteps || time_dependent_boundary)
+          _rb_problem->time()=time;
 
         // if(time_dependent_boundary) // important: the moose system needs the correct time
         // {
@@ -775,12 +780,18 @@ DwarfElephantRBConstructionTransient::init_data()
 
           if(varying_timesteps)
           {
-            Executioner * _exec = trans_rb_eval.get_fe_problem().getMooseApp().getExecutioner();
-            DwarfElephantRBExecutionerTimeStepper * _transient = dynamic_cast<DwarfElephantRBExecutionerTimeStepper * > (_exec);
-            if(dt < threshold){
-              dt*=growth_rate;
+            std::shared_ptr<DwarfElephantRBGrowthRateTimeStepper> time_stepper = std::make_shared<DwarfElephantRBGrowthRateTimeStepper>(trans_rb_eval.get_fe_problem());
+            dt = time_stepper->computeDT(dt, time_level);
+            // Executioner * _exec = trans_rb_eval.get_fe_problem().getMooseApp().getExecutioner();
+            // DwarfElephantRBExecutionerTimeStepper * transient =
+            //   dynamic_cast<DwarfElephantRBExecutionerTimeStepper * > (_exec);
+            //
+            // TimeStepper & time_stepper = *transient->getTimeStepper();
+            // if(dt < threshold){
+            //   dt*=growth_rate;
+            libMesh::out << "TIMESTEP: " << dt << std::endl;
               set_delta_t(dt);
-            }
+            // }
           }
 
           if(time_dependent_parameter)
@@ -1392,10 +1403,12 @@ DwarfElephantRBConstructionTransient::init_data()
 
           if(varying_timesteps)
           {
-            if(dt < threshold){
-              dt*=growth_rate;
+            std::shared_ptr<DwarfElephantRBGrowthRateTimeStepper> time_stepper = std::make_shared<DwarfElephantRBGrowthRateTimeStepper>(fe_problem);
+            dt = time_stepper->computeDT(dt, time_level);
+            // if(dt < threshold){
+            //   dt*=growth_rate;
               set_delta_t(dt);
-            }
+            // }
           }
 
           if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)

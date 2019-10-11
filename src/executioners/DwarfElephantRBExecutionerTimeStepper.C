@@ -21,16 +21,13 @@ DwarfElephantRBExecutionerTimeStepper::DwarfElephantRBExecutionerTimeStepper(con
 void
 DwarfElephantRBExecutionerTimeStepper::execute()
 {
-  if (_app.isRecovering())
-    return;
+  // if (_app.isRecovering())
+  //   return;
 
   preExecute();
 
-  _problem.advanceState();
-
-  // first step in any steady state solve is always 1 (preserving backwards compatibility)
-  // _time_step = 1;
-  _time = _t_step;                 // need to keep _time in sync with _time_step to get correct output
+  if (lastSolveConverged())
+    _t_step++;
 
 // #ifdef LIBMESH_ENABLE_AMR
 //
