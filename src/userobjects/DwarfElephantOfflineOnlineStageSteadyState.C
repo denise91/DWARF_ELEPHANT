@@ -178,25 +178,6 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
 
     if (_offline_stage)
     {
-
-      NumericVector<Number> * _vector0 = _initialize_rb_system._rb_con_ptr->get_output_vector(0,0);
-      _vector0->print_matlab("Vector0");
-      NumericVector<Number> * _vector1 = _initialize_rb_system._rb_con_ptr->get_output_vector(1,0);
-      _vector1->print_matlab("Vector1");
-      NumericVector<Number> * _vector2 = _initialize_rb_system._rb_con_ptr->get_output_vector(2,0);
-      _vector2->print_matlab("Vector2");
-      NumericVector<Number> * _vector3 = _initialize_rb_system._rb_con_ptr->get_output_vector(3,0);
-      _vector3->print_matlab("Vector3");
-      NumericVector<Number> * _vector4 = _initialize_rb_system._rb_con_ptr->get_output_vector(4,0);
-      _vector4->print_matlab("Vector4");
-      NumericVector<Number> * _vector5 = _initialize_rb_system._rb_con_ptr->get_output_vector(5,0);
-      _vector5->print_matlab("Vector5");
-      NumericVector<Number> * _vector6 = _initialize_rb_system._rb_con_ptr->get_output_vector(6,0);
-      _vector6->print_matlab("Vector6");
-      NumericVector<Number> * _vector7 = _initialize_rb_system._rb_con_ptr->get_output_vector(7,0);
-      _vector7->print_matlab("Vector7");
-      NumericVector<Number> * _vector8 = _initialize_rb_system._rb_con_ptr->get_output_vector(8,0);
-      _vector8->print_matlab("Vector8");
        // Transfer the affine vectors to the RB system.
        if(_skip_vector_assembly_in_rb_system)
         transferAffineVectors();
