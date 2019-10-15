@@ -26,7 +26,7 @@
 // #include "TimeStepper.h"
 // #include "DwarfElephantRBExecutionerTimeStepper.h"
 #include "DwarfElephantRBProblem.h"
-// #include "DwarfElephantRBTimeSequenceStepper.h"
+#include "DwarfElephantRBTimeSequenceStepper.h"
 #include "DwarfElephantRBGrowthRateTimeStepper.h"
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantInitializeRBSystemTransient.h"

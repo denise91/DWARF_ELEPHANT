@@ -780,7 +780,7 @@ DwarfElephantRBConstructionTransient::init_data()
 
           if(varying_timesteps)
           {
-            std::shared_ptr<DwarfElephantRBGrowthRateTimeStepper> time_stepper = std::make_shared<DwarfElephantRBGrowthRateTimeStepper>(trans_rb_eval.get_fe_problem());
+            std::shared_ptr<DwarfElephantRBTimeSequenceStepper> time_stepper = std::make_shared<DwarfElephantRBTimeSequenceStepper>(trans_rb_eval.get_fe_problem());
             dt = time_stepper->computeDT(dt, time_level);
             // Executioner * _exec = trans_rb_eval.get_fe_problem().getMooseApp().getExecutioner();
             // DwarfElephantRBExecutionerTimeStepper * transient =
@@ -789,7 +789,6 @@ DwarfElephantRBConstructionTransient::init_data()
             // TimeStepper & time_stepper = *transient->getTimeStepper();
             // if(dt < threshold){
             //   dt*=growth_rate;
-            libMesh::out << "TIMESTEP: " << dt << std::endl;
               set_delta_t(dt);
             // }
           }
@@ -1403,7 +1402,7 @@ DwarfElephantRBConstructionTransient::init_data()
 
           if(varying_timesteps)
           {
-            std::shared_ptr<DwarfElephantRBGrowthRateTimeStepper> time_stepper = std::make_shared<DwarfElephantRBGrowthRateTimeStepper>(fe_problem);
+            std::shared_ptr<DwarfElephantRBTimeSequenceStepper> time_stepper = std::make_shared<DwarfElephantRBTimeSequenceStepper>(fe_problem);
             dt = time_stepper->computeDT(dt, time_level);
             // if(dt < threshold){
             //   dt*=growth_rate;
