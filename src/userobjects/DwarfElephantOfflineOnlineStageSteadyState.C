@@ -67,7 +67,7 @@ DwarfElephantOfflineOnlineStageSteadyState::setAffineMatrices()
     {
       //_rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // for EIM example in Martin's publication
       _initialize_rb_system._jacobian_subdomain[_q] ->close();
-      _initialize_rb_system._inner_product_matrix->add(_mu_bar, *_initialize_rb_system._jacobian_subdomain[_q]);
+      if (_q == 288) { _initialize_rb_system._inner_product_matrix->add(_mu_bar, *_initialize_rb_system._jacobian_subdomain[_q]);}
     }
     _initialize_rb_system._inner_product_matrix -> close();
 }
@@ -262,10 +262,29 @@ void DwarfElephantOfflineOnlineStageSteadyState::onlineStageEIM()
          _initialize_rb_system._eim_con_ptr -> load_rb_solution();
          _initialize_rb_system._rb_con_ptr -> load_rb_solution();
 
-         *_es.get_system(_system_name).solution = *_es.get_system("RBSystem").solution;
-         _fe_problem.getNonlinearSystemBase().update();
+         //*_es.get_system(_system_name).solution = *_es.get_system("RBSystem").solution;
+         //_fe_problem.getNonlinearSystemBase().update();
          std::stringstream ss;
          
+            
+            *_es.get_system("rb0").solution = *_es.get_system("RBSystem").solution;
+            *_es.get_system("aux0").solution = *_es.get_system("EIMSystem_explicit_sys").solution;
+            //_fe_problem.getNonlinearSystemBase().update();
+            unsigned int num_sys = _es.n_systems();
+            std::vector<std::string> sys_names;
+            for (unsigned int i = 0; i < num_sys; i++)
+                sys_names.push_back(_es.get_system(i).name());
+            
+            /*for (unsigned int i = 0; _es.n_systems() > 2; i++)
+            {
+               
+                if ((sys_names[i] != "rb0") && (sys_names[i] != "aux0"))
+                {    
+                    _es.delete_system(sys_names[i]);
+                }
+                //std::cout <<"Number of systems left" <<  _es.n_systems() << std::endl;
+            }*/
+
          ss << std::setw(2) << std::setfill('0') << _online_N;
          
 		 #ifdef LIBMESH_HAVE_EXODUS_API
@@ -379,7 +398,7 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
     if(_online_stage)
     {
         if (_initialize_rb_system._use_EIM) { onlineStageEIM();}
-        if (_initialize_rb_system._use_hp_EIM) 
+        else if (_initialize_rb_system._use_hp_EIM) 
         { 
             if (_initialize_rb_system._hp_EIM_testing)
             {

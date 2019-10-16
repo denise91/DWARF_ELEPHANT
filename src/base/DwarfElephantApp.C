@@ -56,6 +56,7 @@
 #include "DwarfElephantRBDiffusionYX.h"
 #include "DwarfElephantRBDiffusionZX.h"
 #include "DwarfElephantRBDiffusionZY.h"
+#include "DwarfElephantStabilizedAdvection.h"
 #include "DwarfElephantRBRFHeatsourceKernel.h"
 #include "DwarfElephantRBPennesPerfusion.h"
 #include "DwarfElephantFTestKernel.h"
@@ -183,6 +184,7 @@ DwarfElephantApp::registerObjects(Factory & factory)
   registerKernel(DwarfElephantRBDiffusionYX);
   registerKernel(DwarfElephantRBDiffusionZX);
   registerKernel(DwarfElephantRBDiffusionZY); 
+  registerKernel(DwarfElephantStabilizedAdvection);
   registerKernel(DwarfElephantRBRFHeatsourceKernel);
   registerKernel(DwarfElephantRBPennesPerfusion);
   registerKernel(DwarfElephantRBThermalConduction);

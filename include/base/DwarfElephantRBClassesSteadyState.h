@@ -47,10 +47,10 @@
 
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantRBStructuresT3F1O1SteadyState.h"
-#include "DwarfElephantGeom2DRBThetaExpansion_RFA.h"
+#include "DwarfElephantGeom3DRBThetaExpansion_RFA.h"
 #include "DwarfElephantEIMStructures.h"
 #include "libmesh/vtk_io.h"
-#include "DwarfElephantNonAffineFunction.h"
+#include "DwarfElephantNonAffineFunction_3DRBRFA.h"
 #include <boost/lexical_cast.hpp>
 #include<sstream>
 #include <iomanip>
@@ -265,7 +265,8 @@ public:
   FEProblemBase & fe_problem;
   //DwarfElephantEIMTestRBThetaExpansion _eim_test_rb_theta_expansion;
   //Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
-  CustomRBThetaExpansion RBExpansion;
+  Geom3DRBThetaExpansion _geom_3D_rb_theta_expansion;
+  //CustomRBThetaExpansion RBExpansion;
   //libMesh::RBSCMEvaluation * rb_scm_eval;
 };
 
@@ -279,7 +280,7 @@ public:
   
   virtual ~DwarfElephantEIMEvaluationSteadyState() {}
 
-  ShiftedGaussianTest sg;
+  ShiftedGaussian_3DRFA sg;
 };
 
 // A simple subclass of RBEIMConstruction.

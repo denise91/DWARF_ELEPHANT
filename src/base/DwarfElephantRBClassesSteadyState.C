@@ -260,7 +260,8 @@ DwarfElephantRBEvaluationSteadyState::DwarfElephantRBEvaluationSteadyState(const
 {
   //set_rb_theta_expansion(_eim_test_rb_theta_expansion);
   //set_rb_theta_expansion(_goem_2D_rb_theta_expansion);
-  set_rb_theta_expansion(RBExpansion);
+  //set_rb_theta_expansion(RBExpansion);
+  set_rb_theta_expansion(_geom_3D_rb_theta_expansion);
 }
 
 Real
@@ -283,7 +284,7 @@ DwarfElephantRBEvaluationSteadyState::get_stability_lower_bound()
   return min_mu; */
   // rb_scm_eval->set_parameters(get_parameters());
   // return rb_scm_eval->get_SCM_LB();
-  return 0.1;
+  return 1;
 }
 
 DwarfElephantEIMEvaluationSteadyState::DwarfElephantEIMEvaluationSteadyState(const libMesh::Parallel::Communicator & comm) :
