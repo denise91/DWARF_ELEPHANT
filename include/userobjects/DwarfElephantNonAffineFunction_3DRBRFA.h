@@ -58,7 +58,7 @@ Real x_prime = mu.get_value("mu_2");
 Real z_prime = mu.get_value("mu_4");
     Number result;
     Number x_new, y_new, z_new, t0;
-    double matrix[3][3]={0}, vec[3][1]={0}, L = 4.0, r = 1.0, l = 2.0;
+    double matrix[3][3]={0}, vec[3][1]={0}, L = 0.1, r = 3e-3, l = 5e-2;
     double d = 3*r, h = 1.5*l;
 if (elem.subdomain_id() == 1)
  {
