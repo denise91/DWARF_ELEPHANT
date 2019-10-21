@@ -347,7 +347,7 @@ if (elem.subdomain_id() == 32)
 x_new = matrix[0][0]*p(0) + matrix[0][1]*p(1) + matrix[0][2]*p(2) + vec[0][0];
 y_new = matrix[1][0]*p(0) + matrix[1][1]*p(1) + matrix[1][2]*p(2) + vec[1][0];
 z_new = matrix[2][0]*p(0) + matrix[2][1]*p(1) + matrix[2][2]*p(2) + vec[2][0];
-return 10;//*exp(-1e-3*(pow(x_prime - x_new,2) + pow(y_prime - y_new,2) + pow(z_prime - z_new,2))) * t0; // Forcing function for geometrical parametrization example
+return 10*exp(-1e1*(pow(x_prime - x_new,2) + pow(y_prime - y_new,2) + pow(z_prime - z_new,2))) * t0; // Forcing function for geometrical parametrization example
  } 
  }; 
 #endif //DWARFELEPHANTNONAFFINEFUNCTION_H
