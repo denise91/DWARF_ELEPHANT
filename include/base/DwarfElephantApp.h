@@ -1,23 +1,17 @@
-#ifndef DWARF_ELEPHANTAPP_H
-#define DWARF_ELEPHANTAPP_H
+#pragma once
 
 #include "MooseApp.h"
 
 class DwarfElephantApp;
 
-template<>
+template <>
 InputParameters validParams<DwarfElephantApp>();
 
 class DwarfElephantApp : public MooseApp
 {
 public:
   DwarfElephantApp(InputParameters parameters);
-  virtual ~DwarfElephantApp();
 
   static void registerApps();
   static void registerAll(Factory & f, ActionFactory & af, Syntax & s);
-  // static void registerObjects(Factory & factory);
-  // static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
 };
-
-#endif /* DWARF_ELEPHANTAPP_H */

@@ -113,9 +113,11 @@ DwarfElephantRBKernel::computeResidual()
       mooseError("The number of load vectors you defined here is not matching the number of load vectors you specified in the RBClasses Class.");
 
     if(_initialize_rb_system->_offline_stage)
+    {
       // Add the calculated vectors to the vectors from the RB system.
       if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
         _initialize_rb_system->_residuals[_ID_Fq] -> add_vector(_local_re, _var.dofIndices());
+    }
   }
   else if (_simulation_type == "transient") // Transient
   {
@@ -123,10 +125,12 @@ DwarfElephantRBKernel::computeResidual()
       mooseError("The number of load vectors you defined here is not matching the number of load vectors you specified in the RBClasses Class.");
 
     if(_initialize_rb_system_transient->_offline_stage)
+    {
       // Add the calculated vectors to the vectors from the RB system.
       if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
         _initialize_rb_system_transient->_residuals[_ID_Fq] -> add_vector(_local_re, _var.dofIndices());
-  }
+    }
+}
 
   if (_has_save_in)
   {
@@ -166,9 +170,11 @@ DwarfElephantRBKernel::computeOutput()
   else if (_simulation_type == "transient") // Transient
   {
     if(_initialize_rb_system_transient->_offline_stage)
+    {
       // Add the calculated vectors to the vectors from the RB system.
       if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
         _initialize_rb_system_transient->_outputs[0][_ID_Oq] -> add_vector(_local_out, _var.dofIndices());
+    }
   }
 }
 
@@ -196,9 +202,11 @@ DwarfElephantRBKernel::computeJacobian()
       mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
 
     if(_initialize_rb_system->_offline_stage)
+    {
     // Add the calculated matrices to the Aq matrices from the RB system.
     if (_fe_problem.getNonlinearSystemBase().getCurrentNonlinearIterationNumber() == 0)
         _initialize_rb_system->_jacobian_subdomain[_ID_Aq] -> add_matrix(_local_ke, _var.dofIndices());
+    }
    }
 
   else if(_simulation_type == "transient") // Transient
@@ -207,10 +215,10 @@ DwarfElephantRBKernel::computeJacobian()
       mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
 
     if(_initialize_rb_system_transient->_offline_stage)
+    {
     // Add the calculated matrices to the Aq matrices from the RB system.
     if (_fe_problem.getNonlinearSystemBase().getCurrentNonlinearIterationNumber() == 0)
-    {
-        _initialize_rb_system_transient->_jacobian_subdomain[_ID_Aq] -> add_matrix(_local_ke, _var.dofIndices());
+      _initialize_rb_system_transient->_jacobian_subdomain[_ID_Aq] -> add_matrix(_local_ke, _var.dofIndices());
     }
   }
 

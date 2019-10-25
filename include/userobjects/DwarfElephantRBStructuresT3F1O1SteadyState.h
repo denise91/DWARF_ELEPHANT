@@ -58,6 +58,7 @@ struct DwarfElephantRBT3F1O1SteadyStateExpansion : RBThetaExpansion
     attach_output_theta(&_rb_theta);
   }
   // Member Variables
+  DwarfElephantThetaA00Constant _theta_a_00;
   DwarfElephantThetaA0EqualMu0 _theta_a_0;
   DwarfElephantThetaA1EqualMu1 _theta_a_1;
   DwarfElephantThetaA2EqualMu2 _theta_a_2;

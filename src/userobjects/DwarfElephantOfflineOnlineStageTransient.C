@@ -103,21 +103,16 @@ DwarfElephantOfflineOnlineStageTransient::transferAffineVectors()
 {
   // Transfer the vectors
   // Transfer the data for the F vectors.
- for(unsigned int _q=0; _q<_initialize_rb_system._qf; _q++)
+  for(unsigned int _q=0; _q<_initialize_rb_system._qf; _q++)
   {
     _rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system._residuals[_q]);
     _initialize_rb_system._residuals[_q]->close();
   }
 
-if(_initialize_rb_system._parameter_dependent_IC)
-{
-  for(unsigned int _q=0; _q<_initialize_rb_system._q_ic; _q++)
-  {
-    _initialize_rb_system._inital_conditions[_q]->close();
-    // _rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system._inital_conditions[_q]);
-    // *_initialize_rb_system._inital_conditions[_q] = *_fe_problem.es().get_system("rb0").solution;
-  }
-}
+  if(_initialize_rb_system._parameter_dependent_IC)
+    for(unsigned int _q=0; _q<_initialize_rb_system._q_ic; _q++)
+      _initialize_rb_system._inital_conditions[_q]->close();
+
 
   // The RB code runs into problems for non-homogeneous boundary conditions
   // and the following lines are only needed in case of Nodal BCs

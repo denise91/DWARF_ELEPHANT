@@ -47,9 +47,8 @@ struct DwarfElephantRBT4F1O1M1TransientExpansion : TransientRBThetaExpansion
     attach_A_theta(&_theta_a_0);
     attach_A_theta(&_theta_a_1);
     attach_A_theta(&_theta_a_2);
-    attach_A_theta(&_theta_a_3);
 
-    attach_F_theta(&_rb_theta);
+    attach_F_theta(&_theta_a_3);
 
     attach_output_theta(&_rb_theta);
 

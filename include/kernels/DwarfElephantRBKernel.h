@@ -23,7 +23,6 @@
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantInitializeRBSystemSteadyState.h"
 #include "DwarfElephantInitializeRBSystemTransient.h"
-
 ///-------------------------------------------------------------------------
 // Forward Declarations
 namespace libMesh

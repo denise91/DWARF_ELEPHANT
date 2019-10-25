@@ -125,11 +125,9 @@ class DwarfElephantInitializeRBSystemTransient :
 
     bool _varying_timesteps;
     bool _time_dependent_parameter;
-    bool _time_dependent_boundary;
     // Real _growth_rate;
     // Real _threshold;
     std::vector<unsigned int> _ID_time_dependent_param;
-    std::vector<unsigned int> _IDs_time_dependent_boundary;
     Real _start_time;
     Real _end_time;
 
@@ -156,6 +154,8 @@ class DwarfElephantInitializeRBSystemTransient :
     friend class DwarfElephantRBFilePointValues;
     friend class DwarfElephantRBIterationAdaptiveDT;
     friend class DwarfElephantRBEvaluationTransient;
+    friend class DwarfElephantRBMooseThetaObject;
+    friend class DwarfElephantRBStartEndTimeMuAction;
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTINITIALIZERBSYSTEMTRANSIENT_H

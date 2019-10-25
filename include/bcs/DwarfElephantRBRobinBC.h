@@ -41,8 +41,8 @@ protected:
 //---------------------------------PRIVATE----------------------------------
 private:
   /*Attributes*/
-  Real _p;
-  const Real & _v;
+  Real _alpha;
+  const Real & _value;
 };
 
 #endif // DWARFELEPHANTRBROBINBC_H

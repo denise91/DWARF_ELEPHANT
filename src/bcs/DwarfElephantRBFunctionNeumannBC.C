@@ -20,5 +20,5 @@ DwarfElephantRBFunctionNeumannBC::DwarfElephantRBFunctionNeumannBC(const InputPa
 Real
 DwarfElephantRBFunctionNeumannBC::computeQpResidual()
 {
-  return -_test[_i][_qp] * _func.value(_t, _q_point[_qp]);
+  return _test[_i][_qp] * _func.value(_t, _q_point[_qp]);
 }

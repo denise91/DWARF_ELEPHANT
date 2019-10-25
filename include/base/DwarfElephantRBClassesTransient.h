@@ -15,6 +15,7 @@
 // libMesh includes
 #include "libmesh/sparse_matrix.h"
 #include "libmesh/petsc_matrix.h"
+#include "libmesh/petsc_vector.h"
 
 // libMesh includes (RB package)
 #include "libmesh/transient_rb_evaluation.h"
@@ -23,14 +24,14 @@
 ///-------------------------------------------------------------------------
 #include "FEProblemBase.h"
 #include "Executioner.h"
-// #include "TimeStepper.h"
-// #include "DwarfElephantRBExecutionerTimeStepper.h"
-#include "DwarfElephantRBProblem.h"
-#include "DwarfElephantRBTimeSequenceStepper.h"
-#include "DwarfElephantRBGrowthRateTimeStepper.h"
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantInitializeRBSystemTransient.h"
 #include "DwarfElephantOfflineOnlineStageTransient.h"
+#include "DwarfElephantRBGrowthRateAction.h"
+#include "DwarfElephantRBTimeSequenceAction.h"
+#include "DwarfElephantRBStartEndTimeMuAction.h"
+#include "DwarfElephantRBFunctionTimeMuAction.h"
+#include "DwarfElephantRBProblem.h"
 
 #include "DwarfElephantRBStructuresT1F1O1M1Transient.h"
 #include "DwarfElephantRBStructuresT2F1O1M1Transient.h"
@@ -58,12 +59,14 @@
 #include "DwarfElephantRBStructuresT6F1O1M1IC3Transient.h"
 #include "DwarfElephantRBStructuresT6F5O27M1IC1Transient.h"
 #include "DwarfElephantRBStructuresT7F5O1M1IC1Transient.h"
+#include "DwarfElephantRBStructuresT18F19O1M1Transient.h"
 
 // Forward Declarations
 namespace libMesh
 {
   template <typename T> class SparseMatrix;
   template <typename T> class PetscMatrix;
+  template <typename T> class PetscVector;
 
   class EquationSystems;
   class TransientRBConstruction;
@@ -104,6 +107,8 @@ public:
 
   virtual Real get_RB_error_bound() override;
 
+  virtual void truth_assembly() override;
+
   virtual Real truth_solve_mod(int write_interval);
 
   NumericVector<Number> * get_IC_q(unsigned int q);
@@ -128,9 +133,11 @@ public:
 
   void enrich_RB_space_for_initial_conditions();
 
-  RBParameters calculate_time_dependent_mu(const RBParameters mu, Real time, std::vector<unsigned int> ID_param);
+  // RBParameters calculate_time_dependent_mu(const RBParameters mu, Real time, std::vector<unsigned int> ID_param);
 
   Real uncached_compute_residual_dual_norm(const unsigned int N);
+
+  // NumericVector<Number> * vec_vec_mult(NumericVector<Number> * dest, NumericVector<Number> * mult);
 
   unsigned int u_var;
 
@@ -145,9 +152,6 @@ public:
   Real end_time;
 
   bool time_dependent_parameter;
-  bool time_dependent_boundary;
-
-  std::vector<unsigned int> IDs_time_dependent_boundary;
 
   Real time;
   std::vector<unsigned int> ID_param;
@@ -159,6 +163,8 @@ private:
    */
   std::vector<std::unique_ptr<NumericVector<Number>>> IC_q_vector;
   std::vector<std::unique_ptr<NumericVector<Number>>> non_dirichlet_IC_q_vector;
+
+  friend class DwarfElephantRBEvaluationTransient;
 };
 
 ///In this class the subclasse of TransientRBEvaluation class is introduced. NOTE: ENSURE THAT THE CLASS IS USING THE CORRECT RBSTRUCTURES.
@@ -180,6 +186,8 @@ public:
   unsigned int get_parameter_dependent_IC() const {return parameter_dependent_IC;}
 
   virtual void set_parameter_dependent_IC(bool parameter_dependent_IC_in);
+
+  // void cache_online_residual_terms(const unsigned int N);
 
   virtual void resize_data_structures(const unsigned int Nmax,
                                       bool resize_error_bound_data=true) override;
@@ -206,9 +214,12 @@ public:
   Real time;
   std::vector<unsigned int> ID_param;
 
-  // DwarfElephantRBT5F5O1M1TransientExpansion _rb_theta_expansion;
+  std::vector<DenseVector<Number>> RB_moose_theta_object_q;
+
+  // DwarfElephantRBT6F4O1M3TransientExpansion _rb_theta_expansion;
+  DwarfElephantRBT18F19O1M1TransientExpansion _rb_theta_expansion;
   // DwarfElephantRBT5F4O1M2TransientExpansion _rb_theta_expansion;
-  DwarfElephantRBT6F6O1M1TransientExpansion _rb_theta_expansion;
+  // DwarfElephantRBT6F6O1M1TransientExpansion _rb_theta_expansion;
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTRBCLASSESTRANSIENT_H

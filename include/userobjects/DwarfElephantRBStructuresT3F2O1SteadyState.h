@@ -55,7 +55,7 @@ struct DwarfElephantRBT3F2O1SteadyStateExpansion : RBThetaExpansion
     attach_A_theta(&_theta_a_2);
 
     attach_F_theta(&_rb_theta);
-    attach_F_theta(&_theta_a_1);
+    attach_F_theta(&_rb_theta);
 
     attach_output_theta(&_rb_theta);
   }
@@ -63,6 +63,7 @@ struct DwarfElephantRBT3F2O1SteadyStateExpansion : RBThetaExpansion
   DwarfElephantThetaA0EqualMu0 _theta_a_0;
   DwarfElephantThetaA1EqualMu1 _theta_a_1;
   DwarfElephantThetaA2EqualMu2 _theta_a_2;
+  DwarfElephantThetaA0EqualScalarDividedByMu0 _theta_f_0;
   RBTheta _rb_theta;         // Default RBTheta object, simply returns one.
 };
 

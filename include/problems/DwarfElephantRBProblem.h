@@ -55,10 +55,6 @@ class DwarfElephantRBProblem :
 
     void fileParser(DwarfElephantRBEvaluationTransient & _rb_eval);
 
-    Real getThreshold() {return _threshold;}
-    Real getGrowthRate() {return _growth_rate;}
-    std::vector<Real> getTimeSequence() {return _time_sequence;}
-
     // virtual MooseVariable & getVariable(THREAD_ID tid, const std::string & var_name) override;
 
 //--------------------------------PROTECTED---------------------------------
@@ -81,14 +77,7 @@ class DwarfElephantRBProblem :
     std::string _file;
     std::string _offline_data_name;
 
-    Real _growth_rate;
-    Real _threshold;
-
-    std::vector<Real> _time_sequence;
-
     friend class DwarfElephantRBEvaluationTransient;
-
-
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTRBPROBLEM_H

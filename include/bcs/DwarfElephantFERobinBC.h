@@ -18,6 +18,6 @@ protected:
   virtual Real computeQpJacobian() override;
 
 private:
-  Real _p;
-  const Real & _v;
+  Real _alpha;
+  const Real & _value;
 };

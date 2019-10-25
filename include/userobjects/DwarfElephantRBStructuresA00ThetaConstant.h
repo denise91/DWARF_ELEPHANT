@@ -24,7 +24,7 @@ struct DwarfElephantThetaA00Constant : RBTheta
 {
   virtual Number evaluate (const RBParameters & )
   {
-    return 0.0;
+    return 0;
   }
 };
 
