@@ -47,7 +47,7 @@ DwarfElephantBoundaryConditionFileReader::DwarfElephantBoundaryConditionFileRead
   _y_coordinates.resize(_time_frames.size());
   _variable_values.resize(_time_frames.size());
 
-  for(unsigned int i; i<_time_frames.size(); i++)
+  for(unsigned int i=0; i<_time_frames.size(); i++)
     fileParser(i);
 
   // if(_gradients)
