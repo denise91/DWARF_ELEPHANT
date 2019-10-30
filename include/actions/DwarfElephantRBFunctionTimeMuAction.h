@@ -14,8 +14,9 @@ public:
   virtual RBParameters calculateTimeDependency(const RBParameters mu) override;
 
 protected:
-  std::string _func_name;
-  const Function * _func;
+  std::vector<std::string> _func_name;
+  std::vector<Real> _thresholds;
+  std::vector<const Function *> _func;
 
 };
 

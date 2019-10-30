@@ -17,6 +17,7 @@ public:
 protected:
   Real _time;
   std::vector<unsigned int> _ID_time_dependent_param;
+  unsigned int _ID_time_scaling_param;
 };
 
 template <>
