@@ -9,8 +9,8 @@
   */
 
 ///-------------------------------------------------------------------------
-#ifndef DWARFELEPHANTRBSTRUCTUREST18F19O1M1TRANSIENT_H
-#define DWARFELEPHANTRBSTRUCTUREST18F19O1M1TRANSIENT_H
+#ifndef DWARFELEPHANTRBSTRUCTUREST19F19O1M1TRANSIENT_H
+#define DWARFELEPHANTRBSTRUCTUREST19F19O1M1TRANSIENT_H
 
 ///---------------------------------INCLUDES--------------------------------
 // libMesh includes (RB package)
@@ -59,9 +59,9 @@ namespace libMesh
  *
  */
 
-struct DwarfElephantRBT18F19O1M1TransientExpansion : TransientRBThetaExpansion
+struct DwarfElephantRBT19F19O1M1TransientExpansion : TransientRBThetaExpansion
 {
-  DwarfElephantRBT18F19O1M1TransientExpansion()
+  DwarfElephantRBT19F19O1M1TransientExpansion()
   {
     // Setting up the RBThetaExpansion object
     attach_M_theta(&_rb_theta);
@@ -79,15 +79,15 @@ struct DwarfElephantRBT18F19O1M1TransientExpansion : TransientRBThetaExpansion
 
     attach_F_theta(&_rb_theta);
     attach_F_theta(&_theta_a_0);
-    attach_F_theta(&_theta_a_1);
-    attach_F_theta(&_theta_a_2);
-    attach_F_theta(&_theta_a_3);
-    attach_F_theta(&_theta_a_4);
-    attach_F_theta(&_theta_a_5);
-    attach_F_theta(&_theta_a_6);
-    attach_F_theta(&_theta_a_7);
-    attach_F_theta(&_theta_a_8);
-    attach_F_theta(&_theta_a_9);
+    attach_F_theta(&_theta_f_1);
+    attach_F_theta(&_theta_f_2);
+    attach_F_theta(&_theta_f_3);
+    attach_F_theta(&_theta_f_4);
+    attach_F_theta(&_theta_f_5);
+    attach_F_theta(&_theta_f_6);
+    attach_F_theta(&_theta_f_7);
+    attach_F_theta(&_theta_f_8);
+    attach_F_theta(&_theta_f_9);
     attach_F_theta(&_theta_a_10);
     attach_F_theta(&_theta_a_11);
     attach_F_theta(&_theta_a_12);
@@ -110,6 +110,15 @@ struct DwarfElephantRBT18F19O1M1TransientExpansion : TransientRBThetaExpansion
   DwarfElephantThetaA7EqualMu7 _theta_a_7;
   DwarfElephantThetaA8EqualMu8 _theta_a_8;
   DwarfElephantThetaA9EqualMu9 _theta_a_9;
+  DwarfElephantThetaA1EqualMu1TimesMu18 _theta_f_1;
+  DwarfElephantThetaA2EqualMu2TimesMu18 _theta_f_2;
+  DwarfElephantThetaA3EqualMu3TimesMu18 _theta_f_3;
+  DwarfElephantThetaA4EqualMu4TimesMu18 _theta_f_4;
+  DwarfElephantThetaA5EqualMu5TimesMu18 _theta_f_5;
+  DwarfElephantThetaA6EqualMu6TimesMu18 _theta_f_6;
+  DwarfElephantThetaA7EqualMu7TimesMu18 _theta_f_7;
+  DwarfElephantThetaA8EqualMu8TimesMu18 _theta_f_8;
+  DwarfElephantThetaA9EqualMu9TimesMu18 _theta_f_9;
   DwarfElephantThetaA10EqualMu10 _theta_a_10;
   DwarfElephantThetaA11EqualMu11 _theta_a_11;
   DwarfElephantThetaA12EqualMu12 _theta_a_12;
@@ -122,4 +131,4 @@ struct DwarfElephantRBT18F19O1M1TransientExpansion : TransientRBThetaExpansion
 };
 
 ///-------------------------------------------------------------------------
-#endif // DWARFELEPHANTRBSTRUCTUREST18F19O1M1TRANSIENT_H
+#endif // DWARFELEPHANTRBSTRUCTUREST19F19O1M1TRANSIENT_H
