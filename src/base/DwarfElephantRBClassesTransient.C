@@ -432,45 +432,45 @@ DwarfElephantRBConstructionTransient::init_data()
   //   return dest;
   // }
 
-  void DwarfElephantRBConstructionTransient::truth_assembly()
-  {
-    LOG_SCOPE("truth_assembly()", "RBConstruction");
-
-    const RBParameters & mu = get_parameters();
-
-    this->matrix->zero();
-    this->rhs->zero();
-
-    this->matrix->close();
-    this->rhs->close();
-
-    {
-      // We should have already assembled the matrices
-      // and vectors in the affine expansion, so
-      // just use them
-
-      for (unsigned int q_a=0; q_a<get_rb_theta_expansion().get_n_A_terms(); q_a++)
-        {
-          // if(space_dependent_theta_object || time_dependent_theta_object)
-          //   libmesh_error_msg("Error: Space and time dependent theta objects are currently not supported for the stiffnes matrix.");
-
-          matrix->add(get_rb_theta_expansion().eval_A_theta(q_a, mu), *get_Aq(q_a));
-        }
-
-
-      std::unique_ptr<NumericVector<Number>> temp_vec = NumericVector<Number>::build(this->comm());
-      temp_vec->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
-      for (unsigned int q_f=0; q_f<get_rb_theta_expansion().get_n_F_terms(); q_f++)
-      {
-        *temp_vec = *get_Fq(q_f);
-        temp_vec->scale( get_rb_theta_expansion().eval_F_theta(q_f, mu) );
-        rhs->add(*temp_vec);
-      }
-    }
-
-    this->matrix->close();
-    this->rhs->close();
-  }
+  // void DwarfElephantRBConstructionTransient::truth_assembly()
+  // {
+  //   LOG_SCOPE("truth_assembly()", "RBConstruction");
+  //
+  //   const RBParameters & mu = get_parameters();
+  //
+  //   this->matrix->zero();
+  //   this->rhs->zero();
+  //
+  //   this->matrix->close();
+  //   this->rhs->close();
+  //
+  //   {
+  //     // We should have already assembled the matrices
+  //     // and vectors in the affine expansion, so
+  //     // just use them
+  //
+  //     for (unsigned int q_a=0; q_a<get_rb_theta_expansion().get_n_A_terms(); q_a++)
+  //       {
+  //         // if(space_dependent_theta_object || time_dependent_theta_object)
+  //         //   libmesh_error_msg("Error: Space and time dependent theta objects are currently not supported for the stiffnes matrix.");
+  //
+  //         matrix->add(get_rb_theta_expansion().eval_A_theta(q_a, mu), *get_Aq(q_a));
+  //       }
+  //
+  //
+  //     std::unique_ptr<NumericVector<Number>> temp_vec = NumericVector<Number>::build(this->comm());
+  //     temp_vec->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+  //     for (unsigned int q_f=0; q_f<get_rb_theta_expansion().get_n_F_terms(); q_f++)
+  //     {
+  //       *temp_vec = *get_Fq(q_f);
+  //       temp_vec->scale( get_rb_theta_expansion().eval_F_theta(q_f, mu) );
+  //       rhs->add(*temp_vec);
+  //     }
+  //   }
+  //
+  //   this->matrix->close();
+  //   this->rhs->close();
+  // }
 
 
   Real
@@ -896,84 +896,84 @@ DwarfElephantRBConstructionTransient::init_data()
   //   return mu_time;
   // }
 
-  Real DwarfElephantRBConstructionTransient::uncached_compute_residual_dual_norm(const unsigned int N)
-  {
-    LOG_SCOPE("uncached_compute_residual_dual_norm()", "TransientRBConstruction");
-
-    // This is the "slow" way of computing the residual, but it is useful
-    // for validating the "fast" way.
-    // Note that this only works in serial since otherwise each processor will
-    // have a different parameter value during the Greedy training.
-
-    // Assemble the right-hand side to find the Reisz representor
-    // of the residual in the X norm
-    std::unique_ptr<NumericVector<Number>> RB_sol = NumericVector<Number>::build(this->comm());
-    RB_sol->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
-    RB_sol->zero();
-
-    std::unique_ptr<NumericVector<Number>> ghosted_temp = NumericVector<Number>::build(this->comm());
-    ghosted_temp->init (this->n_dofs(), this->n_local_dofs(),
-                        this->get_dof_map().get_send_list(), false,
-                        GHOSTED);
-
-    std::unique_ptr<NumericVector<Number>> parallel_temp = NumericVector<Number>::build(this->comm());
-    parallel_temp->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
-
-    // Store current_local_solution, since we don't want to corrupt it
-    *ghosted_temp = *current_local_solution;
-
-    DwarfElephantRBEvaluationTransient & trans_rb_eval = cast_ref<DwarfElephantRBEvaluationTransient &>(get_rb_evaluation());
-
-    for (unsigned int i=0; i<N; i++)
-    {
-      RB_sol->add(trans_rb_eval.RB_solution(i), get_rb_evaluation().get_basis_function(i));
-      parallel_temp->add( trans_rb_eval.old_RB_solution(i), get_rb_evaluation().get_basis_function(i));
-    }
-
-    // Load parallel_temp into current_local_solution in order to do assembly
-    const std::vector<unsigned int> & send_list = this->get_dof_map().get_send_list();
-    parallel_temp->localize (*current_local_solution, send_list);
-
-    // Load the system_matrix
-    this->truth_assembly();
-
-    // Restore current_local_solution
-    *current_local_solution = *ghosted_temp;
-
-    matrix->vector_mult(*parallel_temp, *RB_sol);
-    rhs->add(-1., *parallel_temp);
-    rhs->close();
-
-    // zero_dirichlet_dofs_on_rhs();
-
-    // Then solve the system to get the Reisz representor
-    matrix->zero();
-    {
-      matrix->add(1., *inner_product_matrix);
-      // if (constrained_problem)
-        // matrix->add(1., *constraint_matrix);
-    }
-
-
-    solution->zero();
-    solve();
-    // Make sure we didn't max out the number of iterations
-    if ((this->n_linear_iterations() >=
-         this->get_equation_systems().parameters.get<unsigned int>("linear solver maximum iterations")) &&
-        (this->final_linear_residual() >
-         this->get_equation_systems().parameters.get<Real>("linear solver tolerance")))
-    {
-      libmesh_error_msg("Warning: Linear solver may not have converged! Final linear residual = "
-                   << this->final_linear_residual() << ", number of iterations = "
-                   << this->n_linear_iterations());
-    }
-
-   get_non_dirichlet_inner_product_matrix_if_avail()->vector_mult(*inner_product_storage_vector, *solution);
-
-   Real slow_residual_norm_sq = solution->dot(*inner_product_storage_vector);
-
-   return libmesh_real(std::sqrt( slow_residual_norm_sq ));
-  }
+  // Real DwarfElephantRBConstructionTransient::uncached_compute_residual_dual_norm(const unsigned int N)
+  // {
+  //   LOG_SCOPE("uncached_compute_residual_dual_norm()", "TransientRBConstruction");
+  //
+  //   // This is the "slow" way of computing the residual, but it is useful
+  //   // for validating the "fast" way.
+  //   // Note that this only works in serial since otherwise each processor will
+  //   // have a different parameter value during the Greedy training.
+  //
+  //   // Assemble the right-hand side to find the Reisz representor
+  //   // of the residual in the X norm
+  //   std::unique_ptr<NumericVector<Number>> RB_sol = NumericVector<Number>::build(this->comm());
+  //   RB_sol->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+  //   RB_sol->zero();
+  //
+  //   std::unique_ptr<NumericVector<Number>> ghosted_temp = NumericVector<Number>::build(this->comm());
+  //   ghosted_temp->init (this->n_dofs(), this->n_local_dofs(),
+  //                       this->get_dof_map().get_send_list(), false,
+  //                       GHOSTED);
+  //
+  //   std::unique_ptr<NumericVector<Number>> parallel_temp = NumericVector<Number>::build(this->comm());
+  //   parallel_temp->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+  //
+  //   // Store current_local_solution, since we don't want to corrupt it
+  //   *ghosted_temp = *current_local_solution;
+  //
+  //   DwarfElephantRBEvaluationTransient & trans_rb_eval = cast_ref<DwarfElephantRBEvaluationTransient &>(get_rb_evaluation());
+  //
+  //   for (unsigned int i=0; i<N; i++)
+  //   {
+  //     RB_sol->add(trans_rb_eval.RB_solution(i), get_rb_evaluation().get_basis_function(i));
+  //     parallel_temp->add( trans_rb_eval.old_RB_solution(i), get_rb_evaluation().get_basis_function(i));
+  //   }
+  //
+  //   // Load parallel_temp into current_local_solution in order to do assembly
+  //   const std::vector<unsigned int> & send_list = this->get_dof_map().get_send_list();
+  //   parallel_temp->localize (*current_local_solution, send_list);
+  //
+  //   // Load the system_matrix
+  //   this->truth_assembly();
+  //
+  //   // Restore current_local_solution
+  //   *current_local_solution = *ghosted_temp;
+  //
+  //   matrix->vector_mult(*parallel_temp, *RB_sol);
+  //   rhs->add(-1., *parallel_temp);
+  //   rhs->close();
+  //
+  //   // zero_dirichlet_dofs_on_rhs();
+  //
+  //   // Then solve the system to get the Reisz representor
+  //   matrix->zero();
+  //   {
+  //     matrix->add(1., *inner_product_matrix);
+  //     // if (constrained_problem)
+  //       // matrix->add(1., *constraint_matrix);
+  //   }
+  //
+  //
+  //   solution->zero();
+  //   solve();
+  //   // Make sure we didn't max out the number of iterations
+  //   if ((this->n_linear_iterations() >=
+  //        this->get_equation_systems().parameters.get<unsigned int>("linear solver maximum iterations")) &&
+  //       (this->final_linear_residual() >
+  //        this->get_equation_systems().parameters.get<Real>("linear solver tolerance")))
+  //   {
+  //     libmesh_error_msg("Warning: Linear solver may not have converged! Final linear residual = "
+  //                  << this->final_linear_residual() << ", number of iterations = "
+  //                  << this->n_linear_iterations());
+  //   }
+  //
+  //  get_non_dirichlet_inner_product_matrix_if_avail()->vector_mult(*inner_product_storage_vector, *solution);
+  //
+  //  Real slow_residual_norm_sq = solution->dot(*inner_product_storage_vector);
+  //
+  //  return libmesh_real(std::sqrt( slow_residual_norm_sq ));
+  // }
 
 
 //------------------------DWARFELEPHANTRBEVALUATION------------------------

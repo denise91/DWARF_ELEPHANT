@@ -107,7 +107,7 @@ public:
 
   virtual Real get_RB_error_bound() override;
 
-  virtual void truth_assembly() override;
+  // virtual void truth_assembly() override;
 
   virtual Real truth_solve_mod(int write_interval);
 
@@ -135,7 +135,7 @@ public:
 
   // RBParameters calculate_time_dependent_mu(const RBParameters mu, Real time, std::vector<unsigned int> ID_param);
 
-  Real uncached_compute_residual_dual_norm(const unsigned int N);
+  // Real uncached_compute_residual_dual_norm(const unsigned int N);
 
   // NumericVector<Number> * vec_vec_mult(NumericVector<Number> * dest, NumericVector<Number> * mult);
 
@@ -199,7 +199,7 @@ public:
                                                    bool read_error_bound_data=true,
                                                    const bool read_binary_data=true) override;
 
-  RBParameters calculate_time_dependent_mu(const RBParameters mu, Real time, std::vector<unsigned int> ID_param) const;
+  // RBParameters calculate_time_dependent_mu(const RBParameters mu, Real time, std::vector<unsigned int> ID_param) const;
 
   FEProblemBase & fe_problem;
   bool varying_timesteps;
@@ -217,9 +217,9 @@ public:
   std::vector<DenseVector<Number>> RB_moose_theta_object_q;
 
   // DwarfElephantRBT6F4O1M3TransientExpansion _rb_theta_expansion;
-  // DwarfElephantRBT18F19O1M1TransientExpansion _rb_theta_expansion;
+  DwarfElephantRBT18F19O1M1TransientExpansion _rb_theta_expansion;
   // DwarfElephantRBT5F4O1M2TransientExpansion _rb_theta_expansion;
-  DwarfElephantRBT6F6O1M1TransientExpansion _rb_theta_expansion;
+  // DwarfElephantRBT6F6O1M1TransientExpansion _rb_theta_expansion;
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTRBCLASSESTRANSIENT_H

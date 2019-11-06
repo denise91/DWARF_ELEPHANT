@@ -192,8 +192,6 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
       _console << std::endl;
     }
 
-    _initialize_rb_system._rb_con_ptr->get_Fq(0)->print_matlab("Fq0");
-
     if(_online_stage)
     {
       {
