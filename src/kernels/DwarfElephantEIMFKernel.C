@@ -26,6 +26,9 @@ void DwarfElephantEIMFKernel::computeResidual()
     std::vector<Number> & _eim_values_ref = _eim_values;        
     DenseVector<Number> 	& re = _assembly.residualBlock(_var.number());
     _local_re.resize(re.size());
+    unsigned int _i_subdomain = _current_elem->subdomain_id();
+    unsigned int _ID_first_block = *_fe_problem.mesh().meshSubdomains().begin();
+    
     const DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemSteadyState>("initial_rb_userobject");
     if (_initialize_rb_system._use_hp_EIM && (_initialize_rb_system._offline_stage || _initialize_rb_system._hp_EIM_testing))
     {
@@ -60,7 +63,7 @@ void DwarfElephantEIMFKernel::computeResidual()
 		}
 	    re += _local_re;
 	    if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())		
-	        _initialize_rb_system._residuals[_i_eim_basis_function] -> add_vector(_local_re, _var.dofIndices());
+	        _initialize_rb_system._residuals[(_i_subdomain - _ID_first_block)*_initialize_rb_system._eim_con_ptr -> get_rb_evaluation().get_n_basis_functions() + _i_eim_basis_function] -> add_vector(_local_re, _var.dofIndices());
 	}
     }
 }

@@ -102,7 +102,6 @@ struct CustomRBThetaExpansion : RBThetaExpansion
     // Setting up the RBThetaExpansion object
     
     attach_A_theta(&_rb_theta);
-    attach_A_theta(&_rb_theta);
     //attach_F_theta(&_rb_theta);
 
     //attach_output_theta(&_rb_theta);
@@ -136,8 +135,6 @@ public:
 
   // Initialize data structure
   virtual void init_data() override;
-
-  virtual Real compute_residual_dual_norm(const unsigned int N);
  
   virtual Real train_reduced_basis(const bool resize_rb_eval_data=true) override;
   
@@ -198,6 +195,7 @@ void compute_error_X_norm_vs_N(NumericVector<Number>* _EIMFEsolution, RBParamete
   void do_RB_vs_FE_Error_analysis(RBParameters mu, EquationSystems & _es)
   {
     // compute full FE solution
+      unsigned int M = dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).get_n_F_terms()/dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
       std::unique_ptr<NumericVector<Number>> FullFEsolution;
       FullFEsolution = NumericVector<Number>::build(this->comm());
       FullFEsolution->init(this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
@@ -217,7 +215,7 @@ void compute_error_X_norm_vs_N(NumericVector<Number>* _EIMFEsolution, RBParamete
         matrix -> add(get_rb_theta_expansion().eval_A_theta(i,mu),*get_Aq(i));
 
       for (int i = 0; i < get_rb_theta_expansion().get_n_F_terms(); i++)
-        rhs -> add(get_rb_theta_expansion().eval_F_theta(i,mu),*get_Fq(i));//*_nonAffineF);
+        rhs -> add(get_rb_theta_expansion().eval_F_theta((i%M),mu) * dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[i/M]->evaluate(mu),*get_Fq(i));//*_nonAffineF);
       
       this -> matrix -> close();
       this -> rhs -> close();
@@ -243,6 +241,42 @@ this->get_equation_systems());
     compute_error_X_norm_vs_N(FullFEsolution.get(), mu, _es);
   }
 
+  virtual void truth_assembly()
+{
+  LOG_SCOPE("truth_assembly()", "RBConstruction");
+   unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+  const RBParameters & mu = get_parameters();
+
+  this->matrix->zero();
+  this->rhs->zero();
+
+  this->matrix->close();
+  this->rhs->close();
+
+  {
+    // We should have already assembled the matrices
+    // and vectors in the affine expansion, so
+    // just use them
+
+    for (unsigned int q_a=0; q_a<get_rb_theta_expansion().get_n_A_terms(); q_a++)
+      {
+        matrix->add(get_rb_theta_expansion().eval_A_theta(q_a, mu), *get_Aq(q_a));
+      }
+
+    std::unique_ptr<NumericVector<Number>> temp_vec = NumericVector<Number>::build(this->comm());
+    temp_vec->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+    for (unsigned int q_f=0; q_f<get_rb_theta_expansion().get_n_F_terms(); q_f++)
+      {
+        *temp_vec = *get_Fq(q_f);
+        temp_vec->scale( get_rb_theta_expansion().eval_F_theta((q_f%M), mu) * dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[q_f/M]->evaluate(mu) );
+        rhs->add(*temp_vec);
+      }
+  }
+
+  this->matrix->close();
+  this->rhs->close();
+}
+  
   std::unique_ptr<NumericVector<Number>> _nonAffineF; 
 
   unsigned int u_var;
@@ -259,6 +293,165 @@ public:
 
   virtual ~DwarfElephantRBEvaluationSteadyState() {}
     virtual Real get_stability_lower_bound();
+  
+    virtual Real rb_solve(unsigned int N)
+{
+  LOG_SCOPE("rb_solve()", "RBEvaluation");
+
+  if (N > get_n_basis_functions())
+    libmesh_error_msg("ERROR: N cannot be larger than the number of basis functions in rb_solve");
+
+  const RBParameters & mu = get_parameters();
+  unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+  // Resize (and clear) the solution vector
+  RB_solution.resize(N);
+
+  // Assemble the RB system
+  DenseMatrix<Number> RB_system_matrix(N,N);
+  RB_system_matrix.zero();
+
+  DenseMatrix<Number> RB_Aq_a;
+  for (unsigned int q_a=0; q_a<get_rb_theta_expansion().get_n_A_terms(); q_a++)
+    {
+      RB_Aq_vector[q_a].get_principal_submatrix(N, RB_Aq_a);
+
+      RB_system_matrix.add(get_rb_theta_expansion().eval_A_theta(q_a, mu), RB_Aq_a);
+    }
+
+  // Assemble the RB rhs
+  DenseVector<Number> RB_rhs(N);
+  RB_rhs.zero();
+
+  DenseVector<Number> RB_Fq_f;
+  for (unsigned int q_f=0; q_f<get_rb_theta_expansion().get_n_F_terms(); q_f++)
+    {
+      RB_Fq_vector[q_f].get_principal_subvector(N, RB_Fq_f);
+
+      RB_rhs.add(get_rb_theta_expansion().eval_F_theta((q_f%M), mu)*dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f/M)]->evaluate(mu), RB_Fq_f);
+    }
+
+  // Solve the linear system
+  if (N > 0)
+    {
+      RB_system_matrix.lu_solve(RB_rhs, RB_solution);
+    }
+
+  // Evaluate RB outputs
+  DenseVector<Number> RB_output_vector_N;
+  for (unsigned int n=0; n<get_rb_theta_expansion().get_n_outputs(); n++)
+    {
+      RB_outputs[n] = 0.;
+      for (unsigned int q_l=0; q_l<get_rb_theta_expansion().get_n_output_terms(n); q_l++)
+        {
+          RB_output_vectors[n][q_l].get_principal_subvector(N, RB_output_vector_N);
+          RB_outputs[n] += get_rb_theta_expansion().eval_output_theta(n,q_l,mu)*RB_output_vector_N.dot(RB_solution);
+        }
+    }
+
+  if (evaluate_RB_error_bound) // Calculate the error bounds
+    {
+      // Evaluate the dual norm of the residual for RB_solution_vector
+      Real epsilon_N = compute_residual_dual_norm(N);
+
+      // Get lower bound for coercivity constant
+      const Real alpha_LB = get_stability_lower_bound();
+      // alpha_LB needs to be positive to get a valid error bound
+      libmesh_assert_greater ( alpha_LB, 0. );
+
+      // Evaluate the (absolute) error bound
+      Real abs_error_bound = epsilon_N / residual_scaling_denom(alpha_LB);
+
+      // Now compute the output error bounds
+      for (unsigned int n=0; n<get_rb_theta_expansion().get_n_outputs(); n++)
+        {
+          RB_output_error_bounds[n] = abs_error_bound * eval_output_dual_norm(n, mu);
+        }
+
+      return abs_error_bound;
+    }
+  else // Don't calculate the error bounds
+    {
+      // Just return -1. if we did not compute the error bound
+      return -1.;
+    }
+}
+    
+    virtual Real compute_residual_dual_norm(const unsigned int N)
+{
+  LOG_SCOPE("compute_residual_dual_norm()", "RBEvaluation");
+
+  const RBParameters & mu = get_parameters();
+
+  // Use the stored representor inner product values
+  // to evaluate the residual norm
+  Number residual_norm_sq = 0.;
+  
+  unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+
+  unsigned int q=0;
+  for (unsigned int q_f1=0; q_f1<get_rb_theta_expansion().get_n_F_terms(); q_f1++)
+    {
+      for (unsigned int q_f2=q_f1; q_f2<get_rb_theta_expansion().get_n_F_terms(); q_f2++)
+        {
+          Real delta = (q_f1==q_f2) ? 1. : 2.;
+          residual_norm_sq += delta * libmesh_real(
+                                                   get_rb_theta_expansion().eval_F_theta((q_f1%M), mu)*dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f1/M)]->evaluate(mu)
+                                                   * libmesh_conj(get_rb_theta_expansion().eval_F_theta((q_f2%M), mu)) * libmesh_conj(dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f2/M)]->evaluate(mu)) * Fq_representor_innerprods[q] );
+
+          q++;
+        }
+    }
+
+  for (unsigned int q_f=0; q_f<get_rb_theta_expansion().get_n_F_terms(); q_f++)
+    {
+      for (unsigned int q_a=0; q_a<get_rb_theta_expansion().get_n_A_terms(); q_a++)
+        {
+          for (unsigned int i=0; i<N; i++)
+            {
+              Real delta = 2.;
+              residual_norm_sq +=
+                delta * libmesh_real( get_rb_theta_expansion().eval_F_theta(q_f%M, mu) * dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f/M)]->evaluate(mu) *
+                                      libmesh_conj(get_rb_theta_expansion().eval_A_theta(q_a, mu)) *
+                                      libmesh_conj(RB_solution(i)) * Fq_Aq_representor_innerprods[q_f][q_a][i] );
+            }
+        }
+    }
+
+  q=0;
+  for (unsigned int q_a1=0; q_a1<get_rb_theta_expansion().get_n_A_terms(); q_a1++)
+    {
+      for (unsigned int q_a2=q_a1; q_a2<get_rb_theta_expansion().get_n_A_terms(); q_a2++)
+        {
+          Real delta = (q_a1==q_a2) ? 1. : 2.;
+
+          for (unsigned int i=0; i<N; i++)
+            {
+              for (unsigned int j=0; j<N; j++)
+                {
+                  residual_norm_sq +=
+                    delta * libmesh_real( libmesh_conj(get_rb_theta_expansion().eval_A_theta(q_a1, mu)) *
+                                          get_rb_theta_expansion().eval_A_theta(q_a2, mu) *
+                                          libmesh_conj(RB_solution(i)) * RB_solution(j) * Aq_Aq_representor_innerprods[q][i][j] );
+                }
+            }
+
+          q++;
+        }
+    }
+
+  if (libmesh_real(residual_norm_sq) < 0.)
+    {
+      //    libMesh::out << "Warning: Square of residual norm is negative "
+      //                 << "in RBSystem::compute_residual_dual_norm()" << std::endl;
+
+      //     Sometimes this is negative due to rounding error,
+      //     but when this occurs the error is on the order of 1.e-10,
+      //     so shouldn't affect error bound much...
+      residual_norm_sq = std::abs(residual_norm_sq);
+    }
+
+  return std::sqrt( libmesh_real(residual_norm_sq) );
+}
 
   FEProblemBase & get_fe_problem(){return fe_problem;}
 
@@ -281,6 +474,7 @@ public:
   virtual ~DwarfElephantEIMEvaluationSteadyState() {}
 
   ShiftedGaussian_3DRFA sg;
+  //AffineFunction sg;
 };
 
 // A simple subclass of RBEIMConstruction.

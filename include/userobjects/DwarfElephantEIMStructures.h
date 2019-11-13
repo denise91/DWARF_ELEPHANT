@@ -135,6 +135,30 @@ Real l = 0.01;
   }
 };
 
+struct AffineFunction : RBParametrizedFunction
+{
+    virtual Number evaluate(const RBParameters & mu,
+                            const Point & p,
+                            const Elem & elem)
+    {
+        Real val_subdomain_0 = mu.get_value("mu_0");
+        Real val_subdomain_1 = mu.get_value("mu_1");
+        Real val_subdomain_2 = mu.get_value("mu_2");
+        Real val_subdomain_3 = mu.get_value("mu_3");
+        Real _result;
+        
+        if (elem.subdomain_id() == 1)
+            _result = val_subdomain_0;
+        else if (elem.subdomain_id() == 2)
+            _result = val_subdomain_1;
+        else if (elem.subdomain_id() == 3)
+            _result = val_subdomain_2;
+        else
+            _result = val_subdomain_3;
+        
+        return _result;
+    }
+};
 // Expansion of the PDE operator
 //struct DwarfElephantEIMThetaA0 : RBTheta { virtual Number evaluate(const RBParameters &) { return 0.05;  } }; //theta_A0 for libMesh rb example 4
 struct DwarfElephantEIMThetaA0 : RBTheta { virtual Number evaluate(const RBParameters &) { return 0.05;  } }; //theta_A0 for libmesh EIM example

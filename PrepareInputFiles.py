@@ -104,7 +104,7 @@ for bln_form in BilinearForms:
 
         for suffix in TermsOfBilinearForm[bln_form]: 
           print "bilin form: ", bln_form, "; subdomain name :", GeomSubdomains[block_num][1], "; suffix list: ", TermsOfBilinearForm[bln_form], "; suffix: ", suffix, "; A Theta: ", AThetaDefinition[iATheta], "; AThetaPrefix: ", AThetaPrefix
-          if AThetaDefinition[iATheta] != "0":
+          if AThetaDefinition[iATheta].strip() != "0":
             AppendToKernelList(KernelList, bln_form,suffix,GeomSubdomains,block_num,ID_Aq)
             AqObjectsList.append([ID_Aq,"Diffusion"+suffix+"_"+GeomSubdomains[block_num][1]])
             Aq_object_name = "Diffusion"+suffix+"_"+GeomSubdomains[block_num][1]
@@ -129,6 +129,14 @@ for bln_form in BilinearForms:
           AqObjectsList.append([ID_Aq,"BoundaryTerms"])
           ConvectionBCFlag = True
 
+for subdomain in range(1,33):
+  KernelList.append("""
+  [./EIM_""" + str(subdomain) + """]
+    type = DwarfElephantEIMFKernel
+    block = """ + str(subdomain) + """
+  [../]
+   """)
+
 AqObjectsList.sort(key=AffineObject_sort_key)
 KernelList.append(AdditionalKernels)
 KernelList.append("[]\n\n")
@@ -147,7 +155,7 @@ with open(RBThetaCFileName,"a") as RBThetaCFile:
     FinalizeRBThetaCFile(RBThetaCFile, IncludeGaurdName) # C file containing theta object definitions complete
 
 RBThetaExpansionCFileName = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/include/userobjects/DwarfElephantGeom3DRBThetaExpansion_RFA.h" #(EDIT FOR 3D GEOM)
-IncludeFileName = "DwarfElephantGeom3DRBTheta_RFA.h" #(EDIT FOR 3D GEOM)
+IncludeFileName = ["DwarfElephantGeom3DRBTheta_RFA.h", "DwarfElephantMeshSubdomainJacobians.h"] #(EDIT FOR 3D GEOM)
 IncludeGaurdName = "DWARFELEPHANTGEOM3DRBTHETAEXPANSION_RFA_H" #(EDIT FOR 3D GEOM)
 
 with open(RBThetaExpansionCFileName,"w") as RBThetaExpansionCFile: # write RB theta expansion file
@@ -155,16 +163,29 @@ with open(RBThetaExpansionCFileName,"w") as RBThetaExpansionCFile: # write RB th
   
   for Aq_object in AqObjectsList:
     AttachAqTheta(RBThetaExpansionCFile, AThetaPrefix, Aq_object)
+  
+  for subdomain in range(1,33):
+    RBThetaExpansionCFile.write("    subdomain_jac_rbthetas.push_back(rbtheta_subdomain_"+str(subdomain)+");\n")
+  RBThetaExpansionCFile.write("    num_subdomains = 32;\n")
   RBThetaExpansionCFile.write("}\n")
 
   for Aq_object in AqObjectsList:
     DeclareAqTheta(RBThetaExpansionCFile, AThetaPrefix, Aq_object, DefaultThetaObjectExists)
 
+  # add for loop to define subdomain jacobian rbthetas in the rbtheta expansion struct
+  RBThetaExpansionCFile.write("public:\n")
+  for subdomain in range(1,33):
+    RBThetaExpansionCFile.write("    subdomain_"+str(subdomain)+" rbtheta_subdomain_"+str(subdomain)+";\n")
+
+  RBThetaExpansionCFile.write("    std::vector<RBTheta> subdomain_jac_rbthetas;\n")
+  RBThetaExpansionCFile.write("    unsigned int num_subdomains;\n")
+    
+
   FinalizeRBThetaExpansionCFile(RBThetaExpansionCFile, IncludeGaurdName) # C file containing RB theta expansion complete
 
 # Write input file using the kernel list and BC list
 InputFileName = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/RBRFAModel3D.i"
-MeshFile = "RBRFAGeom3D_r3e-3_l5e-2_L1e-1_d3r_h15e-1l_Test1.msh"
+MeshFile = "ReducedBasisGeom3D_7_fullylabeled_debug.msh"
 
 PreKernelText = """[Mesh]
  file = """+MeshFile+"""

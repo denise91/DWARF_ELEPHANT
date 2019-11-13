@@ -14,12 +14,12 @@ def replace_line(file_name, line_num, text):
     out.close()
 
 #-----------------------User Defined Variables-------------------------------#
-InputFileName = "GeomParam_with_EIM_Trapezoid.i"
-OnlineN_LineNumber = 191
+InputFileName = "RBRFAModel3D.i"
+OnlineN_LineNumber = 1781
 #---------------------------End User Defined Variables---------------------#
 
 
-for N in range(1,41):
+for N in range(1,11):
  replace_line(InputFileName,OnlineN_LineNumber,"  online_N = " + str(N)) # input modification command here
  print "N = ", N
  call("./DwarfElephant-opt -i " + InputFileName, shell=True) # simulation running command here

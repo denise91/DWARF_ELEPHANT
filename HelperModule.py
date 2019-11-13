@@ -79,7 +79,8 @@ def InitializeRBThetaExpansionCFile(RBThetaExpansionCFile, IncludeFileName, Thet
     RBThetaExpansionCFile.write("""#include "libmesh/rb_theta.h"\n""")
     RBThetaExpansionCFile.write("""#include "libmesh/rb_assembly_expansion.h"\n""")
     RBThetaExpansionCFile.write("\n")
-    RBThetaExpansionCFile.write('#include "'+IncludeFileName+'"\n')    
+    RBThetaExpansionCFile.write('#include "'+IncludeFileName[0]+'"\n')
+    RBThetaExpansionCFile.write('#include "'+IncludeFileName[1]+'"\n')    
     RBThetaExpansionCFile.write("// Forward Declarations\n")
     RBThetaExpansionCFile.write("namespace libMesh\n")
     RBThetaExpansionCFile.write("{\n")
@@ -195,10 +196,7 @@ def DeclareAqTheta(File, AThetaPrefix, Aq_object, DefaultThetaObjectExists):
       DefaultThetaObjectExists = True
     else: File.write("  "+AThetaPrefix+Aq_object[1]+" "+AThetaPrefix+Aq_object[1]+"_0;\n")
 
-AdditionalKernels = """[./EIMF]
-  type = DwarfElephantEIMFKernel
-[../]
-
+AdditionalKernels = """
 [./RB_inner_product_matrix]
   type = RBInnerProductMatrix
 [../]
@@ -241,30 +239,24 @@ AfterBCText = """[Problem]
   use_EIM = true
   use_hp_EIM = false
   #hp_EIM_testing = true # Testing of hp EIM implementation possbile only during the online phase
-  N_max_EIM = 30
-  n_training_samples_EIM = 64
+  N_max_EIM = 3
+  n_training_samples_EIM = 6
   rel_training_tolerance_EIM = 1e-4
-  abs_training_tolerance_EIM = 1e-4
+  #abs_training_tolerance_EIM = 1e-4
   parameter_names_EIM = 'mu_0 mu_1 mu_2 mu_3 mu_4'# mu_2'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
   parameter_min_values_EIM = '0.001 0.002 -0.02 -0.02 -0.02'# 0.01'
   parameter_max_values_EIM = '0.005 0.006 0.02 0.02 0.02'# 1.0'
-  #parameter_names_EIM = 'mu_0 mu_1'
-  #parameter_min_values_EIM = '-1 -1'
-  #parameter_max_values_EIM = '-0.01 -0.01'
   deterministic_training_EIM = false
   best_fit_type_EIM = projection
   execute_on = 'initial'
-  N_max_RB = 20
+  N_max_RB = 12
   #offline_stage = false
-  n_training_samples_RB = 64
+  n_training_samples_RB = 40
   rel_training_tolerance_RB = 1.e-3
-  abs_training_tolerance_RB = 1e-3
+  #abs_training_tolerance_RB = 1e-3
   parameter_names_RB = 'mu_0 mu_1 mu_2 mu_3 mu_4'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
   parameter_min_values_RB = '0.001 0.002 -0.02 -0.02 -0.02'
   parameter_max_values_RB = '0.005 0.006 0.02 0.02 0.02'
-  #parameter_names_RB = 'mu_0 mu_1'
-  #parameter_min_values_RB = '-1 -1'
-  #parameter_max_values_RB = '-0.01 -0.01'
   deterministic_training_RB = false
   normalize_rb_bound_in_greedy = false
 [../]
@@ -278,8 +270,8 @@ AfterBCText = """[Problem]
 [./performRBSystem ]
   type = DwarfElephantOfflineOnlineStageSteadyState
   #online_stage = true
-  online_mu = '0.003 0.0.004 -0.01 -0.01 -0.01'
-  online_N = 40
+  online_mu = '0.003 0.004 -0.01 -0.01 -0.01'
+  online_N = 5
   #offline_stage = false
   execute_on = 'timestep_end'
 [../]
@@ -294,3 +286,5 @@ print_perf_log = true
   [../]
 []
 """
+
+

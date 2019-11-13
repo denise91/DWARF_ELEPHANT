@@ -36,7 +36,7 @@ void RBInnerProductMatrix::computeJacobian()
             {
                 for (_qp = 0; _qp < _qrule -> n_points(); _qp++)
 		{
-			_local_ke(_i, _j) += _JxW[_qp] * _coord[_qp] * (_grad_phi[_j][_qp] * _grad_test[_i][_qp]);
+			_local_ke(_i, _j) += _JxW[_qp] * _coord[_qp] * (_grad_phi[_j][_qp] * _grad_test[_i][_qp] + _phi[_j][_qp] * _test[_i][_qp]);
 		}
             }
 	  ke += _local_ke;

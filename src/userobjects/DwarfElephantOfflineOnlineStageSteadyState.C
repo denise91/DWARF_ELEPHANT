@@ -66,10 +66,15 @@ DwarfElephantOfflineOnlineStageSteadyState::setAffineMatrices()
     for(unsigned int _q=0; _q<_initialize_rb_system._qa; _q++)
     {
       //_rb_problem->rbAssembly(0).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // for EIM example in Martin's publication
-      _initialize_rb_system._jacobian_subdomain[_q] ->close();
-      if (_q == 288) { _initialize_rb_system._inner_product_matrix->add(_mu_bar, *_initialize_rb_system._jacobian_subdomain[_q]);}
+      //_initialize_rb_system._jacobian_subdomain[_q]->print_matlab("./3DRBRFAMatrices/RBRFA3DNoPerf_Aq_"+std::to_string(_q)+".m");
+        _initialize_rb_system._jacobian_subdomain[_q] ->close();
+   
+      
+      _initialize_rb_system._inner_product_matrix->add(_mu_bar, *_initialize_rb_system._jacobian_subdomain[_q]);
     }
-    _initialize_rb_system._inner_product_matrix -> close();
+   //_initialize_rb_system._inner_product_matrix -> print_matlab("./3DRBRFAMatrices/RBRFA3DNoPerf_InnerProdMat.m"); 
+   _initialize_rb_system._inner_product_matrix -> close();
+    
 }
 
 void
@@ -221,7 +226,8 @@ void DwarfElephantOfflineOnlineStageSteadyState::onlineStageEIM()
       #endif
 
       _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
-      _initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
+      for (unsigned int _i = 0; _i < _fe_problem.mesh().meshSubdomains().size() ; _i++) // add conditional statement later to handle multiple cases
+          _initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
       //_initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_A_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects()); // for EIM example in Martin's publication
 
       #if defined(LIBMESH_HAVE_CAPNPROTO)
