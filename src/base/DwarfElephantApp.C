@@ -84,6 +84,7 @@
 
 // Functions
 #include "DwarfElephantInitialConditionFileReader.h"
+#include "DwarfElephantRFHeatsourceFunction.h"
 
 // Executioners
 #include "DwarfElephantRBExecutioner.h"
@@ -212,6 +213,7 @@ DwarfElephantApp::registerObjects(Factory & factory)
 
   // Functions
   registerFunction(DwarfElephantInitialConditionFileReader);
+  registerFunction(DwarfElephantRFHeatsourceFunction);
 
   // Executioners
   registerExecutioner(DwarfElephantRBExecutioner);
