@@ -119,14 +119,14 @@
   n_time_steps = 100
   delta_N = 1
   delta_t = 0.1
-  POD_tol = 1e-6
+  POD_tol = -1e-6 #should be negative for the transient case; better to ignore it 
   max_truth_solves = 20
   #offline_stage = false
   n_training_samples = 100
   rel_training_tolerance = 1.e-6
   parameter_names = 'mu_0'    # mu_0 is the perfusion coefficient for the large vessel which we wish to determine using the optimization routine; #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
   parameter_min_values = '0.1'
-  parameter_max_values = '1.0'
+  parameter_max_values = '100'
   normalize_rb_bound_in_greedy = true
 [../]
 [./performRBSystem ]
@@ -134,7 +134,7 @@
   #offline_stage = false
   #online_stage = false
   online_mu = '0.5'
-  online_N = 10
+  online_N = 5
   execute_on = 'timestep_end'
 [../]
 []
