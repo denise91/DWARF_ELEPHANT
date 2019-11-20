@@ -186,6 +186,20 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
       if(_skip_matrix_assembly_in_rb_system)
         setAffineMatrices();
 
+
+    //   SparseMatrix<Number> * _aq0 = _initialize_rb_system._rb_con_ptr->get_Aq(0);
+    //     _aq0->print_matlab("Aq0");
+    //   SparseMatrix<Number> * _aq1 = _initialize_rb_system._rb_con_ptr->get_Aq(1);
+    //       _aq1->print_matlab("Aq1");
+    // SparseMatrix<Number> * _aq2 = _initialize_rb_system._rb_con_ptr->get_Aq(2);
+    //       _aq2->print_matlab("Aq2");
+    //
+    // SparseMatrix<Number> * _inner = _initialize_rb_system._rb_con_ptr->get_inner_product_matrix();
+    //             _inner->print_matlab("InnerProductMatrix");
+    //
+    //   NumericVector<Number> * _fq0 = _initialize_rb_system._rb_con_ptr->get_Fq(0);
+    //     _fq0->print_matlab("Fq0");
+
       // Perform the offline stage.
       _console << std::endl;
       offlineStage();

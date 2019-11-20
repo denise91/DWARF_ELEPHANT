@@ -49,6 +49,7 @@
 #include "DwarfElephantRBStructuresT3F4O3M2Transient.h"
 #include "DwarfElephantRBStructuresT3F3O3M2IC1Transient.h"
 #include "DwarfElephantRBStructuresT4F1O1M1Transient.h"
+#include "DwarfElephantRBStructuresT4F5O1M1Transient.h"
 #include "DwarfElephantRBStructuresT4F1O1M1IC1Transient.h"
 #include "DwarfElephantRBStructuresT5F1O1M1Transient.h"
 #include "DwarfElephantRBStructuresT5F5O1M1Transient.h"
@@ -61,6 +62,7 @@
 #include "DwarfElephantRBStructuresT7F5O1M1IC1Transient.h"
 #include "DwarfElephantRBStructuresT7F8O1M1Transient.h"
 #include "DwarfElephantRBStructuresT8F9O1M1Transient.h"
+#include "DwarfElephantRBStructuresT10F9O1M1Transient.h"
 #include "DwarfElephantRBStructuresT18F19O1M1Transient.h"
 
 // Forward Declarations

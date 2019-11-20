@@ -47,8 +47,8 @@
 [./initializeRBSystem]
   type = DwarfElephantInitializeRBSystemSteadyState
   execute_on = 'initial'
-  N_max = 3
-  n_training_samples = 2
+  N_max = 10
+  n_training_samples = 20
   rel_training_tolerance = 1.e-5
   parameter_names = 'mu_0 mu_1 mu_2'    #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
   parameter_min_values = '1.0 1.0 1.0'
