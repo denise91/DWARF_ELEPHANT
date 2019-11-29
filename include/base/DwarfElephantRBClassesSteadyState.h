@@ -94,6 +94,17 @@ struct CustomRBTheta : RBTheta
     }
 };
  */
+struct ShiftedGaussian : public RBParametrizedFunction
+{
+    virtual Number evaluate(const RBParameters & mu,
+                          const Point & p,
+                          const Elem & elem)
+    {
+        Real center_x = mu.get_value("mu_1");
+        Real center_y = mu.get_value("mu_2");
+        return exp(-pow(p(0) - center_x,2)-pow(p(1) - center_y,2));
+    }
+};
 
 struct CustomRBThetaExpansion : RBThetaExpansion
 {
@@ -473,7 +484,8 @@ public:
   
   virtual ~DwarfElephantEIMEvaluationSteadyState() {}
 
-  ShiftedGaussian_3DRFA sg;
+  //ShiftedGaussian_3DRFA sg;
+  ShiftedGaussian sg;
   //AffineFunction sg;
 };
 

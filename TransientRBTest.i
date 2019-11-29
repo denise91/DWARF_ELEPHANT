@@ -119,7 +119,7 @@
   n_time_steps = 100
   delta_N = 1
   delta_t = 0.1
-  POD_tol = -1e-6 #should be negative for the transient case; better to ignore it 
+  POD_tol = -1e-6 #should be negative for the transient case
   max_truth_solves = 20
   #offline_stage = false
   n_training_samples = 100

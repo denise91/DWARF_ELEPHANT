@@ -97,7 +97,7 @@ DwarfElephantOfflineOnlineStageSteadyState::transferAffineVectors()
       {
         for(unsigned int _q=0; _q < _initialize_rb_system._ql[i]; _q++)
         {
-          _rb_problem->rbAssembly(_q).setCachedOutput(*_initialize_rb_system._outputs[i][_q]);
+          //_rb_problem->rbAssembly(_q).setCachedOutput(*_initialize_rb_system._outputs[i][_q]);
           _initialize_rb_system._outputs[i][_q]->close();
         }
       }

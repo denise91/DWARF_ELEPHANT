@@ -36,6 +36,7 @@ namespace libMesh
 class MooseMesh;
 class DwarfElephantSystem;
 class DwarfElephantRBConstructionTransient;
+class DwarfElephantRBEvaluationTransient;
 class DwarfElephantRBConstructionSteadyState;
 class DwarfElephantInitializeRBSystemTransient;
 
@@ -52,12 +53,20 @@ class DwarfElephantInitializeRBSystemTransient :
   public:
     DwarfElephantInitializeRBSystemTransient(const InputParameters & params);
 
+    ~DwarfElephantInitializeRBSystemTransient()
+    {
+      // Delete statements added to prevent memory leaks
+      if (_use_EIM) { delete _eim_eval_ptr;}
+      delete _rb_eval_ptr;
+    }
     /* Methods */
 
-    void processParameters();
-
+    void processParameters() const;
+    void processEIMParameters();
+    void initializeEIM();
     // Initializes all required matrices and vectors for the RB solve.
     void initializeOfflineStage();
+    void initializeOfflineStageEIM();
 
     // Initializes the RB System.
     // virtual void initialize() override;
@@ -70,6 +79,8 @@ class DwarfElephantInitializeRBSystemTransient :
     // Method not used in this UserObject.
     // virtual void finalize() override;
     void finalize();
+    
+    void AssignAffineMatricesAndVectors() const;
 
     std::vector<std::vector<NumericVector <Number> *> > getOutputs() const;
 
@@ -86,6 +97,10 @@ class DwarfElephantInitializeRBSystemTransient :
     bool _normalize_rb_bound_in_greedy;
     bool _nonzero_initialization;
     bool _parameter_dependent_IC;
+    bool _use_EIM; 
+    bool _deterministic_training_EIM; 
+    bool _quiet_mode_EIM; 
+    bool _normalize_EIM_bound_in_greedy;  
 
     int _max_truth_solves;
     unsigned int _n_training_samples;
@@ -93,11 +108,14 @@ class DwarfElephantInitializeRBSystemTransient :
     unsigned int _N_max;
     unsigned int _n_time_steps;
     unsigned int _delta_N;
-    unsigned int _n_outputs;
-    unsigned int _qa;
-    unsigned int _qm;
-    unsigned int _qf;
-    std::vector<unsigned int> _ql;
+    mutable unsigned int _n_outputs;
+    mutable unsigned int _qa;
+    mutable unsigned int _qm;
+    mutable unsigned int _qf;
+    unsigned int _n_training_samples_EIM; //done
+    unsigned int _training_parameters_random_seed_EIM;  //done
+    unsigned int _N_max_EIM; //done
+    mutable std::vector<unsigned int> _ql;
 
     Real _rel_training_tolerance;
     Real _abs_training_tolerance;
@@ -107,25 +125,42 @@ class DwarfElephantInitializeRBSystemTransient :
     std::vector<Real> _continuous_parameter_min_values;
     std::vector<Real> _continuous_parameter_max_values;
     std::vector<Real> _discrete_parameter_values_in;
+    
+    Real _rel_training_tolerance_EIM; //done
+    Real _abs_training_tolerance_EIM; //done
+    std::vector<Real> _continuous_parameter_min_values_EIM; // done
+    std::vector<Real> _continuous_parameter_max_values_EIM; //done
+    std::vector<Real> _discrete_parameter_values_in_EIM; // done
 
     std::string _system_name;
 //    std::string _parameters_filename;
+    std::string _best_fit_type_EIM; //done
     std::string _init_filename;
-    std::vector<std::string> _continuous_parameters;
-    std::vector<std::string> _discrete_parameters;
-    std::map< std::string, std::vector<Real> > _discrete_parameter_values;
+    
+    std::vector<std::string> _continuous_parameters; 
+    std::vector<std::string> _discrete_parameters; 
+    mutable std::map< std::string, std::vector<Real> > _discrete_parameter_values;
+    
+    std::vector<std::string> _continuous_parameters_EIM;// done
+    std::vector<std::string> _discrete_parameters_EIM;// done
+    std::map< std::string, std::vector<Real> > _discrete_parameter_values_EIM; //done
+    
 
     EquationSystems & _es;
     MooseMesh * _mesh_ptr;
     TransientNonlinearImplicitSystem * _sys;
-    DwarfElephantRBConstructionTransient * _rb_con_ptr;
+    mutable DwarfElephantRBConstructionTransient * _rb_con_ptr;
+    DwarfElephantRBEvaluationTransient * _rb_eval_ptr;
+    DwarfElephantEIMConstructionSteadyState * _eim_con_ptr;
+    DwarfElephantEIMEvaluationSteadyState * _eim_eval_ptr;
 
-    SparseMatrix <Number> * _inner_product_matrix;
-    SparseMatrix <Number> * _L2_matrix;
-    std::vector<SparseMatrix <Number> *> _jacobian_subdomain;
-    std::vector<SparseMatrix <Number> *> _mass_matrix_subdomain;
-    std::vector<NumericVector <Number> *> _residuals;
-    std::vector<std::vector<NumericVector <Number> *> > _outputs;
+    mutable SparseMatrix <Number> * _inner_product_matrix_eim;
+    mutable SparseMatrix <Number> * _inner_product_matrix;
+    mutable SparseMatrix <Number> * _L2_matrix;
+    mutable std::vector<SparseMatrix <Number> *> _jacobian_subdomain;
+    mutable std::vector<SparseMatrix <Number> *> _mass_matrix_subdomain;
+    mutable std::vector<NumericVector <Number> *> _residuals;
+    mutable std::vector<std::vector<NumericVector <Number> *> > _outputs;
 
     /*Friend Classes*/
     friend class DwarfElephantRBKernel;
@@ -136,6 +171,9 @@ class DwarfElephantInitializeRBSystemTransient :
     friend class DwarfElephantOfflineOnlineStageTransient;
     friend class DwarfElephantRBExecutioner;
     friend class DwarfElephantDakotaOutput;
+    friend class DwarfElephantEIMFKernelTransient;
+    friend class DwarfElephantComputeEIMInnerProductMatrixTransient;
+    friend class DwarfElephantRBEvaluationSteadyState;
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTINITIALIZERBSYSTEMTRANSIENT_H

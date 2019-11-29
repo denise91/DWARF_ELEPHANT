@@ -246,16 +246,6 @@ class DwarfElephantInitializeRBSystemSteadyState :
   std::vector<Real> _continuous_parameter_min_values_RB;
   std::vector<Real> _continuous_parameter_max_values_RB;
 
-    //unsigned int _training_parameters_random_seed_SCM;
-    
-    //Real _training_tolerance_SCM;
-    //std::vector<std::string> _continuous_parameters_SCM;
-    //std::vector<Real> _continuous_parameter_min_values_SCM;
-    //std::vector<Real> _continuous_parameter_max_values_SCM;
-    //std::vector<std::string> _discrete_parameters_SCM;
-    //std::map<std::string,std::vector<Real>> _discrete_parameter_values_SCM;
-    //std::vector<Real> _discrete_parameter_values_in_SCM;
-
   mutable SparseMatrix <Number> * _RB_inner_product_matrix; // To test against EIM example from Martin's publication
   mutable NumericVector<Number> * _fullFEnonAffineF;
 

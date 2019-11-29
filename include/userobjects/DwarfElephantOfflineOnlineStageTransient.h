@@ -57,6 +57,8 @@ class DwarfElephantOfflineOnlineStageTransient :
     /* Methods */
     void setAffineMatrices();
     void offlineStage();
+    void offlineStageEIM();
+    void onlineStageEIM();
     void setOnlineParameters();
     void transferAffineVectors();
     std::string getFileName();

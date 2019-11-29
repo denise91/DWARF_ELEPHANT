@@ -44,6 +44,7 @@
 #include "DwarfElephantZeroKernel.h"
 #include "DwarfElephantRBTimeDerivative.h"
 #include "DwarfElephantEIMFKernel.h"
+#include "DwarfElephantEIMFKernelTransient.h"
 #include "DwarfElephantEIMAKernel.h"
 #include "ExtractQpPointsKernel.h"
 #include "RBInnerProductMatrix.h"
@@ -81,6 +82,7 @@
 #include "DwarfElephantRBPointValue.h"
 #include "DwarfElephantReducedToFullState.h"
 #include "DwarfElephantComputeEIMInnerProductMatrixSteadyState.h"
+#include "DwarfElephantComputeEIMInnerProductMatrixTransient.h"
 
 // Functions
 #include "DwarfElephantInitialConditionFileReader.h"
@@ -174,6 +176,7 @@ DwarfElephantApp::registerObjects(Factory & factory)
   registerKernel(DwarfElephantRBTimeDerivative);
   registerKernel(ExtractQpPointsKernel);
   registerKernel(DwarfElephantEIMFKernel);
+  registerKernel(DwarfElephantEIMFKernelTransient);
   registerKernel(DwarfElephantEIMAKernel);
   registerKernel(RBInnerProductMatrix);
   registerKernel(DwarfElephantRBDiffusionXX);
@@ -210,6 +213,7 @@ DwarfElephantApp::registerObjects(Factory & factory)
   registerUserObject(DwarfElephantRBPointValue);
   registerUserObject(DwarfElephantReducedToFullState);
   registerUserObject(DwarfElephantComputeEIMInnerProductMatrixSteadyState);
+  registerUserObject(DwarfElephantComputeEIMInnerProductMatrixTransient);
 
   // Functions
   registerFunction(DwarfElephantInitialConditionFileReader);

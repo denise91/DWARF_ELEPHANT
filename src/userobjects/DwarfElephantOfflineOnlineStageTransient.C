@@ -72,7 +72,7 @@ DwarfElephantOfflineOnlineStageTransient::setAffineMatrices()
    _initialize_rb_system._inner_product_matrix -> close();
     for(unsigned int _q=0; _q<_initialize_rb_system._qa; _q++)
     {
-      _rb_problem->rbAssembly(_q).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // For testing against EIM example in Martin's publication
+      //_rb_problem->rbAssembly(_q).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // For testing against EIM example in Martin's publication
       _initialize_rb_system._jacobian_subdomain[_q] ->close();
       _initialize_rb_system._inner_product_matrix->add(_mu_bar, *_initialize_rb_system._jacobian_subdomain[_q]);
     }
@@ -82,7 +82,7 @@ DwarfElephantOfflineOnlineStageTransient::setAffineMatrices()
     {
       // _initialize_rb_system._mass_matrix_subdomain[_q] ->close();
       // _initialize_rb_system._L2_matrix->add(_mu_bar, *_initialize_rb_system._mass_matrix_subdomain[_q]);
-      _rb_problem->rbAssembly(_q).setCachedMassMatrixContributions(*_initialize_rb_system._mass_matrix_subdomain[_q]);
+      //_rb_problem->rbAssembly(_q).setCachedMassMatrixContributions(*_initialize_rb_system._mass_matrix_subdomain[_q]);
       _initialize_rb_system._mass_matrix_subdomain[_q] ->close();
       _initialize_rb_system._L2_matrix->add(_mu_bar, *_initialize_rb_system._mass_matrix_subdomain[_q]);
     }
@@ -95,7 +95,7 @@ DwarfElephantOfflineOnlineStageTransient::transferAffineVectors()
   // Transfer the data for the F vectors.
  for(unsigned int _q=0; _q<_initialize_rb_system._qf; _q++)
   {
-    _rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system._residuals[_q]);
+    //_rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system._residuals[_q]);
     _initialize_rb_system._residuals[_q]->close();
   }
 
@@ -136,6 +136,40 @@ DwarfElephantOfflineOnlineStageTransient::offlineStage()
 //    _initialize_rb_system._rb_con_ptr->print_basis_function_orthogonality();
 }
 
+void DwarfElephantOfflineOnlineStageTransient::offlineStageEIM()
+{
+    /*
+    for (unsigned int  _q = 0; _q != _online_mu_parameters.size(); _q++)
+    {
+        std::string  _mu_name = "mu_" + std::to_string(_q);
+        _rb_online_mu.set_value(_mu_name, _online_mu_parameters[_q]);
+    }
+
+    _initialize_rb_system._rb_con_ptr->GreedyOutputFile.open("RBGreedyOutputFile.csv");
+    _initialize_rb_system._rb_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxErrorBound" << std::endl; */
+    _initialize_rb_system._rb_con_ptr->train_reduced_basis();
+    //_initialize_rb_system._rb_con_ptr->GreedyOutputFile.close();
+
+    //_initialize_rb_system._rb_eval_ptr ->set_parameters(_rb_online_mu);
+    //_initialize_rb_system._rb_con_ptr->do_RB_vs_FE_Error_analysis(_rb_online_mu, _es);
+    #if defined(LIBMESH_HAVE_CAPNPROTO)
+      RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
+      _rb_eval_writer.write_to_file("rb_eval.bin");
+    #else
+      // Write the offline data to file (xdr format).
+      _initialize_rb_system._rb_con_ptr->get_rb_evaluation().legacy_write_offline_data_to_files("offline_data");
+    #endif
+
+    // If desired, store the basis functions (xdr format).
+    if (_store_basis_functions)
+    {
+      _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().write_out_basis_functions(_initialize_rb_system._eim_con_ptr->get_explicit_system(),"eim_data");  
+      _initialize_rb_system._rb_con_ptr->get_rb_evaluation().write_out_basis_functions(*_initialize_rb_system._rb_con_ptr,"offline_data");
+    }
+
+//    _initialize_rbeim_system._rb_con_ptr->print_basis_function_orthogonality();
+}
+
 void
 DwarfElephantOfflineOnlineStageTransient::setOnlineParameters()
 {
@@ -151,6 +185,96 @@ DwarfElephantOfflineOnlineStageTransient::setOnlineParameters()
   }
 }
 
+void DwarfElephantOfflineOnlineStageTransient::onlineStageEIM()
+{
+    {
+      Moose::perf_log.push("onlineStage()", "Execution");
+
+      #if defined(LIBMESH_HAVE_CAPNPROTO)
+        RBDataDeserialization::TrasientRBEvaluationDeserialization _rb_eval_reader(_rb_eval);
+        _rb_eval_reader.read_from_file("trans_rb_eval.bin", /*read_error_bound_data*/ true);
+      #else
+        _initialize_rb_system._rb_eval_ptr->legacy_read_offline_data_from_files();
+      #endif
+
+      _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
+      _initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
+      
+      #if defined(LIBMESH_HAVE_CAPNPROTO)
+      RBDataDeserialization::RBEIMEvaluationDeserialization _rb_eim_eval_reader(_initialize_rb_system._eim_con_ptr -> get_rb_evaluation());
+      rb_eim_eval_reader.read_from_file("rb_eim_eval.bin");
+      #else
+      _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().legacy_read_offline_data_from_files("eim_data");
+      #endif
+
+      setOnlineParameters();
+      _initialize_rb_system._rb_eval_ptr ->set_parameters(_rb_online_mu);
+
+      _console << "---- Online Stage ----" << std::endl;
+      _initialize_rb_system._rb_eval_ptr ->print_parameters();
+
+      if(_online_N==0)
+        _online_N = _initialize_rb_system._rb_con_ptr->get_rb_evaluation().get_n_basis_functions();
+
+     if(_offline_error_bound)
+      _initialize_rb_system._rb_con_ptr->get_rb_evaluation().evaluate_RB_error_bound = false;
+
+      Real _error_bound_final_time = _initialize_rb_system._rb_con_ptr->get_rb_evaluation().rb_solve(_online_N);
+
+      _n_time_steps = _initialize_rb_system._n_time_steps;
+
+      _console << "Error bound at the final time is " << _error_bound_final_time << std::endl << std::endl;
+
+      if(_output_console)
+      {
+        TransientRBEvaluation & trans_rb_eval = cast_ref<TransientRBEvaluation &>(*_initialize_rb_system._rb_eval_ptr);
+        for (unsigned int i = 0; i != _n_outputs; i++)
+          for (unsigned int _time_step = 0; _time_step <= _n_time_steps; _time_step++)
+            _console << "Output " << std::to_string(i) << " at timestep "
+                     << std::to_string(_time_step) << ": value = "
+                     << trans_rb_eval.RB_outputs_all_k[i][_time_step]
+                     << ", error bound = "
+                     << trans_rb_eval.RB_output_error_bounds_all_k[i][_time_step]
+                     << std::endl;
+      }
+
+      if (_output_csv)
+      {
+        TransientRBEvaluation & trans_rb_eval = cast_ref<TransientRBEvaluation &>(*_initialize_rb_system._rb_eval_ptr);
+
+        _RB_outputs_all_timesteps.resize(_n_time_steps+1);
+
+        for (unsigned int _t = 0; _t <= _n_time_steps; _t++)
+        {
+          _RB_outputs_all_timesteps[_t].resize(_n_outputs);
+
+          for (unsigned int i = 0; i != _n_outputs; i++)
+            _RB_outputs_all_timesteps[_t][i] = trans_rb_eval.RB_outputs_all_k[i][_t];
+        }
+
+          _fe_problem.outputStep(EXEC_TIMESTEP_END);
+      }
+
+      Moose::perf_log.pop("onlineStage()", "Execution");
+
+      Moose::perf_log.push("DataTransfer()", "Execution");
+      if(_output_file)
+      {
+         _initialize_rb_system._rb_eval_ptr->read_in_basis_functions(*_initialize_rb_system._rb_con_ptr);
+
+         for (unsigned int _time_step = 0; _time_step <= _n_time_steps; _time_step++)
+        {
+          _initialize_rb_system._rb_con_ptr->set_time_step(_time_step);
+          _initialize_rb_system._rb_con_ptr->load_rb_solution();
+          *_es.get_system(_system_name).solution = *_es.get_system("RBSystem").solution;
+          _fe_problem.getNonlinearSystemBase().update();
+          _fe_problem.timeStep()=_time_step;
+          endStep(0);
+        }
+      }
+      Moose::perf_log.pop("DataTransfer()", "Execution");
+    }
+}
 void
 DwarfElephantOfflineOnlineStageTransient::initialize()
 {
@@ -159,6 +283,7 @@ DwarfElephantOfflineOnlineStageTransient::initialize()
 void
 DwarfElephantOfflineOnlineStageTransient::execute()
 {
+   
     // Build the RBEvaluation object
     // Required for both the Offline and Online stage.
     DwarfElephantRBEvaluationTransient _rb_eval(comm() , _fe_problem);
@@ -172,15 +297,16 @@ DwarfElephantOfflineOnlineStageTransient::execute()
     {
       // Pass a pointer of the RBEvaluation object to the
       // RBConstruction object
-      _initialize_rb_system._rb_con_ptr->set_rb_evaluation(_rb_eval);
+      if (!_initialize_rb_system._use_EIM) {_initialize_rb_system._rb_con_ptr->set_rb_evaluation(_rb_eval);}
 
       TransientRBEvaluation & trans_rb_eval = cast_ref<TransientRBEvaluation &>(_rb_eval);
       trans_rb_eval.pull_temporal_discretization_data(*_initialize_rb_system._rb_con_ptr);
     }
-
+    
     if (_offline_stage)
     {
-      TransientRBEvaluation & trans_rb_eval = cast_ref<TransientRBEvaluation &>(_rb_eval);
+      
+        TransientRBEvaluation & trans_rb_eval = cast_ref<TransientRBEvaluation &>(_rb_eval);
       trans_rb_eval.pull_temporal_discretization_data(*_initialize_rb_system._rb_con_ptr);
       // Transfer the affine vectors to the RB system.
       if(_skip_vector_assembly_in_rb_system)
@@ -192,13 +318,19 @@ DwarfElephantOfflineOnlineStageTransient::execute()
 
       // Perform the offline stage.
       _console << std::endl;
-      offlineStage();
+      
+      if (_initialize_rb_system._use_EIM) { offlineStageEIM();}
+      else
+          offlineStage();
       _console << std::endl;
     }
 
     if(_online_stage)
     {
-      Moose::perf_log.push("onlineStage()", "Execution");
+        if (!_initialize_rb_system._use_EIM) {
+            
+        
+        Moose::perf_log.push("onlineStage()", "Execution");
 
       #if defined(LIBMESH_HAVE_CAPNPROTO)
         RBDataDeserialization::TrasientRBEvaluationDeserialization _rb_eval_reader(_rb_eval);
@@ -293,6 +425,8 @@ DwarfElephantOfflineOnlineStageTransient::execute()
 //        }
       }
       Moose::perf_log.pop("DataTransfer()", "Execution");
+    }
+        else { onlineStageEIM();}
     }
 }
 

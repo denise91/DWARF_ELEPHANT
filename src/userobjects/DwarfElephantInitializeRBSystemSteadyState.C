@@ -30,7 +30,10 @@ InputParameters validParams<DwarfElephantInitializeRBSystemSteadyState>()
   params.addParam<std::vector<Real>>("discrete_parameter_values_EIM", "Defines the list of discrete EIM parameter values.");
   params.addParam<std::string>("system","EIM0","The name of the system that should be read in.");
   params.addParam<std::string>("best_fit_type_EIM","projection","The algorithm to be used in the EIM greedy ('projection' or 'eim').");
-
+  params.addParam<std::vector<Real>>("parameter_min_values_EIM", "Defines the lower bound of the EIM parameter range.");
+  params.addParam<std::vector<Real>>("parameter_max_values_EIM", "Defines the upper bound of the EIM parameter range.");
+  params.addParam<std::vector<Real>>("discrete_parameter_values_EIM", "Defines the list of discrete EIM parameter values.");
+  
   params.addParam<bool>("compliant",true,"Determines whether F is equal to the output vector or not.");
   params.addRequiredParam<unsigned int>("n_training_samples_RB", "Defines the number of training samples used in the RB Greedy.");
   params.addParam<bool>("deterministic_training_RB", false, "Determines whether the RB training set is generated deterministically or randomly.");
@@ -254,65 +257,7 @@ DwarfElephantInitializeRBSystemSteadyState::processRBParameters() const
                                                _deterministic_training_RB);
  
 }
-/*
-void
-DwarfElephantInitializeRBSystemSteadyState::processSCMParameters()
-{
 
-  // End setting parameter values for the RB construction object
-  // Set the random seed for the RNG. By default -1 is set, meaning that std::time is used as a seed for the RNG.
-  _rb_scm_con_ptr->set_training_random_seed(_training_parameters_random_seed_SCM);
-
-
-  // Initialization of the SCM parameters.
-
-  _rb_scm_con_ptr->set_SCM_training_tolerance(_training_tolerance_SCM);
-
-  RBParameters _mu_min_SCM;
-  RBParameters _mu_max_SCM;
-
-  for (unsigned int i=0; i<_continuous_parameters_SCM.size(); i++)
-  {
-    _mu_min_SCM.set_value(_continuous_parameters_SCM[i], _continuous_parameter_min_values_SCM[i]);
-    _mu_max_SCM.set_value(_continuous_parameters_SCM[i], _continuous_parameter_max_values_SCM[i]);
-  }
-
-  for (unsigned int i=0; i<_discrete_parameters_SCM.size(); i++)
-  {
-    _discrete_parameter_values_SCM[_discrete_parameters_SCM[i]] = _discrete_parameter_values_in_SCM;
-  }
-/*
-  std::map<std::string,bool> _log_scaling;
-  RBParameters::const_iterator it     = _mu_min_RB.begin();
-  RBParameters::const_iterator it_end = _mu_min_RB.end();
-  for ( ; it != it_end; ++it)
-    {
-      std::string _param_name = it->first;
-
-      // For now, just set all entries to false.
-      // TODO: Implement a decent way to specify log-scaling true/false
-      // in the input text file
-      _log_scaling[_param_name] = false;
-    }
-*/ /*
-   _rb_scm_con_ptr->initialize_parameters(_mu_min_SCM, _mu_max_SCM, _discrete_parameter_values_SCM);
-
-   std::map<std::string,bool> log_scaling;
-   const RBParameters & mu = _rb_scm_con_ptr->get_parameters();
-   unsigned int i = 0;
-   for (const auto & pr : mu)
-     {
-       const std::string & param_name = pr.first;
-       log_scaling[param_name] = false;
-     }
-
-   _rb_scm_con_ptr->initialize_training_parameters(_rb_scm_con_ptr->get_parameters_min(),
-                                               _rb_scm_con_ptr->get_parameters_max(),
-                                               _n_training_samples_SCM,
-                                               _log_scaling_SCM,
-                                               _deterministic_training_SCM);
- 
-}*/
 
 void DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStageEIM()
 {
