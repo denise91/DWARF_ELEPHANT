@@ -6,7 +6,6 @@
 #include "NonlinearSystemBase.h"
 
 #include "DwarfElephantInitializeRBSystemSteadyState.h"
-
 #include "libmesh/equation_systems.h"
 #include "libmesh/sparse_matrix.h"
 
@@ -26,7 +25,6 @@ class RBInnerProductMatrix : public Kernel
 	protected:
 	virtual Real computeQpResidual() override;
 	virtual Real computeQpJacobian() override;
-	
 };
 
 #endif //RBINNERPRODUCTMATRIX_H

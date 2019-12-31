@@ -182,6 +182,11 @@ DwarfElephantOfflineOnlineStageTransient::setOnlineParameters()
         _rb_online_mu.set_value(_mu_name, _online_mu_parameters[_q]/_online_mu_parameters[_norm_id]);
       else
         _rb_online_mu.set_value(_mu_name, _online_mu_parameters[_q]);
+      
+      _initialize_rb_system._rb_con_ptr->set_n_time_steps(_initialize_rb_system._n_time_steps);
+      _initialize_rb_system._rb_con_ptr->set_delta_t(_initialize_rb_system._delta_time);
+      _initialize_rb_system._rb_con_ptr->set_euler_theta(_initialize_rb_system._euler_theta);
+      _initialize_rb_system._rb_con_ptr->set_time_step(0);
   }
 }
 
@@ -189,24 +194,24 @@ void DwarfElephantOfflineOnlineStageTransient::onlineStageEIM()
 {
     {
       Moose::perf_log.push("onlineStage()", "Execution");
-
-      #if defined(LIBMESH_HAVE_CAPNPROTO)
-        RBDataDeserialization::TrasientRBEvaluationDeserialization _rb_eval_reader(_rb_eval);
-        _rb_eval_reader.read_from_file("trans_rb_eval.bin", /*read_error_bound_data*/ true);
-      #else
-        _initialize_rb_system._rb_eval_ptr->legacy_read_offline_data_from_files();
-      #endif
-
-      _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
-      _initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
       
-      #if defined(LIBMESH_HAVE_CAPNPROTO)
+        #if defined(LIBMESH_HAVE_CAPNPROTO)
       RBDataDeserialization::RBEIMEvaluationDeserialization _rb_eim_eval_reader(_initialize_rb_system._eim_con_ptr -> get_rb_evaluation());
       rb_eim_eval_reader.read_from_file("rb_eim_eval.bin");
       #else
       _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().legacy_read_offline_data_from_files("eim_data");
       #endif
-
+      _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
+      for (unsigned int _i = 0; _i < _fe_problem.mesh().meshSubdomains().size() ; _i++) // add conditional statement later to handle multiple cases
+          _initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
+      //_initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());
+      
+            #if defined(LIBMESH_HAVE_CAPNPROTO)
+        RBDataDeserialization::TrasientRBEvaluationDeserialization _rb_eval_reader(_rb_eval);
+        _rb_eval_reader.read_from_file("trans_rb_eval.bin", /*read_error_bound_data*/ true);
+      #else
+        _initialize_rb_system._rb_eval_ptr->legacy_read_offline_data_from_files();
+      #endif
       setOnlineParameters();
       _initialize_rb_system._rb_eval_ptr ->set_parameters(_rb_online_mu);
 
@@ -260,8 +265,11 @@ void DwarfElephantOfflineOnlineStageTransient::onlineStageEIM()
       Moose::perf_log.push("DataTransfer()", "Execution");
       if(_output_file)
       {
-         _initialize_rb_system._rb_eval_ptr->read_in_basis_functions(*_initialize_rb_system._rb_con_ptr);
-
+         _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().read_in_basis_functions(_initialize_rb_system._eim_con_ptr->get_explicit_system(),"eim_data");
+          _initialize_rb_system._rb_eval_ptr->read_in_basis_functions(*_initialize_rb_system._rb_con_ptr);
+          _initialize_rb_system._eim_con_ptr -> load_rb_solution();
+          *_es.get_system("aux0").solution = *_es.get_system("EIMSystem_explicit_sys").solution;
+          _fe_problem.getNonlinearSystemBase().update();
          for (unsigned int _time_step = 0; _time_step <= _n_time_steps; _time_step++)
         {
           _initialize_rb_system._rb_con_ptr->set_time_step(_time_step);
@@ -271,6 +279,10 @@ void DwarfElephantOfflineOnlineStageTransient::onlineStageEIM()
           _fe_problem.timeStep()=_time_step;
           endStep(0);
         }
+          _initialize_rb_system._eim_con_ptr -> load_rb_solution();
+          *_es.get_system("aux0").solution = *_es.get_system("EIMSystem_explicit_sys").solution;
+          //ExodusII_IO(_mesh_ptr->getMesh()).write_equation_systems("TransientRBSoln.e",_es);
+          VTKIO(_mesh_ptr->getMesh()).write_equation_systems("out.pvtu", _es);
       }
       Moose::perf_log.pop("DataTransfer()", "Execution");
     }
@@ -290,7 +302,7 @@ DwarfElephantOfflineOnlineStageTransient::execute()
 
 //    _initialize_rb_system._rb_con_ptr->process_parameters_file(_initialize_rb_system._parameters_filename);
 
-    if (!_offline_stage && _output_file)
+    if (!_offline_stage && _output_file && !_initialize_rb_system._use_EIM)
       _initialize_rb_system._rb_con_ptr->init();
 
     if (_offline_stage || _output_file || _offline_error_bound || _online_N == 0)
@@ -403,6 +415,7 @@ DwarfElephantOfflineOnlineStageTransient::execute()
           _fe_problem.timeStep()=_time_step;
           endStep(0);
         }
+         
 //        // Plot the solution
 //        Moose::perf_log.push("write_exodus()", "Output");
 //

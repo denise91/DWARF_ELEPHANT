@@ -153,6 +153,63 @@ DwarfElephantRBConstructionTransient::init_data()
     this->update();
   }
 
+  void DwarfElephantRBConstructionTransient::truth_assembly()
+  {
+      LOG_SCOPE("truth_assembly()", "TransientRBConstruction");
+      unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+
+  this->matrix->close();
+
+  this->matrix->zero();
+  this->rhs->zero();
+
+  const RBParameters & mu = get_parameters();
+
+  TransientRBThetaExpansion & trans_theta_expansion =
+    cast_ref<TransientRBThetaExpansion &>(get_rb_theta_expansion());
+
+  const unsigned int Q_a = trans_theta_expansion.get_n_A_terms();
+  const unsigned int Q_f = trans_theta_expansion.get_n_F_terms();
+
+  const Real dt          = get_delta_t();
+  const Real euler_theta = get_euler_theta();
+
+  {
+    // We should have already assembled the matrices
+    // and vectors in the affine expansion, so
+    // just use them
+
+    add_scaled_mass_matrix(1./dt, matrix);
+    mass_matrix_scaled_matvec(1./dt, *rhs, *current_local_solution);
+
+    std::unique_ptr<NumericVector<Number>> temp_vec = NumericVector<Number>::build(this->comm());
+    temp_vec->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+
+    for (unsigned int q_a=0; q_a<Q_a; q_a++)
+      {
+        matrix->add(euler_theta*trans_theta_expansion.eval_A_theta(q_a,mu), *get_Aq(q_a));
+
+        get_Aq(q_a)->vector_mult(*temp_vec, *current_local_solution);
+        temp_vec->scale( -(1.-euler_theta)*trans_theta_expansion.eval_A_theta(q_a,mu) );
+        rhs->add(*temp_vec);
+      }
+
+    for (unsigned int q_f=0; q_f<Q_f; q_f++)
+      {
+        *temp_vec = *get_Fq(q_f);
+        if (q_f == 0)
+            temp_vec->scale( get_control(get_time_step())*trans_theta_expansion.eval_F_theta(q_f,mu) );
+        else
+            temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
+        rhs->add(*temp_vec);
+      }
+
+  }
+
+  this->matrix->close();
+  this->rhs->close();
+  }
+  
   Real DwarfElephantRBConstructionTransient::get_RB_error_bound()
   {
     get_rb_evaluation().set_parameters( get_parameters() );
@@ -561,7 +618,8 @@ DwarfElephantRBConstructionTransient::init_data()
   Real
   DwarfElephantRBEvaluationTransient::get_stability_lower_bound()
   {
-    const RBParameters & mu = get_parameters();
+    /*
+      const RBParameters & mu = get_parameters();
     bool norm_values = fe_problem.getUserObject<DwarfElephantOfflineOnlineStageTransient>("performRBSystem")._norm_online_values;
     unsigned int norm_id = fe_problem.getUserObject<DwarfElephantOfflineOnlineStageTransient>("performRBSystem")._norm_id;
 
@@ -583,9 +641,9 @@ DwarfElephantRBConstructionTransient::init_data()
 
       if (min_mu_i < min_mu)
         min_mu = min_mu_i;
-    }
+    }*/
 
-    return min_mu;
+    return 0.0418;//min_mu;
   }
 
   void
@@ -603,6 +661,7 @@ DwarfElephantRBConstructionTransient::init_data()
       libmesh_error_msg("ERROR: N cannot be larger than the number of basis functions in rb_solve");
 
     const RBParameters & mu = get_parameters();
+    unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
 
     TransientRBThetaExpansion & trans_theta_expansion =
       cast_ref<TransientRBThetaExpansion &>(get_rb_theta_expansion());
@@ -660,7 +719,10 @@ DwarfElephantRBConstructionTransient::init_data()
     for (unsigned int q_f=0; q_f<Q_f; q_f++)
       {
         RB_Fq_vector[q_f].get_principal_subvector(N, RB_Fq_f);
-        RB_RHS_save.add(trans_theta_expansion.eval_F_theta(q_f,mu), RB_Fq_f);
+        if (q_f == 0)
+            RB_RHS_save.add(trans_theta_expansion.eval_F_theta(q_f,mu), RB_Fq_f);
+        else
+            RB_RHS_save.add(get_rb_theta_expansion().eval_F_theta(((q_f-1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f-1)/M)]->evaluate(mu), RB_Fq_f);
       }
 
 

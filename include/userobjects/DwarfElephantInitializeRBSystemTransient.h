@@ -174,6 +174,7 @@ class DwarfElephantInitializeRBSystemTransient :
     friend class DwarfElephantEIMFKernelTransient;
     friend class DwarfElephantComputeEIMInnerProductMatrixTransient;
     friend class DwarfElephantRBEvaluationSteadyState;
+    friend class RBInnerProductMatrixTransient;
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTINITIALIZERBSYSTEMTRANSIENT_H

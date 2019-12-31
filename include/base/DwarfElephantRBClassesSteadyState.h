@@ -100,9 +100,10 @@ struct ShiftedGaussian : public RBParametrizedFunction
                           const Point & p,
                           const Elem & elem)
     {
-        Real center_x = mu.get_value("mu_1");
-        Real center_y = mu.get_value("mu_2");
-        return exp(-pow(p(0) - center_x,2)-pow(p(1) - center_y,2));
+        Real center_x = mu.get_value("mu_0");
+        Real center_y = mu.get_value("mu_1");
+        Real center_z = mu.get_value("mu_2");
+        return exp(1e0*(-pow(p(0) - center_x,2)-pow(p(1) - center_y,2)-pow(p(2) - center_z,2)));
     }
 };
 
@@ -484,8 +485,8 @@ public:
   
   virtual ~DwarfElephantEIMEvaluationSteadyState() {}
 
-  //ShiftedGaussian_3DRFA sg;
-  ShiftedGaussian sg;
+  ShiftedGaussian_3DRFA sg;
+  //ShiftedGaussian sg;
   //AffineFunction sg;
 };
 

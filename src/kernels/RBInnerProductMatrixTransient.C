@@ -1,4 +1,4 @@
-#include "RBInnerProductMatrix.h"
+#include "RBInnerProductMatrixTransient.h"
 
 //libMesh includes
 #include "libmesh/equation_systems.h"
@@ -7,7 +7,7 @@
 #include "libmesh/petsc_vector.h"
 
 template<>
-InputParameters validParams<RBInnerProductMatrix> ()
+InputParameters validParams<RBInnerProductMatrixTransient> ()
 {
 	InputParameters params  = validParams<Kernel>();
 	params.addClassDescription("Implements an A matrix which makes use of a Empirically interpolated function");
@@ -15,14 +15,14 @@ InputParameters validParams<RBInnerProductMatrix> ()
 	return params;
 }
 
-RBInnerProductMatrix::RBInnerProductMatrix(const InputParameters & parameters) :
+RBInnerProductMatrixTransient::RBInnerProductMatrixTransient(const InputParameters & parameters) :
     Kernel(parameters)
     
 {
 
 }
 
-void RBInnerProductMatrix::computeJacobian()
+void RBInnerProductMatrixTransient::computeJacobian()
 {		
         DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
         _local_ke.resize(ke.m(), ke.n());
@@ -31,7 +31,7 @@ void RBInnerProductMatrix::computeJacobian()
         
             
 
-         const DwarfElephantInitializeRBSystemSteadyState &  _initialize_rb_system_steady = getUserObject<DwarfElephantInitializeRBSystemSteadyState>("initial_rb_userobject");
+         const DwarfElephantInitializeRBSystemTransient &  _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemTransient>("initial_rb_userobject");
         
         _local_ke.zero();
 
@@ -45,17 +45,18 @@ void RBInnerProductMatrix::computeJacobian()
             }
 	  ke += _local_ke;
 	  if (_fe_problem.getNonlinearSystemBase().getCurrentNonlinearIterationNumber() == 0)
-                    _initialize_rb_system_steady._inner_product_matrix -> add_matrix(_local_ke, _var.dofIndices());
+                    _initialize_rb_system._inner_product_matrix -> add_matrix(_local_ke, _var.dofIndices());
 
 }
 
-Real RBInnerProductMatrix::computeQpResidual()
+Real RBInnerProductMatrixTransient::computeQpResidual()
 {
 	
 	return 1.0;
 }
 
-Real RBInnerProductMatrix::computeQpJacobian()
+Real RBInnerProductMatrixTransient::computeQpJacobian()
 {
 	return 0;
 }
+
