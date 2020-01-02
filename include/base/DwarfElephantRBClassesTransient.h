@@ -197,6 +197,120 @@ public:
   // Type of the system
   typedef DwarfElephantRBConstructionTransient _sys_type;
 
+  void FE_solve_debug(RBParameters mu, int write_interval)
+  {
+      const unsigned int Q_a = get_rb_theta_expansion().get_n_A_terms();
+      const unsigned int Q_f = get_rb_theta_expansion().get_n_F_terms();
+      unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+      const unsigned int n_time_steps = get_n_time_steps();
+      const Real euler_theta = get_euler_theta();
+      initialize_truth();
+      set_time_step(0);
+      std::unique_ptr<NumericVector<Number>> FullFEsolution;
+      FullFEsolution = NumericVector<Number>::build(this->comm());
+      FullFEsolution->init(this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+      Geom3DTransientRBThetaExpansion & rb_theta_exp = dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion());
+
+      FullFEsolution -> zero();
+      FullFEsolution -> close();
+
+
+      this -> matrix -> zero();
+      this -> rhs -> zero();
+      
+      this -> matrix -> close();
+      this -> rhs -> close();
+      
+      Real dt = get_delta_t();
+      // Prepare LHS matrix for full order FE solve
+     
+      
+        for (unsigned int time_level=1; time_level<=n_time_steps; time_level++)
+        {
+            set_time_step(time_level);
+
+            *old_local_solution = *current_local_solution;
+
+      // We assume that the truth assembly has been attached to the system
+            add_scaled_mass_matrix(1./dt,matrix);
+            mass_matrix_scaled_matvec(1./dt, *rhs, *current_local_solution);
+      
+            std::unique_ptr<NumericVector<Number>> temp_vec = NumericVector<Number>::build(this->comm());
+            temp_vec->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+      
+            for (unsigned int q_a=0; q_a<Q_a; q_a++)
+            {
+              matrix->add(euler_theta*get_rb_theta_expansion().eval_A_theta(q_a,mu), *get_Aq(q_a));
+
+              get_Aq(q_a)->vector_mult(*temp_vec, *current_local_solution);
+              temp_vec->scale( -(1.-euler_theta)*get_rb_theta_expansion().eval_A_theta(q_a,mu) );
+              rhs->add(*temp_vec);
+            }
+
+            for (unsigned int q_f=0; q_f<Q_f; q_f++)
+            {
+              *temp_vec = *get_Fq(q_f);
+              if (q_f == 0)
+                  temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(q_f, mu));
+              else
+                  temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
+              rhs->add(*temp_vec);
+            }
+      
+            this->matrix->close();
+            this->rhs->close();
+
+      // truth_assembly assembles into matrix and rhs, so use those for the solve
+            solve_for_matrix_and_rhs(*get_linear_solver(), *matrix, *rhs);
+
+      // The matrix doesn't change at each timestep, so we
+      // can set reuse_preconditioner == true
+            linear_solver->reuse_preconditioner(true);
+
+            if (assert_convergence)
+            {
+                check_convergence(*get_linear_solver());
+            }
+
+            // load projection error into column _k of temporal_data matrix
+            if (compute_truth_projection_error)
+                set_error_temporal_data();
+            
+            if ((write_interval > 0) && (time_level%write_interval == 0))
+            {
+                libMesh::out << std::endl << "Truth solve, plotting time step " << time_level << std::endl;
+
+                std::ostringstream file_name;
+
+                file_name << "truth.e.";
+                file_name << std::setw(3)
+                    << std::setprecision(0)
+                    << std::setfill('0')
+                    << std::right
+                    << time_level;
+
+                #ifdef LIBMESH_HAVE_EXODUS_API
+                ExodusII_IO(get_mesh()).write_equation_systems (file_name.str(),
+                                                          this->get_equation_systems());
+                #endif
+                std::ostringstream file_name2;
+                file_name2 << "out_"
+                        << std::setprecision(0)
+                        << std::setfill('0')
+                        << std::right
+                        << time_level
+                        << ".vtu";
+                VTKIO(get_mesh()).write_equation_systems(file_name2.str(), this->get_equation_systems());
+            }
+        }
+
+    // Set reuse_preconditioner back to false for subsequent solves.
+      linear_solver->reuse_preconditioner(false);
+
+      
+      
+  
+  }
   // Type of the parent
   typedef TransientRBConstruction Parent;
 

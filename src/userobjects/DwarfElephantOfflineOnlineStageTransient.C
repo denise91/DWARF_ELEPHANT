@@ -149,9 +149,9 @@ void DwarfElephantOfflineOnlineStageTransient::offlineStageEIM()
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxErrorBound" << std::endl; */
     _initialize_rb_system._rb_con_ptr->train_reduced_basis();
     //_initialize_rb_system._rb_con_ptr->GreedyOutputFile.close();
-
-    //_initialize_rb_system._rb_eval_ptr ->set_parameters(_rb_online_mu);
-    //_initialize_rb_system._rb_con_ptr->do_RB_vs_FE_Error_analysis(_rb_online_mu, _es);
+    setOnlineParameters();
+    _initialize_rb_system._rb_eval_ptr ->set_parameters(_rb_online_mu);
+    _initialize_rb_system._rb_con_ptr->FE_solve_debug(_rb_online_mu, 1);
     #if defined(LIBMESH_HAVE_CAPNPROTO)
       RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
       _rb_eval_writer.write_to_file("rb_eval.bin");
@@ -270,7 +270,7 @@ void DwarfElephantOfflineOnlineStageTransient::onlineStageEIM()
           _initialize_rb_system._eim_con_ptr -> load_rb_solution();
           *_es.get_system("aux0").solution = *_es.get_system("EIMSystem_explicit_sys").solution;
           _fe_problem.getNonlinearSystemBase().update();
-         for (unsigned int _time_step = 0; _time_step <= _n_time_steps; _time_step++)
+         for (unsigned int _time_step = 1; _time_step <= _n_time_steps; _time_step++)
         {
           _initialize_rb_system._rb_con_ptr->set_time_step(_time_step);
           _initialize_rb_system._rb_con_ptr->load_rb_solution();
