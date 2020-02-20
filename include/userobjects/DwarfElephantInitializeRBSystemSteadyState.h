@@ -254,6 +254,7 @@ class DwarfElephantInitializeRBSystemSteadyState :
     EIM_input_data _eim_data_in;
     RB_input_data _rb_data_in;
     bool _hp_EIM_testing;
+    bool _RB_RFA;
     
     /*Friend Classes*/
     friend class DwarfElephantRBKernel;

@@ -33,7 +33,7 @@ DwarfElephantRBDiffusion::DwarfElephantRBDiffusion(const InputParameters & param
 Real
 DwarfElephantRBDiffusion::computeQpResidual()
 {
-  return _grad_u[_qp] * _grad_test[_i][_qp];
+  return 0;
 }
 
 Real

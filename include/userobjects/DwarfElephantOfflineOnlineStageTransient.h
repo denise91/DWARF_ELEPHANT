@@ -108,6 +108,10 @@ class DwarfElephantOfflineOnlineStageTransient :
     RBParameters _rb_online_mu;
 
     DwarfElephantRBProblem * _rb_problem;
+    
+    std::vector<Real> _ref_mu_parameters;
+    
+    RBParameters _mu_ref;
 
     friend class DwarfElephantRBEvaluationTransient;
     friend class DwarfElephantDakotaOutput;

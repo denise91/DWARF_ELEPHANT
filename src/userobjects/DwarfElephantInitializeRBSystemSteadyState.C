@@ -50,6 +50,7 @@ InputParameters validParams<DwarfElephantInitializeRBSystemSteadyState>()
   params.addParam<std::vector<Real>>("discrete_parameter_values_RB", "Defines the list of discrete RB parameter values.");
   params.addParam<std::string>("system","rb0","The name of the system that should be read in.");
   params.addParam<bool>("hp_EIM_testing",false,"Determines whether the hp EIM implementation is to be tested.");
+  params.addRequiredParam<bool>("RB_RFA","Flag true if RFA is being solved.");
   //params.addParam<unsigned int>("training_parameters_random_seed_SCM",-1,"Defines the random seed for the generation of the RB training set.");
   //params.addParam<Real>("training_tolerance_SCM",1e-5,"Determines the training tolerance for the SCM greedy");
   //params.addRequiredParam<std::vector<std::string>>("parameter_names_SCM","Parameter names for SCM");
@@ -100,7 +101,8 @@ DwarfElephantInitializeRBSystemSteadyState::DwarfElephantInitializeRBSystemStead
   _abs_training_tolerance_RB(getParam<Real>("abs_training_tolerance_RB")),
   _continuous_parameter_min_values_RB(getParam<std::vector<Real>>("parameter_min_values_RB")),
   _continuous_parameter_max_values_RB(getParam<std::vector<Real>>("parameter_max_values_RB")),
-  _hp_EIM_testing(getParam<bool>("hp_EIM_testing"))      
+  _hp_EIM_testing(getParam<bool>("hp_EIM_testing")),
+        _RB_RFA(getParam<bool>("RB_RFA"))
   //_training_parameters_random_seed_SCM(getParam<unsigned int>("training_parameters_random_seed_SCM")),
   //_training_tolerance_SCM(getParam<Real>("training_tolerance_SCM")),
   //_continuous_parameters_SCM(getParam<std::vector<std::string>>("parameter_names_SCM")),
@@ -109,11 +111,11 @@ DwarfElephantInitializeRBSystemSteadyState::DwarfElephantInitializeRBSystemStead
 {
   if (_use_EIM != _use_hp_EIM)
   {
-    if ((_n_training_samples_EIM == -1)||(_N_max_EIM == -1))
+    if ((_n_training_samples_EIM == 0)||(_N_max_EIM == 0))
       mooseError("UserObject DwarfElephantInitializeRBSystemSteadyState: Insufficient parameters provided for EIM. Look at file src/userobjects/DwarfElephantInitializeRBSystemSteadyState.C for details");
   }
-  else if ((_n_training_samples_EIM != -1)||(_N_max_EIM != -1))
-    mooseError("UserObject DwarfElephantInitializeRBSystemSteadyState: (_use_EIM xor _use_hp_EIM) flag must be set to true in input file");
+  //else if ((_n_training_samples_EIM != 0)||(_N_max_EIM != 0))
+    //mooseError("UserObject DwarfElephantInitializeRBSystemSteadyState: (_use_EIM xor _use_hp_EIM) flag must be set to true in input file");
 
   std::cout << "Created initialize_rb_system object " << DwarfElephantInitializeRBSystemSteadyState::name() << std::endl;
 
@@ -319,7 +321,7 @@ void DwarfElephantInitializeRBSystemSteadyState::initializeEIM()
   _rb_con_ptr->init();
   _es.update();
 
-  _rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem);
+  _rb_eval_ptr = new DwarfElephantRBEvaluationSteadyState(_mesh_ptr->comm(), _fe_problem, _RB_RFA);
   _eim_eval_ptr = new DwarfElephantEIMEvaluationSteadyState(_mesh_ptr->comm());
   
   // Pass a pointer of the RBEvaluation object to the

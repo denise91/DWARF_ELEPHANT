@@ -141,9 +141,16 @@ DwarfElephantOfflineOnlineStageSteadyState::offlineStageEIM()
 void
 DwarfElephantOfflineOnlineStageSteadyState::offlineStageRBOnly()
 {
+    for (unsigned int  _q = 0; _q != _online_mu_parameters.size(); _q++)
+    {
+        std::string  _mu_name = "mu_" + std::to_string(_q);
+        _rb_online_mu.set_value(_mu_name, _online_mu_parameters[_q]);
+    }
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile.open("RBGreedyOutputFile.csv");
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxErrorBound" << std::endl;
-    _initialize_rb_system._rb_con_ptr->train_reduced_basis(); 
+    _initialize_rb_system._rb_con_ptr->train_reduced_basis();
+    _initialize_rb_system._rb_eval_ptr ->set_parameters(_rb_online_mu);
+    _initialize_rb_system._rb_con_ptr->do_RB_vs_FE_Error_analysis(_rb_online_mu, _es);
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile.close();
     //_initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
       //_initialize_rb_system._rb_eval_ptr -> get_rb_theta_expansion().attach_multiple_F_theta(_initialize_rb_system._eim_eval_ptr -> get_eim_theta_objects());

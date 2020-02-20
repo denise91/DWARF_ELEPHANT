@@ -196,6 +196,30 @@ def DeclareAqTheta(File, AThetaPrefix, Aq_object, DefaultThetaObjectExists):
       DefaultThetaObjectExists = True
     else: File.write("  "+AThetaPrefix+Aq_object[1]+" "+AThetaPrefix+Aq_object[1]+"_0;\n")
 
+def get_iATheta(subscript):
+    if (subscript == 'XX'):
+      result = 0
+    elif (subscript == 'XY'):
+      result = 1
+    elif (subscript == 'XZ'):
+      result = 2
+    elif (subscript == 'YX'):
+      result = 3
+    elif (subscript == 'YY'):
+      result = 4
+    elif (subscript == 'YZ'):
+      result = 5
+    elif (subscript == 'ZX'):
+      result = 6
+    elif (subscript == 'ZY'):
+      result = 7
+    elif (subscript == 'ZZ'):
+      result = 8
+    else:
+      print "Error: Invalid argument for subscript in get_iATheta()"
+      quit()
+    return result
+
 AdditionalKernels = """
 [./RB_inner_product_matrix]
   type = RBInnerProductMatrix

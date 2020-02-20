@@ -25,5 +25,5 @@ Real DwarfElephantRBRFHeatsourceKernel::computeQpResidual()
 
 Real DwarfElephantRBRFHeatsourceKernel::computeQpJacobian()
 {
-  return 0;
+  return 0.0;
 }

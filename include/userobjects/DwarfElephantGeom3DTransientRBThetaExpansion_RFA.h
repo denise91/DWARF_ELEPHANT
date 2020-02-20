@@ -320,6 +320,7 @@ struct Geom3DTransientRBThetaExpansion : TransientRBThetaExpansion
   attach_A_theta(&Geom3DRB_ATheta_DiffusionXX_BoundingBox_0);
   attach_A_theta(&Geom3DRB_ATheta_DiffusionYY_BoundingBox_0);
   attach_A_theta(&Geom3DRB_ATheta_DiffusionZZ_BoundingBox_0);
+  attach_A_theta(&Geom3DRB_ATheta_Perfusion_VesselCyl_0);
   attach_A_theta(&_rb_theta);
   attach_F_theta(&_rb_theta);
     subdomain_jac_rbthetas.push_back(&rbtheta_subdomain_1);
@@ -640,6 +641,7 @@ struct Geom3DTransientRBThetaExpansion : TransientRBThetaExpansion
   Geom3DRB_ATheta_DiffusionXX_BoundingBox Geom3DRB_ATheta_DiffusionXX_BoundingBox_0;
   Geom3DRB_ATheta_DiffusionYY_BoundingBox Geom3DRB_ATheta_DiffusionYY_BoundingBox_0;
   Geom3DRB_ATheta_DiffusionZZ_BoundingBox Geom3DRB_ATheta_DiffusionZZ_BoundingBox_0;
+  Geom3DRB_ATheta_Perfusion_VesselCyl Geom3DRB_ATheta_Perfusion_VesselCyl_0;
   RBTheta _rb_theta;
 public:
     subdomain_1 rbtheta_subdomain_1;

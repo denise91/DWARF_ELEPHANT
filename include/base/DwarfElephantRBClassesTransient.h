@@ -75,7 +75,23 @@ struct DwarfElephantCustomTransientTheta : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
   {
-    return _mu.get_value("mu_0");
+    return 0.05;//0*_mu.get_value("mu_0");
+  }
+};
+
+struct AdvX : RBTheta
+{
+  virtual Number evaluate (const RBParameters & _mu)
+  {
+    return 0*_mu.get_value("mu_0");
+  }
+};
+
+struct AdvY : RBTheta
+{
+  virtual Number evaluate (const RBParameters & _mu)
+  {
+    return _mu.get_value("mu_1");
   }
 };
 
@@ -87,16 +103,21 @@ struct DwarfElephantRBCustomTransientThetaExpansion : TransientRBThetaExpansion
     attach_M_theta(&_rb_theta);
 
     attach_A_theta(&_rb_theta);
+    attach_A_theta(&_rb_theta);
+    //attach_A_theta(&adv_x);
+    
+   // attach_A_theta(&adv_y);
 
-    attach_A_theta(&_theta_a_0);
-
+    attach_F_theta(&_rb_theta);
     //attach_F_theta(&_rb_theta);
 
-    attach_output_theta(&_rb_theta);
+    //attach_output_theta(&_rb_theta);
 
   }
   // Member Variables
   DwarfElephantCustomTransientTheta _theta_a_0;
+  AdvX adv_x;
+  AdvY adv_y;
   RBTheta _rb_theta;         // Default RBTheta object, simply returns one.
 };
 
@@ -106,6 +127,14 @@ struct DummyMAssembly : ElemAssembly
   { }
 };
 
+struct debugAssemblyExpansion : TransientRBAssemblyExpansion
+{
+    debugAssemblyExpansion()
+    {
+        attach_M_assembly(&M0);
+    }
+    DummyMAssembly M0;
+};
 struct DwarfElephantRBCustomTransientAssemblyExpansion : TransientRBAssemblyExpansion
 {
   DwarfElephantRBCustomTransientAssemblyExpansion()
@@ -179,192 +208,6 @@ struct DwarfElephantRBCustomTransientAssemblyExpansion : TransientRBAssemblyExpa
   DummyMAssembly M31;
   
 };
-///-----------------------DWARFELEPHANTRBCONSTRUCTION-----------------------
-class DwarfElephantRBConstructionTransient : public TransientRBConstruction
-{
-
-//---------------------------------PUBLIC-----------------------------------
-public:
-
-  // Constructor
-  DwarfElephantRBConstructionTransient (EquationSystems & es,
-                        const std::string & name_in,
-                        const unsigned int number_in);
-
-  // Destructor
-  virtual ~DwarfElephantRBConstructionTransient () { }
-
-  // Type of the system
-  typedef DwarfElephantRBConstructionTransient _sys_type;
-
-  void FE_solve_debug(RBParameters mu, int write_interval)
-  {
-      const unsigned int Q_a = get_rb_theta_expansion().get_n_A_terms();
-      const unsigned int Q_f = get_rb_theta_expansion().get_n_F_terms();
-      unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
-      const unsigned int n_time_steps = get_n_time_steps();
-      const Real euler_theta = get_euler_theta();
-      initialize_truth();
-      set_time_step(0);
-      std::unique_ptr<NumericVector<Number>> FullFEsolution;
-      FullFEsolution = NumericVector<Number>::build(this->comm());
-      FullFEsolution->init(this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
-      Geom3DTransientRBThetaExpansion & rb_theta_exp = dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion());
-
-      FullFEsolution -> zero();
-      FullFEsolution -> close();
-
-
-      this -> matrix -> zero();
-      this -> rhs -> zero();
-      
-      this -> matrix -> close();
-      this -> rhs -> close();
-      
-      Real dt = get_delta_t();
-      // Prepare LHS matrix for full order FE solve
-     
-      
-        for (unsigned int time_level=1; time_level<=n_time_steps; time_level++)
-        {
-            set_time_step(time_level);
-
-            *old_local_solution = *current_local_solution;
-
-      // We assume that the truth assembly has been attached to the system
-            add_scaled_mass_matrix(1./dt,matrix);
-            mass_matrix_scaled_matvec(1./dt, *rhs, *current_local_solution);
-      
-            std::unique_ptr<NumericVector<Number>> temp_vec = NumericVector<Number>::build(this->comm());
-            temp_vec->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
-      
-            for (unsigned int q_a=0; q_a<Q_a; q_a++)
-            {
-              matrix->add(euler_theta*get_rb_theta_expansion().eval_A_theta(q_a,mu), *get_Aq(q_a));
-
-              get_Aq(q_a)->vector_mult(*temp_vec, *current_local_solution);
-              temp_vec->scale( -(1.-euler_theta)*get_rb_theta_expansion().eval_A_theta(q_a,mu) );
-              rhs->add(*temp_vec);
-            }
-
-            for (unsigned int q_f=0; q_f<Q_f; q_f++)
-            {
-              *temp_vec = *get_Fq(q_f);
-              if (q_f == 0)
-                  temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(q_f, mu));
-              else
-                  temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
-              rhs->add(*temp_vec);
-            }
-      
-            this->matrix->close();
-            this->rhs->close();
-
-      // truth_assembly assembles into matrix and rhs, so use those for the solve
-            solve_for_matrix_and_rhs(*get_linear_solver(), *matrix, *rhs);
-
-      // The matrix doesn't change at each timestep, so we
-      // can set reuse_preconditioner == true
-            linear_solver->reuse_preconditioner(true);
-
-            if (assert_convergence)
-            {
-                check_convergence(*get_linear_solver());
-            }
-
-            // load projection error into column _k of temporal_data matrix
-            if (compute_truth_projection_error)
-                set_error_temporal_data();
-            
-            if ((write_interval > 0) && (time_level%write_interval == 0))
-            {
-                libMesh::out << std::endl << "Truth solve, plotting time step " << time_level << std::endl;
-
-                std::ostringstream file_name;
-
-                file_name << "truth.e.";
-                file_name << std::setw(3)
-                    << std::setprecision(0)
-                    << std::setfill('0')
-                    << std::right
-                    << time_level;
-
-                #ifdef LIBMESH_HAVE_EXODUS_API
-                ExodusII_IO(get_mesh()).write_equation_systems (file_name.str(),
-                                                          this->get_equation_systems());
-                #endif
-                std::ostringstream file_name2;
-                file_name2 << "out_"
-                        << std::setprecision(0)
-                        << std::setfill('0')
-                        << std::right
-                        << time_level
-                        << ".vtu";
-                VTKIO(get_mesh()).write_equation_systems(file_name2.str(), this->get_equation_systems());
-            }
-        }
-
-    // Set reuse_preconditioner back to false for subsequent solves.
-      linear_solver->reuse_preconditioner(false);
-
-      
-      
-  
-  }
-  // Type of the parent
-  typedef TransientRBConstruction Parent;
-
-  virtual void clear() override;
-
-  virtual void allocate_data_structures() override;
-
-  // Initialize data structure
-  virtual void init_data() override;
-
-  virtual void print_info() override;
-
-  virtual void initialize_truth() override;
-  
-  virtual void truth_assembly() override;
-
-  virtual Real get_RB_error_bound() override;
-
-  NumericVector<Number> * get_IC_q(unsigned int q);
-
-  NumericVector<Number> * get_non_dirichlet_IC_q(unsigned int q);
-
-  NumericVector<Number> * get_non_dirichlet_IC_q_if_avail(unsigned int q);
-
-  unsigned int get_parameter_dependent_IC() const {return parameter_dependent_IC;}
-
-  virtual void set_parameter_dependent_IC(bool parameter_dependent_IC_in);
-
-  void update_RB_initial_condition_all_N();
-
-  void update_RB_parameterized_initial_condition_all_N();
-
-  virtual void update_system() override;
-
-  virtual Real train_reduced_basis(const bool resize_rb_eval_data=true) override;
-
-  virtual Real train_reduced_basis_steady(const bool resize_rb_eval_data=true);
-
-  void enrich_RB_space_for_initial_conditions();
-
-  unsigned int u_var;
-
-  bool parameter_dependent_IC;
-
-  DwarfElephantRBCustomTransientAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
-
-private:
-  /**
-   * Vector storing the Q_ic vectors in the affine decomposition
-   * of the initial conditions.
-   */
-  std::vector<std::unique_ptr<NumericVector<Number>>> IC_q_vector;
-  std::vector<std::unique_ptr<NumericVector<Number>>> non_dirichlet_IC_q_vector;
-};
 
 ///------------------------DWARFELEPHANTRBEVALUATION------------------------
 class DwarfElephantRBEvaluationTransient : public TransientRBEvaluation
@@ -372,7 +215,7 @@ class DwarfElephantRBEvaluationTransient : public TransientRBEvaluation
 
 //---------------------------------PUBLIC-----------------------------------
 public:
-  DwarfElephantRBEvaluationTransient(const libMesh::Parallel::Communicator & comm, FEProblemBase & fe_problem);
+  DwarfElephantRBEvaluationTransient(const libMesh::Parallel::Communicator & comm, FEProblemBase & fe_problem, bool _RB_RFA_in);
 
   typedef TransientRBEvaluation Parent;
 
@@ -385,7 +228,9 @@ public:
     LOG_SCOPE("cache_online_residual_terms()", "TransientRBEvaluation");
 
     const RBParameters mu = get_parameters();
-    unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+    unsigned int M = 1;
+    if (_RB_RFA)
+        M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
 
     TransientRBThetaExpansion & trans_theta_expansion =
     cast_ref<TransientRBThetaExpansion &>(get_rb_theta_expansion());
@@ -398,18 +243,31 @@ public:
     for (unsigned int q_f1=0; q_f1<Q_f; q_f1++)
     {
       Number cached_theta_q_f1 = 0;
-      if (q_f1 == 0)
-          cached_theta_q_f1 = trans_theta_expansion.eval_F_theta(q_f1,mu);
+      
+      if (_RB_RFA)
+      {
+          if (q_f1 == 0)
+              cached_theta_q_f1 = trans_theta_expansion.eval_F_theta(q_f1,mu);
+          else
+              cached_theta_q_f1 = get_rb_theta_expansion().eval_F_theta(((q_f1 -1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f1 -1)/M]->evaluate(mu);
+      }
       else
-          cached_theta_q_f1 = get_rb_theta_expansion().eval_F_theta(((q_f1 -1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f1 -1)/M]->evaluate(mu);
+          cached_theta_q_f1 = trans_theta_expansion.eval_F_theta(q_f1,mu);
+      
       for (unsigned int q_f2=q_f1; q_f2<Q_f; q_f2++)
         {
           Real delta = (q_f1==q_f2) ? 1. : 2.;
-          if (q_f2 == 0)
-              cached_Fq_term += delta*cached_theta_q_f1*trans_theta_expansion.eval_F_theta(q_f2,mu) *
-            Fq_representor_innerprods[q];
+          if (_RB_RFA)
+          {
+              if (q_f2 == 0)
+                  cached_Fq_term += delta*cached_theta_q_f1*trans_theta_expansion.eval_F_theta(q_f2,mu) *
+                  Fq_representor_innerprods[q];
+              else
+                  cached_Fq_term += delta*cached_theta_q_f1*get_rb_theta_expansion().eval_F_theta(((q_f2 -1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f2-1)/M]->evaluate(mu) * Fq_representor_innerprods[q];
+          }
           else
-              cached_Fq_term += delta*cached_theta_q_f1*get_rb_theta_expansion().eval_F_theta(((q_f2 -1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f2-1)/M]->evaluate(mu) * Fq_representor_innerprods[q];
+              cached_Fq_term += delta*cached_theta_q_f1*trans_theta_expansion.eval_F_theta(q_f2,mu) *
+                  Fq_representor_innerprods[q];
 
           q++;
         }
@@ -419,10 +277,15 @@ public:
   for (unsigned int q_f=0; q_f<Q_f; q_f++)
     {
       Number cached_theta_q_f = 0;
-      if (q_f == 0)
-          cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+      if (_RB_RFA)
+      {
+          if (q_f == 0)
+              cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+          else
+              cached_theta_q_f = get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu);
+      }
       else
-          cached_theta_q_f = get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu);
+          cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
       for (unsigned int q_a=0; q_a<Q_a; q_a++)
         {
           Number cached_theta_q_a = trans_theta_expansion.eval_A_theta(q_a,mu);
@@ -461,10 +324,16 @@ public:
   for (unsigned int q_f=0; q_f<Q_f; q_f++)
     {
       Number cached_theta_q_f = 0;
-      if (q_f == 0)
-          cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+      if (_RB_RFA)
+      {
+          if (q_f == 0)
+              cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+          else
+              cached_theta_q_f = get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu);
+      }
       else
-          cached_theta_q_f = get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu);
+          cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+      
       for (unsigned int q_m=0; q_m<Q_m; q_m++)
         {
           Number cached_theta_q_m = trans_theta_expansion.eval_M_theta(q_m,mu);
@@ -526,7 +395,9 @@ public:
   // to evaluate the residual norm
 
   const RBParameters & mu = get_parameters();
-  unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+  unsigned int M = 1;
+  if (_RB_RFA)
+      M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
 
   TransientRBThetaExpansion & trans_theta_expansion =
     cast_ref<TransientRBThetaExpansion &>(get_rb_theta_expansion());
@@ -552,17 +423,28 @@ public:
   for (unsigned int q_f1=0; q_f1<Q_f; q_f1++)
     {
       Number cached_theta_q_f1 = 0;
-      if (q_f1 == 0)
-          cached_theta_q_f1 = trans_theta_expansion.eval_F_theta(q_f1,mu);
+      if (_RB_RFA)
+      {
+          if (q_f1 == 0)
+              cached_theta_q_f1 = trans_theta_expansion.eval_F_theta(q_f1,mu);
+          else
+              cached_theta_q_f1 = get_rb_theta_expansion().eval_F_theta(((q_f1-1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f1-1)/M)]->evaluate(mu);
+      }
       else
-          cached_theta_q_f1 = get_rb_theta_expansion().eval_F_theta(((q_f1-1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f1-1)/M)]->evaluate(mu);
+          cached_theta_q_f1 = trans_theta_expansion.eval_F_theta(q_f1,mu);
+      
       for (unsigned int q_f2=q_f1; q_f2<Q_f; q_f2++)
         {
           Real delta = (q_f1==q_f2) ? 1. : 2.;
-          if (q_f2 == 0)
-              residual_norm_sq += delta*cached_theta_q_f1*trans_theta_expansion.eval_F_theta(q_f2,mu) * Fq_representor_innerprods[q];
+          if (_RB_RFA)
+          {
+              if (q_f2 == 0)
+                  residual_norm_sq += delta*cached_theta_q_f1*trans_theta_expansion.eval_F_theta(q_f2,mu) * Fq_representor_innerprods[q];
+              else
+                  residual_norm_sq += delta*cached_theta_q_f1*get_rb_theta_expansion().eval_F_theta(((q_f2 - 1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f2 - 1)/M)]->evaluate(mu) * Fq_representor_innerprods[q];
+          }
           else
-              residual_norm_sq += delta*cached_theta_q_f1*get_rb_theta_expansion().eval_F_theta(((q_f2 - 1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f2 - 1)/M)]->evaluate(mu) * Fq_representor_innerprods[q];
+              residual_norm_sq += delta*cached_theta_q_f1*trans_theta_expansion.eval_F_theta(q_f2,mu) * Fq_representor_innerprods[q];
 
           q++;
         }
@@ -571,10 +453,16 @@ public:
   for (unsigned int q_f=0; q_f<Q_f; q_f++)
     {
       Number cached_theta_q_f = 0;
-      if (q_f == 0)
-          cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+      if (_RB_RFA)
+      {
+          if (q_f == 0)
+              cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+          else
+              cached_theta_q_f = get_rb_theta_expansion().eval_F_theta(((q_f - 1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f - 1)/M)]->evaluate(mu);
+      }
       else
-          cached_theta_q_f = get_rb_theta_expansion().eval_F_theta(((q_f - 1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f - 1)/M)]->evaluate(mu);
+          cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+      
       for (unsigned int q_a=0; q_a<Q_a; q_a++)
         {
           Number cached_theta_q_a = trans_theta_expansion.eval_A_theta(q_a,mu);
@@ -634,10 +522,16 @@ public:
   for (unsigned int q_f=0; q_f<Q_f; q_f++)
     {
       Number cached_theta_q_f = 0;
-      if (q_f == 0)
-          cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+      if (_RB_RFA)
+      {
+          if (q_f == 0)
+              cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+          else
+              cached_theta_q_f = get_rb_theta_expansion().eval_F_theta(((q_f - 1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f - 1)/M)]->evaluate(mu);
+      }
       else
-          cached_theta_q_f = get_rb_theta_expansion().eval_F_theta(((q_f - 1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f - 1)/M)]->evaluate(mu);
+          cached_theta_q_f = trans_theta_expansion.eval_F_theta(q_f,mu);
+      
       for (unsigned int q_m=0; q_m<Q_m; q_m++)
         {
           Number cached_theta_q_m = trans_theta_expansion.eval_M_theta(q_m,mu);
@@ -762,8 +656,357 @@ public:
   //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
   
   Geom3DTransientRBThetaExpansion _rb_theta_expansion;
+  
 
   std::vector<DenseVector<Number>> RB_IC_q_vector;
+  
+  bool _RB_RFA;
 };
 ///-------------------------------------------------------------------------
+
+
+///-----------------------DWARFELEPHANTRBCONSTRUCTION-----------------------
+class DwarfElephantRBConstructionTransient : public TransientRBConstruction
+{
+
+//---------------------------------PUBLIC-----------------------------------
+public:
+
+  // Constructor
+  DwarfElephantRBConstructionTransient (EquationSystems & es,
+                        const std::string & name_in,
+                        const unsigned int number_in);
+
+  // Destructor
+  virtual ~DwarfElephantRBConstructionTransient () { }
+
+  // Type of the system
+  typedef DwarfElephantRBConstructionTransient _sys_type;
+  
+  void set_up_error_norm_v_N_vec()
+  {
+      error_norm_sum_v_N.resize(get_rb_evaluation().get_n_basis_functions());
+      online_error_bound_v_N.resize(get_rb_evaluation().get_n_basis_functions());
+      for (unsigned int i = 0; i < get_rb_evaluation().get_n_basis_functions(); i++)
+          error_norm_sum_v_N[i] = 0;
+  }
+  
+  void print_error_norm_v_N_vec(RBParameters mu)
+  {
+      std::ostringstream outfiletext;
+      std::ostringstream outfilename;
+      std::ofstream outfile;
+      outfile << "#N, Energy norm error, Energy norm error bound" ;
+      for (int i = 0; i < get_rb_evaluation().get_n_basis_functions(); i++)
+      {
+          libMesh::out << "N = " << i+1 << " Error = " << error_norm_sum_v_N[i]  << " Error bound = " << online_error_bound_v_N[i] << "\n";
+          outfiletext << i+1 << ", " << error_norm_sum_v_N[i] << ", " << online_error_bound_v_N[i] << std::endl;
+          if (error_norm_sum_v_N[i] > online_error_bound_v_N[i]) {libMesh::out << "                  ^^^^^^^^^              Error is larger than error bound!" << "\n";}
+      }
+      outfilename << "./RB_Error_ErrorBound_Plots/mu_"; 
+      outfilename << std::fixed << mu.get_value("mu_0");
+      outfilename << "_" ;
+      outfilename << std::fixed << mu.get_value("mu_1");
+      outfilename <<"_" ;
+      outfilename << std::fixed << mu.get_value("mu_2");
+      outfilename << "_";
+      outfilename << std::fixed << mu.get_value("mu_3");
+      outfilename << "_";
+      outfilename << std::fixed << mu.get_value("mu_4");
+      outfilename << ".txt";
+      outfile.open(outfilename.str());
+      outfile << outfiletext.str();
+      outfile.close();
+      
+  }
+
+  void FE_solve_debug(RBParameters mu, int write_interval, int num_param_values=1)
+  { // computes the full FE solution and returns it as a vector of numeric vectors
+      const unsigned int Q_a = get_rb_theta_expansion().get_n_A_terms();
+      const unsigned int Q_f = get_rb_theta_expansion().get_n_F_terms();
+      unsigned int M = 1;
+      if (dynamic_cast<DwarfElephantRBEvaluationTransient&>(get_rb_evaluation())._RB_RFA)
+          M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+      const unsigned int n_time_steps = get_n_time_steps();
+      const Real euler_theta = get_euler_theta();
+      TransientRBThetaExpansion & trans_theta_expansion =
+    cast_ref<TransientRBThetaExpansion &>(get_rb_theta_expansion());
+
+      const unsigned int Q_m = trans_theta_expansion.get_n_M_terms();
+      initialize_truth();
+      set_time_step(0);
+      std::vector<std::unique_ptr<NumericVector<Number>>> FullFEsolution;
+      FullFEsolution.resize(n_time_steps);
+      std::vector<std::unique_ptr<NumericVector<Number>>> _RB_solution;
+      _RB_solution.resize(n_time_steps);
+      
+      std::unique_ptr<SparseMatrix<Number>> M_mu;
+      std::unique_ptr<SparseMatrix<Number>> A_mu;
+      
+      A_mu = SparseMatrix<Number>::build(this->comm());
+      this->get_dof_map().attach_matrix(*A_mu);
+      A_mu->init();
+      A_mu->zero();
+      A_mu->close();
+      
+      M_mu = SparseMatrix<Number>::build(this->comm());
+      this->get_dof_map().attach_matrix(*M_mu);
+      M_mu->init();
+      M_mu->zero();
+      M_mu->close();
+      
+      //Geom3DTransientRBThetaExpansion & rb_theta_exp = dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion());
+
+
+      
+      Real dt = get_delta_t();
+      // Prepare LHS matrix for full order FE solve
+     
+      
+        for (unsigned int time_level=1; time_level<=n_time_steps; time_level++)
+        {
+            FullFEsolution[time_level-1] = NumericVector<Number>::build(this->comm());
+            FullFEsolution[time_level-1]->init(this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+            FullFEsolution[time_level-1] -> zero();
+            FullFEsolution[time_level-1] -> close();
+            
+            _RB_solution[time_level-1] = NumericVector<Number>::build(this->comm());
+            _RB_solution[time_level-1]->init(this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+            _RB_solution[time_level-1] -> zero();
+            _RB_solution[time_level-1] -> close();
+            set_time_step(time_level);
+
+            *old_local_solution = *current_local_solution;
+            
+            this->matrix->close();
+            this -> matrix -> zero();
+            this -> rhs -> zero();
+            {
+      // We assume that the truth assembly has been attached to the system
+                
+
+                for (unsigned int q=0; q<Q_m; q++)
+                  matrix->add(1./dt * trans_theta_expansion.eval_M_theta(q,mu), *get_M_q(q));
+            //add_scaled_mass_matrix(1./dt,matrix);
+                std::unique_ptr<NumericVector<Number>> temp_vec2 = NumericVector<Number>::build(this->comm());
+                temp_vec2->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+
+                for (unsigned int q=0; q<Q_m; q++)
+                {
+                    get_M_q(q)->vector_mult(*temp_vec2, *current_local_solution);
+                    rhs->add(1./dt * trans_theta_expansion.eval_M_theta(q,mu), *temp_vec2);
+                    if (time_level == 1)
+                        M_mu->add(trans_theta_expansion.eval_M_theta(q,mu),*get_M_q(q));
+                    //if (trans_theta_expansion.eval_M_theta(q,mu) != 1.0)
+                      //  libMesh::out << "q_m = " << q << " M_theta diff = "<< trans_theta_expansion.eval_M_theta(q,mu) - 1.0 << std::endl;
+                }
+            //mass_matrix_scaled_matvec(1./dt, *rhs, *current_local_solution);
+      
+            std::unique_ptr<NumericVector<Number>> temp_vec = NumericVector<Number>::build(this->comm());
+            temp_vec->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+      
+            for (unsigned int q_a=0; q_a<Q_a; q_a++)
+            {
+              matrix->add(euler_theta*get_rb_theta_expansion().eval_A_theta(q_a,mu), *get_Aq(q_a));
+
+              get_Aq(q_a)->vector_mult(*temp_vec, *current_local_solution);
+              temp_vec->scale( -(1.-euler_theta)*get_rb_theta_expansion().eval_A_theta(q_a,mu) );
+              
+              rhs->add(*temp_vec);
+              if (time_level == 1)
+                  A_mu -> add(get_rb_theta_expansion().eval_A_theta(q_a,mu),*get_Aq(q_a));
+              //if (get_rb_theta_expansion().eval_A_theta(q_a,mu) != 1.0)
+                //        libMesh::out << "q_a = " << q_a << " A_theta diff = "<< get_rb_theta_expansion().eval_A_theta(q_a,mu)- 1.0 << std::endl;
+            }
+
+            for (unsigned int q_f=0; q_f<Q_f; q_f++)
+            {
+              *temp_vec = *get_Fq(q_f);
+              if (dynamic_cast<DwarfElephantRBEvaluationTransient&>(get_rb_evaluation())._RB_RFA)
+              {
+                  if (q_f == 0)
+                      temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(q_f, mu));
+                  //else // To use EIM approximation of the heat source
+                  //    temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
+                  else if (q_f == 1)
+                  {   
+                      _nonAffineF->close();
+                      *temp_vec=*_nonAffineF;
+                  } 
+                  else
+                      break;
+              }
+              else
+                  temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(q_f, mu));
+              
+              rhs->add(*temp_vec);
+              std::ostringstream rhs_name;
+              //rhs_name << "rhs_" << q_f << ".m";
+              //if (time_level == 1) rhs->print_matlab(rhs_name.str());
+              
+              //if (get_rb_theta_expansion().eval_F_theta(q_f,mu) != 1.0)
+                //        libMesh::out << "q_f = " << q_f << " F_theta diff = "<< get_rb_theta_expansion().eval_F_theta(q_f,mu) - 1.0 << std::endl;
+            }
+            }
+            this->matrix->close();
+            this->rhs->close();
+            
+      // truth_assembly assembles into matrix and rhs, so use those for the solve
+            solve_for_matrix_and_rhs(*get_linear_solver(), *matrix, *rhs);
+      // The matrix doesn't change at each timestep, so we
+      // can set reuse_preconditioner == true
+            linear_solver->reuse_preconditioner(true);
+
+            if (assert_convergence)
+            {
+                check_convergence(*get_linear_solver());
+            }
+            FullFEsolution[time_level-1]->add(*solution);
+            // load projection error into column _k of temporal_data matrix
+            if (compute_truth_projection_error)
+                set_error_temporal_data();
+            
+            if ((write_interval > 0) && (time_level%write_interval == 0))
+            {
+                libMesh::out << std::endl << "Truth solve, plotting time step " << time_level << std::endl;
+
+                std::ostringstream file_name;
+
+                file_name << "truth.e.";
+                file_name << std::setw(3)
+                    << std::setprecision(0)
+                    << std::setfill('0')
+                    << std::right
+                    << time_level;
+
+                #ifdef LIBMESH_HAVE_EXODUS_API
+                //ExodusII_IO(get_mesh()).write_equation_systems (file_name.str(),
+                //                                          this->get_equation_systems());
+                #endif
+                std::ostringstream file_name2;
+                file_name2 << "out_"
+                        << std::setprecision(0)
+                        << std::setfill('0')
+                        << std::right
+                        << time_level
+                        << ".vtu";
+                VTKIO(get_mesh()).write_equation_systems(file_name2.str(), this->get_equation_systems());
+            }
+        }
+
+    // Set reuse_preconditioner back to false for subsequent solves.
+      linear_solver->reuse_preconditioner(false);
+
+      // Compute RB solution and RB_v_FE error in energy norm here
+      // Create sparse matrices to hold assembled mass matrix and A matrix
+      DwarfElephantRBEvaluationTransient & trans_rb_eval = dynamic_cast<DwarfElephantRBEvaluationTransient&>(get_rb_evaluation());
+      Number error_energy_norm;
+      get_rb_evaluation().set_parameters(mu);
+      std::unique_ptr<NumericVector<Number>> temp_vec_error = NumericVector<Number>::build(this->comm());
+      temp_vec_error->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+      temp_vec_error->zero();
+      for (int N = 1; N <= get_rb_evaluation().get_n_basis_functions(); N++)
+      {
+          
+
+          online_error_bound_v_N[N-1] = get_rb_evaluation().rb_solve(N);
+          this->load_rb_solution();
+          error_energy_norm = 0;
+          for (unsigned int time_level=1; time_level<=n_time_steps; time_level++)
+          {
+              temp_vec_error->zero();
+              _RB_solution[time_level-1]->zero();
+              for (int i = 0; i < N; i++)
+              {
+                  _RB_solution[time_level-1]->add((trans_rb_eval.RB_temporal_solution_data[time_level])(i),get_rb_evaluation().get_basis_function(i));     
+              }
+              //*_RB_solution[time_level-1]-=*FullFEsolution[time_level-1];
+              _RB_solution[time_level-1]->add(-1.,*(FullFEsolution[time_level-1].get()));
+              A_mu->vector_mult(*temp_vec_error,*(_RB_solution[time_level-1].get()));
+              error_energy_norm += temp_vec_error -> dot(*(_RB_solution[time_level-1].get()));
+          }
+          error_energy_norm = error_energy_norm*dt;
+          temp_vec_error -> zero();
+          M_mu -> vector_mult(*temp_vec_error,*(_RB_solution[n_time_steps-1].get()));
+          error_energy_norm += temp_vec_error -> dot(*(_RB_solution[n_time_steps-1].get()));
+          error_energy_norm = std::sqrt(error_energy_norm);
+          error_norm_sum_v_N[N-1] = error_energy_norm/static_cast<double>(num_param_values);
+          // Write out the error energy norm for the particular value of N to file
+      }
+  
+  }
+  
+  NumericVector<Number> * get_nonAffineF() // To test error caused by EIM in the RB solution
+  {
+    return _nonAffineF.get();
+  }
+  
+    void allocate_RB_error_structures() // To test against EIM example from Martin's publication
+  {
+    _nonAffineF = NumericVector<Number>::build(this->comm());
+    _nonAffineF->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+    _nonAffineF->zero();
+  }
+  
+  // Type of the parent
+  typedef TransientRBConstruction Parent;
+
+  virtual void clear() override;
+
+  virtual void allocate_data_structures() override;
+
+  // Initialize data structure
+  virtual void init_data() override;
+
+  virtual void print_info() override;
+
+  virtual void initialize_truth() override;
+  
+  virtual void truth_assembly() override;
+
+  virtual Real get_RB_error_bound() override;
+
+  NumericVector<Number> * get_IC_q(unsigned int q);
+
+  NumericVector<Number> * get_non_dirichlet_IC_q(unsigned int q);
+
+  NumericVector<Number> * get_non_dirichlet_IC_q_if_avail(unsigned int q);
+
+  unsigned int get_parameter_dependent_IC() const {return parameter_dependent_IC;}
+
+  virtual void set_parameter_dependent_IC(bool parameter_dependent_IC_in);
+
+  void update_RB_initial_condition_all_N();
+
+  void update_RB_parameterized_initial_condition_all_N();
+
+  virtual void update_system() override;
+
+  virtual Real train_reduced_basis(const bool resize_rb_eval_data=true) override;
+
+  virtual Real train_reduced_basis_steady(const bool resize_rb_eval_data=true);
+
+  void enrich_RB_space_for_initial_conditions();
+  
+  virtual void compute_Fq_representor_innerprods(bool compute_inner_products=true) override;
+
+  unsigned int u_var;
+
+  bool parameter_dependent_IC;
+  
+  std::vector<Number> error_norm_sum_v_N;
+  std::vector<Real> online_error_bound_v_N;
+  DwarfElephantRBCustomTransientAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
+  std::unique_ptr<NumericVector<Number>> _nonAffineF;
+  //debugAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
+private:
+  /**
+   * Vector storing the Q_ic vectors in the affine decomposition
+   * of the initial conditions.
+   */
+  std::vector<std::unique_ptr<NumericVector<Number>>> IC_q_vector;
+  std::vector<std::unique_ptr<NumericVector<Number>>> non_dirichlet_IC_q_vector;
+};
+
+
 #endif // DWARFELEPHANTRBCLASSESTRANSIENT_H

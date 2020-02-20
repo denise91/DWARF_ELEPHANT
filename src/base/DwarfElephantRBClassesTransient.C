@@ -14,6 +14,7 @@
 
 ///-----------------------DWARFELEPHANTRBCONSTRUCTION-----------------------
 #include "DwarfElephantRBClassesTransient.h"
+#include "libmesh/timestamp.h"
 
 DwarfElephantRBConstructionTransient::DwarfElephantRBConstructionTransient (EquationSystems & es,
                       const std::string & name_in,
@@ -156,7 +157,9 @@ DwarfElephantRBConstructionTransient::init_data()
   void DwarfElephantRBConstructionTransient::truth_assembly()
   {
       LOG_SCOPE("truth_assembly()", "TransientRBConstruction");
-      unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+      unsigned int M = 1;
+      if (dynamic_cast<DwarfElephantRBEvaluationTransient&>(get_rb_evaluation())._RB_RFA)
+          M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
 
   this->matrix->close();
 
@@ -197,10 +200,16 @@ DwarfElephantRBConstructionTransient::init_data()
     for (unsigned int q_f=0; q_f<Q_f; q_f++)
       {
         *temp_vec = *get_Fq(q_f);
-        if (q_f == 0)
-            temp_vec->scale( get_control(get_time_step())*trans_theta_expansion.eval_F_theta(q_f,mu) );
+        
+        if (dynamic_cast<DwarfElephantRBEvaluationTransient&>(get_rb_evaluation())._RB_RFA)
+        {
+            if (q_f == 0)
+                temp_vec->scale( get_control(get_time_step())*trans_theta_expansion.eval_F_theta(q_f,mu) );
+            else
+                temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
+        }
         else
-            temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
+            temp_vec->scale( get_control(get_time_step())*trans_theta_expansion.eval_F_theta(q_f,mu) );
         rhs->add(*temp_vec);
       }
 
@@ -603,14 +612,86 @@ DwarfElephantRBConstructionTransient::init_data()
     get_rb_evaluation().basis_functions.emplace_back( std::move(new_bf) ); */
   }
 
+  void DwarfElephantRBConstructionTransient::compute_Fq_representor_innerprods(bool compute_inner_products)
+  {  
+
+  // Skip calculations if we've already computed the Fq_representors
+    if (!Fq_representor_innerprods_computed)
+    {
+      // Only log if we get to here
+      LOG_SCOPE("compute_Fq_representor_innerprods()", "RBConstruction");
+
+      for (unsigned int q_f=0; q_f<get_rb_theta_expansion().get_n_F_terms(); q_f++)
+        {
+          if (!Fq_representor[q_f])
+            {
+              Fq_representor[q_f] = NumericVector<Number>::build(this->comm());
+              Fq_representor[q_f]->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+            }
+
+          libmesh_assert(Fq_representor[q_f]->size()       == this->n_dofs()       &&
+                         Fq_representor[q_f]->local_size() == this->n_local_dofs() );
+
+          rhs->zero();
+          rhs->add(1., *get_Fq(q_f));
+
+          if (!is_quiet())
+            libMesh::out << "Starting solve q_f=" << q_f
+                         << " in RBConstruction::update_residual_terms() at "
+                         << Utility::get_timestamp() << std::endl;
+
+          rhs->print_matlab("rhs_debug.m");
+          inner_product_matrix->print_matlab("ip_mat.m");
+          solve_for_matrix_and_rhs(*inner_product_solver, *inner_product_matrix, *rhs);
+          
+          if (assert_convergence)
+            check_convergence(*inner_product_solver);
+
+          if (!is_quiet())
+            {
+              libMesh::out << "Finished solve q_f=" << q_f
+                           << " in RBConstruction::update_residual_terms() at "
+                           << Utility::get_timestamp() << std::endl;
+
+              libMesh::out << this->n_linear_iterations()
+                           << " iterations, final residual "
+                           << this->final_linear_residual() << std::endl;
+            }
+
+          *Fq_representor[q_f] = *solution;
+        }
+
+      if (compute_inner_products)
+        {
+          unsigned int q=0;
+
+          for (unsigned int q_f1=0; q_f1<get_rb_theta_expansion().get_n_F_terms(); q_f1++)
+            {
+              get_non_dirichlet_inner_product_matrix_if_avail()->vector_mult(*inner_product_storage_vector, *Fq_representor[q_f1]);
+
+              for (unsigned int q_f2=q_f1; q_f2<get_rb_theta_expansion().get_n_F_terms(); q_f2++)
+                {
+                  Fq_representor_innerprods[q] = inner_product_storage_vector->dot(*Fq_representor[q_f2]);
+
+                  q++;
+                }
+            }
+        } // end if (compute_inner_products)
+
+      Fq_representor_innerprods_computed = true;
+    }
+
+  get_rb_evaluation().Fq_representor_innerprods = Fq_representor_innerprods;
+}
 
 ///------------------------DWARFELEPHANTRBEVALUATION------------------------
 #include "libmesh/xdr_cxx.h"
 
-  DwarfElephantRBEvaluationTransient::DwarfElephantRBEvaluationTransient(const libMesh::Parallel::Communicator & comm, FEProblemBase & fe_problem):
+  DwarfElephantRBEvaluationTransient::DwarfElephantRBEvaluationTransient(const libMesh::Parallel::Communicator & comm, FEProblemBase & fe_problem, bool _RB_RFA_in):
     TransientRBEvaluation(comm),
     fe_problem(fe_problem),
-    parameter_dependent_IC(false)
+    parameter_dependent_IC(false),
+    _RB_RFA(_RB_RFA_in)
   {
     set_rb_theta_expansion(_rb_theta_expansion);
   }
@@ -643,7 +724,7 @@ DwarfElephantRBConstructionTransient::init_data()
         min_mu = min_mu_i;
     }*/
 
-    return 0.0418;//min_mu;
+    return 0.0237;//min_mu;
   }
 
   void
@@ -661,7 +742,9 @@ DwarfElephantRBConstructionTransient::init_data()
       libmesh_error_msg("ERROR: N cannot be larger than the number of basis functions in rb_solve");
 
     const RBParameters & mu = get_parameters();
-    unsigned int M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+    unsigned int M = 1;
+    if (_RB_RFA)
+        M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
 
     TransientRBThetaExpansion & trans_theta_expansion =
       cast_ref<TransientRBThetaExpansion &>(get_rb_theta_expansion());
@@ -707,7 +790,27 @@ DwarfElephantRBConstructionTransient::init_data()
     for (unsigned int q_a=0; q_a<Q_a; q_a++)
       {
         RB_Aq_vector[q_a].get_principal_submatrix(N, RB_Aq_a);
-
+        /*
+        if ((q_a % 3 == 0) && ((q_a / 3) % 3) == 0)
+        {
+            if (fabs(trans_theta_expansion.eval_A_theta(q_a,mu) - 1.0) > 1e-10)
+                libMesh::out << " Problem with q_a = " << q_a << " theta_q_a = " << trans_theta_expansion.eval_A_theta(q_a,mu)  << " instead of 1.0" << std::endl;
+        }
+        else if ((q_a % 3 == 1) && ((q_a / 3) % 3 == 1))
+        {
+            if (fabs(trans_theta_expansion.eval_A_theta(q_a,mu) - 1.0) > 1e-10)
+                libMesh::out << " Problem with q_a = " << q_a << " theta_q_a = " << trans_theta_expansion.eval_A_theta(q_a,mu)  << " instead of 1.0"  << std::endl;
+        }
+        else if ((q_a % 3 == 2) && ((q_a / 3) % 3 == 2))
+        {
+            if (fabs(trans_theta_expansion.eval_A_theta(q_a,mu) - 1.0) > 1e-10)
+                libMesh::out << " Problem with q_a = " << q_a << " theta_q_a = " << trans_theta_expansion.eval_A_theta(q_a,mu)  << " instead of 1.0" << std::endl;
+        }
+        else
+        {
+            if (fabs(trans_theta_expansion.eval_A_theta(q_a,mu) - 0.) > 1e-10)
+                libMesh::out << " Problem with q_a = " << q_a << " theta_q_a = " << trans_theta_expansion.eval_A_theta(q_a,mu)  << " instead of 0.0" << std::endl;
+        }*/
         RB_LHS_matrix.add(       euler_theta*trans_theta_expansion.eval_A_theta(q_a,mu), RB_Aq_a);
         RB_RHS_matrix.add( -(1.-euler_theta)*trans_theta_expansion.eval_A_theta(q_a,mu), RB_Aq_a);
       }
@@ -719,10 +822,15 @@ DwarfElephantRBConstructionTransient::init_data()
     for (unsigned int q_f=0; q_f<Q_f; q_f++)
       {
         RB_Fq_vector[q_f].get_principal_subvector(N, RB_Fq_f);
-        if (q_f == 0)
-            RB_RHS_save.add(trans_theta_expansion.eval_F_theta(q_f,mu), RB_Fq_f);
+        if (_RB_RFA)
+        {
+            if (q_f == 0)
+                RB_RHS_save.add(trans_theta_expansion.eval_F_theta(q_f,mu), RB_Fq_f);
+            else
+                RB_RHS_save.add(get_rb_theta_expansion().eval_F_theta(((q_f-1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f-1)/M)]->evaluate(mu), RB_Fq_f);
+        }
         else
-            RB_RHS_save.add(get_rb_theta_expansion().eval_F_theta(((q_f-1)%M + 1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[((q_f-1)/M)]->evaluate(mu), RB_Fq_f);
+            RB_RHS_save.add(trans_theta_expansion.eval_F_theta(q_f,mu), RB_Fq_f);
       }
 
 

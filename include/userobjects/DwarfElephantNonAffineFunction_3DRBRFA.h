@@ -53,9 +53,9 @@ struct ShiftedGaussian_3DRFA : public RBParametrizedFunction
 
     Real r_0 = mu.get_value("mu_0");
     Real l_0 = mu.get_value("mu_1");
-    Real x_prime = -0.01;//mu.get_value("mu_2");
-    Real y_prime = -0.01;//mu.get_value("mu_3");
-    Real z_prime = -0.01;//mu.get_value("mu_4");
+    Real x_prime = mu.get_value("mu_2");
+    Real y_prime = mu.get_value("mu_3");
+    Real z_prime = mu.get_value("mu_4");
     Number result;
     Number x_new, y_new, z_new, t0;
     double matrix[3][3]={0}, vec[3][1]={0}, L = 0.1, r = 3e-3, l = 5e-2;
@@ -347,7 +347,7 @@ if (elem.subdomain_id() == 32)
 x_new = matrix[0][0]*p(0) + matrix[0][1]*p(1) + matrix[0][2]*p(2) + vec[0][0];
 y_new = matrix[1][0]*p(0) + matrix[1][1]*p(1) + matrix[1][2]*p(2) + vec[1][0];
 z_new = matrix[2][0]*p(0) + matrix[2][1]*p(1) + matrix[2][2]*p(2) + vec[2][0];
-return 1;//exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2) + pow(z_prime - z_new,2))/0.05);//exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2) + pow(z_prime - z_new,2))) * t0; // Forcing function for geometrical parametrization example
+return 10*exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2) + pow(z_prime - z_new,2)));//exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2) + pow(z_prime - z_new,2))) * t0; // Forcing function for geometrical parametrization example
  } 
  }; 
 #endif //DWARFELEPHANTNONAFFINEFUNCTION_H

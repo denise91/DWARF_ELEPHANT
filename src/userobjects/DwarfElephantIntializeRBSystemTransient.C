@@ -52,6 +52,7 @@ InputParameters validParams<DwarfElephantInitializeRBSystemTransient>()
   params.addParam<std::vector<Real>>("parameter_min_values_RB", "Defines the lower bound of the parameter range.");
   params.addParam<std::vector<Real>>("parameter_max_values_RB", "Defines the upper bound of the parameter range.");
   params.addParam<std::vector<Real>>("discrete_parameter_values_RB", "Defines the list of parameters.");
+  params.addRequiredParam<bool>("RB_RFA","Flag saying whether an RFA model is being used.");
 
   return params;
 }
@@ -103,14 +104,15 @@ DwarfElephantInitializeRBSystemTransient::DwarfElephantInitializeRBSystemTransie
   _discrete_parameters_EIM(getParam<std::vector<std::string>>("discrete_parameters_names_EIM")),
   _es(_use_displaced ? _fe_problem.getDisplacedProblem()->es() : _fe_problem.es()),
   _mesh_ptr(&_fe_problem.mesh()),
-  _sys(&_es.get_system<TransientNonlinearImplicitSystem>(_system_name))
+  _sys(&_es.get_system<TransientNonlinearImplicitSystem>(_system_name)),
+  _RB_RFA(getParam<bool>("RB_RFA"))
 {
     if (_use_EIM)
   {
-    if ((_n_training_samples_EIM == -1)||(_N_max_EIM == -1))
+    if ((_n_training_samples_EIM == 0)||(_N_max_EIM == 0))
       mooseError("UserObject DwarfElephantInitializeRBSystemSteadyState: Insufficient parameters provided for EIM. Look at file src/userobjects/DwarfElephantInitializeRBSystemSteadyState.C for details");
   }
-  else if ((_n_training_samples_EIM != -1)||(_N_max_EIM != -1))
+  else if ((_n_training_samples_EIM != 0)||(_N_max_EIM != 0))
     mooseError("Check _use_EIM flag in input file");
     
     std::cout << "Created InitializeRBSystemTransient object " << DwarfElephantInitializeRBSystemTransient::name() << std::endl;
@@ -330,7 +332,7 @@ DwarfElephantInitializeRBSystemTransient::initializeEIM()
   _rb_con_ptr->init();
   _es.update();
 
-  _rb_eval_ptr = new DwarfElephantRBEvaluationTransient(_mesh_ptr->comm(), _fe_problem);
+  _rb_eval_ptr = new DwarfElephantRBEvaluationTransient(_mesh_ptr->comm(), _fe_problem, _RB_RFA);
   _eim_eval_ptr = new DwarfElephantEIMEvaluationSteadyState(_mesh_ptr->comm());
   
   // Pass a pointer of the RBEvaluation object to the
@@ -379,7 +381,7 @@ DwarfElephantInitializeRBSystemTransient::execute()
     _rb_con_ptr->init();
     _es.update();
 
-    _rb_eval_ptr = new DwarfElephantRBEvaluationTransient(_mesh_ptr->comm(), _fe_problem);
+    _rb_eval_ptr = new DwarfElephantRBEvaluationTransient(_mesh_ptr->comm(), _fe_problem, _RB_RFA);
     // Pass a pointer of the RBEvaluation object to the
     // RBConstruction object
     _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);
@@ -404,6 +406,17 @@ DwarfElephantInitializeRBSystemTransient::execute()
         initializeOfflineStageEIM();
     }    
   }
+  else
+      if (!_use_EIM)
+    {
+        // Intialization of the added equation system
+    _rb_con_ptr->init();
+    _es.update();
+
+    _rb_eval_ptr = new DwarfElephantRBEvaluationTransient(_mesh_ptr->comm(), _fe_problem, _RB_RFA);
+    // Pass a pointer of the RBEvaluation object to the
+    // RBConstruction object
+    _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);}
 }
 
 void
@@ -432,14 +445,14 @@ DwarfElephantInitializeRBSystemTransient::AssignAffineMatricesAndVectors() const
     // Get and process the necessary input parameters for the
     // offline stage
     //  _rb_con_ptr->process_parameters_file(_parameters_filename);
-    processParameters();
+    //processParameters();
 
     // Print the system informations for the RBConstruction system.
     _rb_con_ptr->print_info();
 
     // Initialize the RB construction. Note, we skip the matrix and vector
     // assembly, since this is already done by MOOSE.
-    _rb_con_ptr->initialize_rb_construction(_skip_matrix_assembly_in_rb_system, _skip_vector_assembly_in_rb_system);
+    //_rb_con_ptr->initialize_rb_construction(_skip_matrix_assembly_in_rb_system, _skip_vector_assembly_in_rb_system);
 
     // Save the A's, F's and output vectors from the RBConstruction class in pointers.
     // This additional saving of the pointers is required because otherwise a the RBEvaluation object has
@@ -498,4 +511,6 @@ DwarfElephantInitializeRBSystemTransient::AssignAffineMatricesAndVectors() const
     for (unsigned int i=0; i < _n_outputs; i++)
       for (unsigned int _q=0; _q < _ql[i]; _q++)
         _outputs[i][_q] = _rb_con_ptr->get_output_vector(i,_q);
+    
+    _fullFEnonAffineF = _rb_con_ptr->get_nonAffineF();
 }

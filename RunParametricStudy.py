@@ -14,13 +14,18 @@ def replace_line(file_name, line_num, text):
     out.close()
 
 #-----------------------User Defined Variables-------------------------------#
-InputFileName = "RBRFAModel3D.i"
-OnlineN_LineNumber = 1781
+InputFileName = "RBRFAModel3D_Transient.i"
+OnlineN_LineNumber = 2300
 #---------------------------End User Defined Variables---------------------#
 
 
-for N in range(1,11):
+for N in range(1,10):
  replace_line(InputFileName,OnlineN_LineNumber,"  online_N = " + str(N)) # input modification command here
  print "N = ", N
  call("./DwarfElephant-opt -i " + InputFileName, shell=True) # simulation running command here
- os.rename("./out_0.vtu", "./out_N{0:02d}.vtu".format(N))
+ for timestep in range(0,11):
+  #print "./RBRFAModel3D_Transient_out_0{0:02d}_0.vtu".format(timestep), "./RBRFAModel3D_Transient_out_0{0:02d}_0_{1:1d}.vtu".format(timestep,N)
+  #print "./RBRFAModel3D_Transient_out_0{0:02d}.vtk".format(timestep), "./RBRFAModel3D_Transient_out_0{0:02d}_{1:1d}.vtk".format(timestep,N)
+  os.rename("./RBRFAModel3D_Transient_out_0{0:02d}_0.vtu".format(timestep), "./RBRFAModel3D_Transient_out_0{0:02d}_0_N{1:1d}.vtu".format(timestep,N))
+  os.rename("./RBRFAModel3D_Transient_out_0{0:02d}.vtk".format(timestep), "./RBRFAModel3D_Transient_out_0{0:02d}_N{1:1d}.vtk".format(timestep,N))
+  #os.rename("./out_0.vtu", "./out_N{0:02d}.vtu".format(N))

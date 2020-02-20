@@ -132,7 +132,7 @@ DwarfElephantRBConstructionSteadyState::train_reduced_basis(const bool resize_rb
 //
   return training_greedy_error;
 }
-
+/*
 void DwarfElephantRBConstructionSteadyState::compute_Fq_representor_innerprods(bool compute_inner_products)
 {
 
@@ -202,12 +202,13 @@ void DwarfElephantRBConstructionSteadyState::compute_Fq_representor_innerprods(b
     }
 
   get_rb_evaluation().Fq_representor_innerprods = Fq_representor_innerprods;
-}
+}*/
 
  
-DwarfElephantRBEvaluationSteadyState::DwarfElephantRBEvaluationSteadyState(const libMesh::Parallel::Communicator & comm, FEProblemBase & fe_problem):
+DwarfElephantRBEvaluationSteadyState::DwarfElephantRBEvaluationSteadyState(const libMesh::Parallel::Communicator & comm, FEProblemBase & fe_problem, bool _RB_RFA_in):
     RBEvaluation(comm),
-    fe_problem(fe_problem)
+    fe_problem(fe_problem),
+        _RB_RFA(_RB_RFA_in)
 {
   //set_rb_theta_expansion(_eim_test_rb_theta_expansion);
   //set_rb_theta_expansion(_goem_2D_rb_theta_expansion);
@@ -235,7 +236,7 @@ DwarfElephantRBEvaluationSteadyState::get_stability_lower_bound()
   return min_mu; */
   // rb_scm_eval->set_parameters(get_parameters());
   // return rb_scm_eval->get_SCM_LB();
-  return 0.0418;
+  return 0.0237;
 }
 
 DwarfElephantEIMEvaluationSteadyState::DwarfElephantEIMEvaluationSteadyState(const libMesh::Parallel::Communicator & comm) :

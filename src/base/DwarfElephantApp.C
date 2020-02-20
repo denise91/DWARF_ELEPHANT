@@ -48,6 +48,8 @@
 #include "DwarfElephantEIMAKernel.h"
 #include "ExtractQpPointsKernel.h"
 #include "RBInnerProductMatrix.h"
+#include "DwarfElephantRBAdvectionX.h"
+#include "DwarfElephantRBAdvectionY.h"
 #include "DwarfElephantRBDiffusionXX.h"
 #include "DwarfElephantRBDiffusionXY.h"
 #include "DwarfElephantRBDiffusionXZ.h"
@@ -61,6 +63,7 @@
 #include "DwarfElephantRBRFHeatsourceKernel.h"
 #include "DwarfElephantRBPennesPerfusion.h"
 #include "DwarfElephantFTestKernel.h"
+#include "DwarfElephantFTestKernelTransient.h"
 #include "RBInnerProductMatrixTransient.h"
 
 // DiracKernels
@@ -180,6 +183,8 @@ DwarfElephantApp::registerObjects(Factory & factory)
   registerKernel(DwarfElephantEIMFKernelTransient);
   registerKernel(DwarfElephantEIMAKernel);
   registerKernel(RBInnerProductMatrix);
+  registerKernel(DwarfElephantRBAdvectionX);
+  registerKernel(DwarfElephantRBAdvectionY);
   registerKernel(DwarfElephantRBDiffusionXX);
   registerKernel(DwarfElephantRBDiffusionXY);
   registerKernel(DwarfElephantRBDiffusionXZ);
@@ -194,6 +199,7 @@ DwarfElephantApp::registerObjects(Factory & factory)
   registerKernel(DwarfElephantRBPennesPerfusion);
   registerKernel(DwarfElephantRBThermalConduction);
   registerKernel(DwarfElephantFTestKernel);
+  registerKernel(DwarfElephantFTestKernelTransient);
   registerKernel(RBInnerProductMatrixTransient);
   //DiracKernels
   registerDiracKernel(DwarfElephantRBConstantPointSource);

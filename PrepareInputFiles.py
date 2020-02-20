@@ -70,7 +70,8 @@ SubdomainApplicability = {'Diffusion': [1,32], # (EDIT FOR 3D GEOM)
                           'Perfusion': [45, 45],
                           'Convection': [33,44]}# for convection BC
 
-TermsOfBilinearForm = {'Diffusion':['XX','XY','XZ','YX','YY','YZ','ZX','ZY','ZZ'], #(EDIT FOR 3D GEOM)
+TermsOfBilinearForm = {#'Diffusion':['XX','XY','XZ','YX','YY','YZ','ZX','ZY','ZZ'], #(EDIT FOR 3D GEOM)
+                       'Diffusion':['XX','YY','ZZ'],
                        'Perfusion':['Perf'],
                        'Convection':['Conv']}
 
@@ -103,13 +104,13 @@ for bln_form in BilinearForms:
         print AThetaDefinition
 
         for suffix in TermsOfBilinearForm[bln_form]: 
-          print "bilin form: ", bln_form, "; subdomain name :", GeomSubdomains[block_num][1], "; suffix list: ", TermsOfBilinearForm[bln_form], "; suffix: ", suffix, "; A Theta: ", AThetaDefinition[iATheta], "; AThetaPrefix: ", AThetaPrefix
-          if AThetaDefinition[iATheta].strip() != "0":
+          print "bilin form: ", bln_form, "; subdomain name :", GeomSubdomains[block_num][1], "; suffix list: ", TermsOfBilinearForm[bln_form], "; suffix: ", suffix, "; A Theta: ", AThetaDefinition[get_iATheta(suffix)], "; AThetaPrefix: ", AThetaPrefix
+          if AThetaDefinition[get_iATheta(suffix)].strip() != "0":
             AppendToKernelList(KernelList, bln_form,suffix,GeomSubdomains,block_num,ID_Aq)
             AqObjectsList.append([ID_Aq,"Diffusion"+suffix+"_"+GeomSubdomains[block_num][1]])
             Aq_object_name = "Diffusion"+suffix+"_"+GeomSubdomains[block_num][1]
             with open(RBThetaCFileName,"a") as RBThetaCFile:
-              WriteRBThetaCFile(RBThetaCFile, AThetaPrefix+Aq_object_name, AThetaDefinition[iATheta]) # write theta object definition to C file
+              WriteRBThetaCFile(RBThetaCFile, AThetaPrefix+Aq_object_name, AThetaDefinition[get_iATheta(suffix)]) # write theta object definition to C file
             ID_Aq = ID_Aq + 1
           iATheta = iATheta + 1
 
@@ -165,7 +166,7 @@ with open(RBThetaExpansionCFileName,"w") as RBThetaExpansionCFile: # write RB th
     AttachAqTheta(RBThetaExpansionCFile, AThetaPrefix, Aq_object)
   
   for subdomain in range(1,33):
-    RBThetaExpansionCFile.write("    subdomain_jac_rbthetas.push_back(rbtheta_subdomain_"+str(subdomain)+");\n")
+    RBThetaExpansionCFile.write("    subdomain_jac_rbthetas.push_back(&rbtheta_subdomain_"+str(subdomain)+");\n")
   RBThetaExpansionCFile.write("    num_subdomains = 32;\n")
   RBThetaExpansionCFile.write("}\n")
 
@@ -177,7 +178,7 @@ with open(RBThetaExpansionCFileName,"w") as RBThetaExpansionCFile: # write RB th
   for subdomain in range(1,33):
     RBThetaExpansionCFile.write("    subdomain_"+str(subdomain)+" rbtheta_subdomain_"+str(subdomain)+";\n")
 
-  RBThetaExpansionCFile.write("    std::vector<RBTheta> subdomain_jac_rbthetas;\n")
+  RBThetaExpansionCFile.write("    std::vector<RBTheta *> subdomain_jac_rbthetas;\n")
   RBThetaExpansionCFile.write("    unsigned int num_subdomains;\n")
     
 

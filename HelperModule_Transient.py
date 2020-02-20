@@ -39,17 +39,17 @@ def WriteRBThetaCFile(FileName, ThetaName, ThetaDefinition):
     NewStructTheta = TempStructTheta.replace("l_0",")(*&")#"""_mu.get_value("mu_1")""")
     
     if "r" in NewStructTheta:
-     FileName.write("    double r = 0.003;\n") 
+     FileName.write("    Real r = 0.003;\n") 
     if "l" in NewStructTheta:
-     FileName.write("  double  l = 0.05;\n") 
+     FileName.write("  Real  l = 0.05;\n") 
     if "L" in NewStructTheta:
-     FileName.write("  double L = 0.1;\n")
+     FileName.write("  Real L = 0.1;\n")
     if "k" in NewStructTheta:
-     FileName.write("   double k = 1;\n")
+     FileName.write("   Real k = 1;\n")
     if "d" in NewStructTheta:
-     FileName.write("    double d = 3*r;\n")
+     FileName.write("    Real d = 3*r;\n")
     if "h" in NewStructTheta:
-     FileName.write("    double h = 1.5*l;\n")
+     FileName.write("    Real h = 1.5*l;\n")
     TempStructTheta = NewStructTheta.replace("!@#$","""_mu.get_value("mu_0")""")
     NewStructTheta = TempStructTheta.replace(")(*&","""_mu.get_value("mu_1")""")
     FileName.write("    return "+NewStructTheta+";\n")
@@ -190,6 +190,7 @@ def PrintPerfusionBlock(mesh_block_ids,block_num,ID_Aq):
 
 def AttachMqTheta(File, MThetaPrefix, Mq_object):
     File.write("  attach_M_theta(&"+MThetaPrefix+Mq_object[1]+"_0);\n")
+    #File.write("  attach_M_theta(&_rb_theta);\n")
 
 def AttachAqTheta(File, AThetaPrefix, Aq_object):
     if (Aq_object[1] == "BoundaryTerms"):
@@ -211,10 +212,35 @@ def DeclareAqTheta(File, AThetaPrefix, Aq_object, DefaultThetaObjectExists):
       DefaultThetaObjectExists = True
     else: File.write("  "+AThetaPrefix+Aq_object[1]+" "+AThetaPrefix+Aq_object[1]+"_0;\n")
 
+def get_iATheta(subscript):
+    if (subscript == 'XX'):
+      result = 0
+    elif (subscript == 'XY'):
+      result = 1
+    elif (subscript == 'XZ'):
+      result = 2
+    elif (subscript == 'YX'):
+      result = 3
+    elif (subscript == 'YY'):
+      result = 4
+    elif (subscript == 'YZ'):
+      result = 5
+    elif (subscript == 'ZX'):
+      result = 6
+    elif (subscript == 'ZY'):
+      result = 7
+    elif (subscript == 'ZZ'):
+      result = 8
+    else:
+      print "Error: Invalid argument for subscript in get_iATheta()"
+      quit()
+    return result
+
+
 AdditionalKernels = """
-[./RB_inner_product_matrix]
-  type = RBInnerProductMatrixTransient
-[../]
+#[./RB_inner_product_matrix]
+#  type = RBInnerProductMatrixTransient
+#[../]
 """
 
 AfterKernelText = """[AuxKernels]
@@ -250,20 +276,20 @@ AfterBCText = """[Problem]
 [UserObjects]
 [./initializeRBSystem]
   type = DwarfElephantInitializeRBSystemTransient
-  use_EIM = true
-  N_max_EIM = 30
-  n_training_samples_EIM = 100
-  rel_training_tolerance_EIM = 1e-4
+  use_EIM = false#true#
+  N_max_EIM = 0#60#
+  n_training_samples_EIM = 0#200#
+  rel_training_tolerance_EIM = 1e-11
   #abs_training_tolerance_EIM = 1e-4
   parameter_names_EIM = 'mu_0 mu_1 mu_2 mu_3 mu_4'# mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_EIM = '0.001 0.002 -0.02 -0.02 -0.02'
-  parameter_max_values_EIM = '0.005 0.006 0.02 0.02 0.02'
+  parameter_min_values_EIM = '1e-3 3e-2 -0.01 -0.01 -0.01'#'0.001 0.002 -0.02 -0.02 -0.02'
+  parameter_max_values_EIM = '5e-3 7e-2 0.01 0.01 0.01'#'0.005 0.006 0.02 0.02 0.02'
   deterministic_training_EIM = false
   best_fit_type_EIM = projection
-  euler_theta_RB = 1
+  euler_theta_RB = 1 #backward euler
   execute_on = 'initial'
   N_max_RB = 20
-  n_time_steps_RB = 4
+  n_time_steps_RB = 5#10
   delta_N_RB = 1
   delta_t_RB = 0.1
   POD_tol = -1e-6 #should be negative for the transient case
@@ -272,35 +298,29 @@ AfterBCText = """[Problem]
   n_training_samples_RB = 50
   rel_training_tolerance_RB = 1.e-3
   parameter_names_RB = 'mu_0 mu_1 mu_2 mu_3 mu_4' # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_RB = '0.001 0.002 -0.02 -0.02 -0.02'
-  parameter_max_values_RB = '0.005 0.006 0.02 0.02 0.02'
+  parameter_min_values_RB = '1e-3 3e-2 -0.01 -0.01 -0.01'#'0.001 0.002 -0.02 -0.02 -0.02'
+  parameter_max_values_RB = '5e-3 7e-2 0.01 0.01 0.01'#'0.005 0.006 0.02 0.02 0.02'
   normalize_rb_bound_in_greedy = true
+  RB_RFA = false#true#
 [../]
-[./EIMInnerProductMatrixComputation]
-  type = DwarfElephantComputeEIMInnerProductMatrixTransient
-  execute_on = "EIM"
-  initialize_rb_userobject = initializeRBSystem
-[../]
+#[./EIMInnerProductMatrixComputation]
+#  type = DwarfElephantComputeEIMInnerProductMatrixTransient
+#  execute_on = "EIM"
+#  initialize_rb_userobject = initializeRBSystem
+#[../]
 [./performRBSystem ]
   type = DwarfElephantOfflineOnlineStageTransient
   #offline_stage = false
   online_stage = false
-  online_mu = '0.003 0.004 -0.01 -0.01 -0.01'
-  online_N = 6
+  online_mu = '3e-03 5e-2 0.01 0.01 0.01'#'0.003 0.004 -0.01 -0.01 -0.01'
+  mu_ref = '3e-3 5e-2 0 0 0'
+  online_N = 0
   execute_on = 'timestep_end'
 [../]
 []
 
-#[Postprocessors]
-#  [./average]
-#    type = ElementAverageValue
-#    variable = temperature
-#    execute_on = 'custom'
-#  [../]
-#[]
-
 [Outputs]
-vtk = true
+exodus = true
 # csv = true   # only required for the PostProcessors
 print_perf_log = true
   [./console]
