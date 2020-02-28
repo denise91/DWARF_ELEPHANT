@@ -39,6 +39,7 @@ class NonlinearSystemBase;
 class Assembly;
 class DwarfElephantOfflineOnlineStageTransient;
 class DwarfElephantInitializeRBSystemTransient;
+class DwarfElephantRBConstructionTransient;
 class DwarfElephantRBProblem;
 
 ///----------------------------INPUT PARAMETERS-----------------------------
@@ -95,6 +96,7 @@ class DwarfElephantOfflineOnlineStageTransient :
     EquationSystems & _es;
     TransientNonlinearImplicitSystem & _sys;
     const DwarfElephantInitializeRBSystemTransient & _initialize_rb_system;
+    DwarfElephantRBConstructionTransient * _rb_con_ptr;
 
     MooseMesh * _mesh_ptr;
 

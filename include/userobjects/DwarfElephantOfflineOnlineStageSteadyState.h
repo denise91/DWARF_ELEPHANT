@@ -97,6 +97,7 @@ class DwarfElephantOfflineOnlineStageSteadyState :
     EquationSystems & _es;
     TransientNonlinearImplicitSystem & _sys;
     const DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system;
+    DwarfElephantRBConstructionSteadyState * _rb_con_ptr;
 
     MooseMesh * _mesh_ptr;
 

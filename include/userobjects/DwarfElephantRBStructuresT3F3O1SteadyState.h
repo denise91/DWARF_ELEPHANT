@@ -21,6 +21,8 @@
 #include "DwarfElephantRBStructuresA0ThetaEqualMu0.h"
 #include "DwarfElephantRBStructuresA1ThetaEqualMu1.h"
 #include "DwarfElephantRBStructuresA2ThetaEqualMu2.h"
+#include "DwarfElephantRBStructuresA3ThetaEqualMu3.h"
+#include "DwarfElephantRBStructuresA4ThetaEqualMu4.h"
 
 
 // Forward Declarations
@@ -48,9 +50,9 @@ struct DwarfElephantRBT3F3O1SteadyStateExpansion : RBThetaExpansion
     attach_A_theta(&_theta_a_1);
     attach_A_theta(&_theta_a_2);
 
-    attach_F_theta(&_theta_a_0);
-    attach_F_theta(&_theta_a_1);
-    attach_F_theta(&_theta_a_2);
+    attach_F_theta(&_rb_theta);
+    attach_F_theta(&_theta_f_0);
+    attach_F_theta(&_theta_f_1);
 
     attach_output_theta(&_rb_theta);
   }
@@ -58,6 +60,8 @@ struct DwarfElephantRBT3F3O1SteadyStateExpansion : RBThetaExpansion
   DwarfElephantThetaA0EqualMu0 _theta_a_0;
   DwarfElephantThetaA1EqualMu1 _theta_a_1;
   DwarfElephantThetaA2EqualMu2 _theta_a_2;
+  DwarfElephantThetaA3EqualMu3 _theta_f_0;
+  DwarfElephantThetaA4EqualMu4 _theta_f_1;
   RBTheta _rb_theta;         // Default RBTheta object, simply returns one.
 };
 

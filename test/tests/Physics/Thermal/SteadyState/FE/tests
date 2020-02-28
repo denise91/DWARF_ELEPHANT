@@ -1,0 +1,12 @@
+[Tests]
+  [./FEThermalSteady]
+    type = 'Exodiff'
+    input = 'FEThermalSteady.i'
+    exodiff = 'FEThermalSteady_out.e'
+  [../]
+  [./FEThermalSteadyRadio]
+    type = 'Exodiff'
+    input = 'FEThermalSteadyRadiogenicHeatProduction.i'
+    exodiff = 'FEThermalSteadyRadiogenicHeatProduction_out.e'
+  [../]
+[]

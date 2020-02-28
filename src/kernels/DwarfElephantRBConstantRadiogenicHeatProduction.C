@@ -48,8 +48,8 @@ DwarfElephantRBConstantRadiogenicHeatProduction::computeQpResidual()
   if(!_transient)
     return (_radiogenic_heat_production/_norm_value_radiogenic_heat_production) * _test[_i][_qp];
   else
-    return (_radiogenic_heat_production/_norm_value_radiogenic_heat_production) *
-           ((_norm_value_density*_norm_value_specific_heat)/(_density*_specific_heat)) *
+    return ((_radiogenic_heat_production*_norm_value_density*_norm_value_specific_heat)/
+           (_norm_value_radiogenic_heat_production*_density*_specific_heat)) *
            _test[_i][_qp];
 }
 

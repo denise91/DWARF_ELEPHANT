@@ -74,6 +74,11 @@ class DwarfElephantInitializeRBSystemTransient :
 
     std::vector<std::vector<NumericVector <Number> *> > getOutputs() const;
 
+    DwarfElephantRBConstructionTransient * get_rb_con_ptr() const {return _rb_con_ptr;}
+    bool get_parameter_dependent_IC() const {return _parameter_dependent_IC;}
+    bool get_varying_timesteps() const {return _varying_timesteps;}
+    unsigned int get_n_time_steps() const {return _n_time_steps;}
+
 //--------------------------------PROTECTED---------------------------------
   protected:
 

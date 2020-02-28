@@ -1110,7 +1110,7 @@ DwarfElephantRBConstructionTransient::init_data()
     const unsigned int n_time_steps = get_n_time_steps();
     Real dt;
     if(varying_timesteps)
-      dt = delta_t_init;
+      dt = initialize_rb_system._delta_time;//delta_t_init;
     else
       dt = get_delta_t();
     const Real euler_theta          = get_euler_theta();

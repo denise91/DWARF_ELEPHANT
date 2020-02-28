@@ -125,21 +125,21 @@ DwarfElephantOfflineOnlineStageSteadyState::transferAffineVectors()
 void
 DwarfElephantOfflineOnlineStageSteadyState::offlineStage()
 {
-      _initialize_rb_system._rb_con_ptr->train_reduced_basis();
+      _rb_con_ptr->train_reduced_basis();
       if(_write_output){
         #if defined(LIBMESH_HAVE_CAPNPROTO)
-        RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
+        RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_rb_con_ptr->get_rb_evaluation());
         _rb_eval_writer.write_to_file("rb_eval.bin");
         #else
-        _initialize_rb_system._rb_con_ptr->get_rb_evaluation().legacy_write_offline_data_to_files(_offline_data_name, true);
+        _rb_con_ptr->get_rb_evaluation().legacy_write_offline_data_to_files(_offline_data_name, true);
         #endif
     }
 
     // If desired, store the basis functions (xdr format).
     if (_store_basis_functions)
-      _initialize_rb_system._rb_con_ptr->get_rb_evaluation().write_out_basis_functions(*_initialize_rb_system._rb_con_ptr, _offline_data_name, true);
+      _rb_con_ptr->get_rb_evaluation().write_out_basis_functions(*_rb_con_ptr, _offline_data_name, true);
 
-//    _initialize_rb_system._rb_con_ptr->print_basis_function_orthogonality();
+//    _rb_con_ptr->print_basis_function_orthogonality();
 }
 
 void
@@ -158,6 +158,7 @@ DwarfElephantOfflineOnlineStageSteadyState::setOnlineParameters()
 void
 DwarfElephantOfflineOnlineStageSteadyState::initialize()
 {
+  _rb_con_ptr=_initialize_rb_system.get_rb_con_ptr();
 }
 
 void
@@ -170,11 +171,11 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
     // RBConstruction object
 
     if(!_offline_stage && (_output_file || _store_basis_functions_sorted))
-      _initialize_rb_system._rb_con_ptr->init();
+      _rb_con_ptr->init();
 
 
     if(_offline_stage || _output_file || _offline_error_bound || _online_N == 0 || _store_basis_functions_sorted)
-      _initialize_rb_system._rb_con_ptr->set_rb_evaluation(_rb_eval);
+      _rb_con_ptr->set_rb_evaluation(_rb_eval);
 
     if (_offline_stage)
     {
@@ -187,17 +188,24 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
         setAffineMatrices();
 
 
-    //   SparseMatrix<Number> * _aq0 = _initialize_rb_system._rb_con_ptr->get_Aq(0);
+    // TODO: add a function to extract matricies and vectors for further RB analyses
+    //   SparseMatrix<Number> * _aq0 = _rb_con_ptr->get_Aq(0);
     //     _aq0->print_matlab("Aq0");
-    //   SparseMatrix<Number> * _aq1 = _initialize_rb_system._rb_con_ptr->get_Aq(1);
+    //   SparseMatrix<Number> * _aq1 = _rb_con_ptr->get_Aq(1);
     //       _aq1->print_matlab("Aq1");
-    // SparseMatrix<Number> * _aq2 = _initialize_rb_system._rb_con_ptr->get_Aq(2);
+    //   SparseMatrix<Number> * _aq2 = _rb_con_ptr->get_Aq(2);
     //       _aq2->print_matlab("Aq2");
+    //   SparseMatrix<Number> * _aq3 = _rb_con_ptr->get_Aq(3);
+    //       _aq3->print_matlab("Aq3");
+    //   SparseMatrix<Number> * _aq4 = _rb_con_ptr->get_Aq(4);
+    //       _aq4->print_matlab("Aq4");
+    //   SparseMatrix<Number> * _aq5 = _rb_con_ptr->get_Aq(5);
+    //       _aq5->print_matlab("Aq5");
     //
-    // SparseMatrix<Number> * _inner = _initialize_rb_system._rb_con_ptr->get_inner_product_matrix();
+    // SparseMatrix<Number> * _inner = _rb_con_ptr->get_inner_product_matrix();
     //             _inner->print_matlab("InnerProductMatrix");
     //
-    //   NumericVector<Number> * _fq0 = _initialize_rb_system._rb_con_ptr->get_Fq(0);
+    //   NumericVector<Number> * _fq0 = _rb_con_ptr->get_Fq(0);
     //     _fq0->print_matlab("Fq0");
 
       // Perform the offline stage.
@@ -222,7 +230,7 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
       // _norm_factor = 1.0;//_rb_eval.get_error_bound_normalization();
 
       if(_online_N==0)
-        _online_N = _initialize_rb_system._rb_con_ptr->get_rb_evaluation().get_n_basis_functions();
+        _online_N = _rb_con_ptr->get_rb_evaluation().get_n_basis_functions();
 
 
       setOnlineParameters();
@@ -232,7 +240,7 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
       _rb_eval.print_parameters();
 
       if(_offline_error_bound)
-       _initialize_rb_system._rb_con_ptr->get_rb_evaluation().evaluate_RB_error_bound = false;
+       _rb_con_ptr->get_rb_evaluation().evaluate_RB_error_bound = false;
 
       _rb_eval.rb_solve(_online_N);
 
@@ -262,11 +270,11 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
 
       if(_output_file)
       {
-        _rb_eval.read_in_basis_functions(*_initialize_rb_system._rb_con_ptr, _offline_data_name, true);
+        _rb_eval.read_in_basis_functions(*_rb_con_ptr, _offline_data_name, true);
         if(_load_basis_function)
-          _initialize_rb_system._rb_con_ptr->load_basis_function(_basis_function_number);
+          _rb_con_ptr->load_basis_function(_basis_function_number);
         else
-        _initialize_rb_system._rb_con_ptr->load_rb_solution();
+        _rb_con_ptr->load_rb_solution();
          *_es.get_system(_system_name).solution = *_es.get_system("RBSystem").solution;
          _fe_problem.getNonlinearSystemBase().update();
 //        How to write own Exodus file  // not required anymore
@@ -275,26 +283,26 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
 //        std::string _systems_for_print[] = {"RBSystem"};
 //        const std::set<std::string>  _system_names_for_print (_systems_for_print, _systems_for_print+sizeof(_systems_for_print)/sizeof(_systems_for_print[0]));
 //
-//        _rb_eval.read_in_basis_functions(*_initialize_rb_system._rb_con_ptr);
-//        _initialize_rb_system._rb_con_ptr->load_rb_solution();
+//        _rb_eval.read_in_basis_functions(*_rb_con_ptr);
+//        _rb_con_ptr->load_rb_solution();
 //
 //        ExodusII_IO(_mesh_ptr->getMesh()).write_equation_systems("TestDakotaRB.e", _es, &_system_names_for_print);
 ////
-////      _initialize_rb_system._rb_con_ptr->load_basis_function(0);
+////      _rb_con_ptr->load_basis_function(0);
 ////      ExodusII_IO(_mesh_ptr->getMesh()).write_equation_systems("bf0.e", _es);
       }
 
       if(_store_basis_functions_sorted)
       {
         if(!_output_file)
-          _rb_eval.read_in_basis_functions(*_initialize_rb_system._rb_con_ptr, _offline_data_name, true);
+          _rb_eval.read_in_basis_functions(*_rb_con_ptr, _offline_data_name, true);
 
         std::ofstream basis_function_file;
-        _n_bfs = _initialize_rb_system._rb_con_ptr->get_rb_evaluation().get_n_basis_functions();
+        _n_bfs = _rb_con_ptr->get_rb_evaluation().get_n_basis_functions();
         for (unsigned int i = 0; i != _n_bfs; i++)
         {
           basis_function_file.open(_offline_data_name+"/basis_function"+std::to_string(i), std::ios::app | std::ios::binary);
-          basis_function_file << _initialize_rb_system._rb_con_ptr->get_rb_evaluation().get_basis_function(i);
+          basis_function_file << _rb_con_ptr->get_rb_evaluation().get_basis_function(i);
           basis_function_file.close();
         }
       }

@@ -1,0 +1,17 @@
+[Tests]
+  [./RBThermalTransient]
+    type = 'Exodiff'
+    input = 'RBThermalTransient.i'
+    exodiff = 'RBThermalTransient_out.e'
+  [../]
+  [./RBThermalTransientRadioConstant]
+    type = 'Exodiff'
+    input = 'RBThermalTransientRadiogenicHeatProductionConstant.i'
+    exodiff = 'RBThermalTransientRadiogenicHeatProductionConstant_out.e'
+  [../]
+  [./RBThermalTransientRadioVarying]
+    type = 'Exodiff'
+    input = 'RBThermalTransientRadiogenicHeatProductionVarying.i'
+    exodiff = 'RBThermalTransientRadiogenicHeatProductionVarying_out.e'
+  [../]
+[]

@@ -70,6 +70,8 @@ class DwarfElephantInitializeRBSystemSteadyState :
 
     std::vector<std::vector<NumericVector <Number> *> > getOutputs() const;
 
+    DwarfElephantRBConstructionSteadyState * get_rb_con_ptr() const {return _rb_con_ptr;}
+
 //--------------------------------PROTECTED---------------------------------
   protected:
 

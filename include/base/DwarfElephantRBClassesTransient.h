@@ -221,7 +221,7 @@ public:
   std::vector<DenseVector<Number>> RB_moose_theta_object_q;
 
   // DwarfElephantRBT6F4O1M3TransientExpansion _rb_theta_expansion;
-  DwarfElephantRBT8F9O1M1TransientExpansion _rb_theta_expansion;
+  DwarfElephantRBT3F1O1M1TransientExpansion _rb_theta_expansion;
   // DwarfElephantRBT5F4O1M2TransientExpansion _rb_theta_expansion;
   // DwarfElephantRBT6F6O1M1TransientExpansion _rb_theta_expansion;
 };
