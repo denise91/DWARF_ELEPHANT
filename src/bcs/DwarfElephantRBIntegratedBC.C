@@ -16,16 +16,11 @@ InputParameters validParams<DwarfElephantRBIntegratedBC>()
   params.addRequiredParam<UserObjectName>("initial_rb_userobject", "Name of the UserObject for initializing the RB system");
   params.addParam<std::string>("simulation_type", "steady", "Determines whether the simulation is steady state or transient.");
   params.addParam<unsigned int>("ID_Aq", 0, "ID of the current stiffness matrix.");
-  params.addParam<unsigned int>("ID_Aq_split", 0, "ID of the current stiffness matrix.");
-  params.addParam<std::vector<unsigned int>>("subdomain_split", "ID of the current stiffness matrix.");
   params.addParam<unsigned int>("ID_Mq", 0, "ID of the current mass matrix.");
-  params.addParam<unsigned int>("ID_Mq_split", 0, "Defines the number that has to be added to the subdomain ID to get the correct mass matrix ID. This is only required when the boundary is splitted into the subdomains.");
   params.addParam<unsigned int>("ID_Fq", 0, "ID of the current load vector.");
-  params.addParam<unsigned int>("ID_Fq_split", 0, "Defines the number that has to be added to the subdomain ID to get the correct load vector ID. This is only required when the boundary is splitted into the subdomains.");
   params.addParam<unsigned int>("ID_Oq", 0, "ID of the current output vector.");
   params.addParam<bool>("matrix_seperation_according_to_subdomains", true, "Tells whether the stiffness matrix is separated according to the subdomain_ids");
   params.addParam<bool>("compute_output",false,"Determines whether an output function is used or not");
-  params.addParam<bool>("split_boundary_according_to_subdomains", false, "Determines whether boundary will be splitted or not.");
   params.addParam<bool>("compliant", false, "Specifies if you have a compliant or non-compliant case.");
 
   return params;
@@ -37,16 +32,11 @@ DwarfElephantRBIntegratedBC::DwarfElephantRBIntegratedBC(const InputParameters &
     _matrix_seperation_according_to_subdomains(getParam<bool>("matrix_seperation_according_to_subdomains")),
     _compute_output(getParam<bool>("compute_output")),
     _compliant(getParam<bool>("compliant")),
-    _split_boundary_according_to_subdomains(getParam<bool>("split_boundary_according_to_subdomains")),
     _simulation_type(getParam<std::string>("simulation_type")),
     _ID_first_block(*_fe_problem.mesh().meshSubdomains().begin()),
     _ID_Aq(getParam<unsigned int>("ID_Aq")),
-    _ID_Aq_split(getParam<unsigned int>("ID_Aq_split")),
-    _subdomain_split(getParam<std::vector<unsigned int>>("subdomain_split")),
     _ID_Mq(getParam<unsigned int>("ID_Mq")),
-    _ID_Mq_split(getParam<unsigned int>("ID_Mq_split")),
     _ID_Fq(getParam<unsigned int>("ID_Fq")),
-    _ID_Fq_split(getParam<unsigned int>("ID_Fq_split")),
     _ID_Oq(getParam<unsigned int>("ID_Oq")),
     _es(_use_displaced ? _fe_problem.getDisplacedProblem()->es() : _fe_problem.es())
 {
@@ -71,13 +61,6 @@ DwarfElephantRBIntegratedBC::initialSetup()
 void
 DwarfElephantRBIntegratedBC::computeResidual()
 {
-  if(_split_boundary_according_to_subdomains)
-  {
-    unsigned int _ID_inter = _current_elem->subdomain_id();
-    if (_ID_inter >= _subdomain_split[0] && _ID_inter <= _subdomain_split[_subdomain_split.size()-1])
-      _ID_Aq_split = _ID_inter - _ID_first_block;
-  }
-
   DenseVector<Number> & re = _assembly.residualBlock(_var.number());
   _local_re.resize(re.size());
   _local_re.zero();
@@ -94,24 +77,13 @@ DwarfElephantRBIntegratedBC::computeResidual()
       // Add the calculated vectors to the vectors from the RB system.
       if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
       {
-        if (!_split_boundary_according_to_subdomains)
-        {
-          if (_ID_Fq >= _initialize_rb_system->_qf)
-            mooseError("The number of load vectors you defined here is not matching the number of load vectors you specified in the RBClasses Class.");
+        if (_ID_Fq >= _initialize_rb_system->_qf)
+          mooseError("The number of load vectors you defined here is not matching the number of load vectors you specified in the RBClasses Class.");
 
-          _initialize_rb_system->_residuals[_ID_Fq] -> add_vector(_local_re, _var.dofIndices());
+        _initialize_rb_system->_residuals[_ID_Fq] -> add_vector(_local_re, _var.dofIndices());
 
-          if (_compliant)
-            _initialize_rb_system->_outputs[_ID_Fq][0] -> add_vector(_local_re, _var.dofIndices());
-        } else {
-          if (_ID_Aq_split + _ID_Fq_split >= _initialize_rb_system->_qf)
-            mooseError("The number of load vectors you defined here is not matching the number of load vectors you specified in the RBClasses Class.");
-
-            _initialize_rb_system->_residuals[_ID_Aq_split + _ID_Fq_split] -> add_vector(_local_re, _var.dofIndices());
-
-            if(_compliant)
-              _initialize_rb_system->_outputs[_ID_Aq_split + _ID_Fq_split][0] -> add_vector(_local_re, _var.dofIndices());
-        }
+        if (_compliant)
+          _initialize_rb_system->_outputs[_ID_Fq][0] -> add_vector(_local_re, _var.dofIndices());
       }
   }
 
@@ -121,24 +93,13 @@ DwarfElephantRBIntegratedBC::computeResidual()
       // Add the calculated vectors to the vectors from the RB system.
     if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
     {
-      if (!_split_boundary_according_to_subdomains)
-      {
-        if (_ID_Fq >= _initialize_rb_system_transient->_qf)
-          mooseError("The number of load vectors you defined here is not matching the number of load vectors you specified in the RBClasses Class.");
+      if (_ID_Fq >= _initialize_rb_system_transient->_qf)
+        mooseError("The number of load vectors you defined here is not matching the number of load vectors you specified in the RBClasses Class.");
 
-        _initialize_rb_system_transient->_residuals[_ID_Fq] -> add_vector(_local_re, _var.dofIndices());
+      _initialize_rb_system_transient->_residuals[_ID_Fq] -> add_vector(_local_re, _var.dofIndices());
 
-        if (_compliant)
-          _initialize_rb_system_transient->_outputs[_ID_Fq][0] -> add_vector(_local_re, _var.dofIndices());
-        } else {
-          if (_ID_Aq_split + _ID_Fq_split >= _initialize_rb_system_transient->_qf)
-            mooseError("The number of load vectors you defined here is not matching the number of load vectors you specified in the RBClasses Class.");
-
-          _initialize_rb_system_transient->_residuals[_ID_Aq_split + _ID_Fq_split] -> add_vector(_local_re, _var.dofIndices());
-
-          if(_compliant)
-            _initialize_rb_system_transient->_outputs[_ID_Aq_split + _ID_Fq_split][0] -> add_vector(_local_re, _var.dofIndices());
-        }
+      if (_compliant)
+        _initialize_rb_system_transient->_outputs[_ID_Fq][0] -> add_vector(_local_re, _var.dofIndices());
       }
     }
 

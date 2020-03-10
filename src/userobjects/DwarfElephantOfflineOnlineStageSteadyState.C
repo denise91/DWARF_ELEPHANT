@@ -189,24 +189,24 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
 
 
     // TODO: add a function to extract matricies and vectors for further RB analyses
-    //   SparseMatrix<Number> * _aq0 = _rb_con_ptr->get_Aq(0);
-    //     _aq0->print_matlab("Aq0");
-    //   SparseMatrix<Number> * _aq1 = _rb_con_ptr->get_Aq(1);
-    //       _aq1->print_matlab("Aq1");
-    //   SparseMatrix<Number> * _aq2 = _rb_con_ptr->get_Aq(2);
-    //       _aq2->print_matlab("Aq2");
-    //   SparseMatrix<Number> * _aq3 = _rb_con_ptr->get_Aq(3);
-    //       _aq3->print_matlab("Aq3");
-    //   SparseMatrix<Number> * _aq4 = _rb_con_ptr->get_Aq(4);
-    //       _aq4->print_matlab("Aq4");
-    //   SparseMatrix<Number> * _aq5 = _rb_con_ptr->get_Aq(5);
-    //       _aq5->print_matlab("Aq5");
-    //
-    // SparseMatrix<Number> * _inner = _rb_con_ptr->get_inner_product_matrix();
-    //             _inner->print_matlab("InnerProductMatrix");
-    //
-    //   NumericVector<Number> * _fq0 = _rb_con_ptr->get_Fq(0);
-    //     _fq0->print_matlab("Fq0");
+      SparseMatrix<Number> * _aq0 = _rb_con_ptr->get_Aq(0);
+        _aq0->print_matlab("Aq0");
+      SparseMatrix<Number> * _aq1 = _rb_con_ptr->get_Aq(1);
+          _aq1->print_matlab("Aq1");
+      SparseMatrix<Number> * _aq2 = _rb_con_ptr->get_Aq(2);
+          _aq2->print_matlab("Aq2");
+      SparseMatrix<Number> * _aq3 = _rb_con_ptr->get_Aq(3);
+          _aq3->print_matlab("Aq3");
+      SparseMatrix<Number> * _aq4 = _rb_con_ptr->get_Aq(4);
+          _aq4->print_matlab("Aq4");
+      SparseMatrix<Number> * _aq5 = _rb_con_ptr->get_Aq(5);
+          _aq5->print_matlab("Aq5");
+
+    SparseMatrix<Number> * _inner = _rb_con_ptr->get_inner_product_matrix();
+                _inner->print_matlab("InnerProductMatrix");
+
+      NumericVector<Number> * _fq0 = _rb_con_ptr->get_Fq(0);
+        _fq0->print_matlab("Fq0");
 
       // Perform the offline stage.
       _console << std::endl;

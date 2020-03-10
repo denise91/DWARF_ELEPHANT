@@ -1,0 +1,7 @@
+[Tests]
+  [./FEDarcySteady]
+    type = 'Exodiff'
+    input = 'FEDarcySteady.i'
+    exodiff = 'FEDarcySteady_out.e'
+  [../]
+[]

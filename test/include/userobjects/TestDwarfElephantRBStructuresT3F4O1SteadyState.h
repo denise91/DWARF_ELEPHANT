@@ -9,8 +9,8 @@
   */
 
 ///-------------------------------------------------------------------------
-#ifndef TESTDWARFELEPHANTRBSTRUCTUREST3F1O1STEADYSTATE_H
-#define TESTDWARFELEPHANTRBSTRUCTUREST3F1O1STEADYSTATE_H
+#ifndef TESTDWARFELEPHANTRBSTRUCTUREST3F4O1STEADYSTATE_H
+#define TESTDWARFELEPHANTRBSTRUCTUREST3F4O1STEADYSTATE_H
 
 ///---------------------------------INCLUDES--------------------------------
 // libMesh includes (RB package)
@@ -44,9 +44,9 @@ namespace libMesh
  *
  */
 
-struct TestDwarfElephantRBT3F1O1SteadyStateExpansion : RBThetaExpansion
+struct TestDwarfElephantRBT3F4O1SteadyStateExpansion : RBThetaExpansion
 {
-  TestDwarfElephantRBT3F1O1SteadyStateExpansion()
+  TestDwarfElephantRBT3F4O1SteadyStateExpansion()
   {
     // Setting up the RBThetaExpansion object
     attach_A_theta(&_theta_a_0);
@@ -69,4 +69,4 @@ struct TestDwarfElephantRBT3F1O1SteadyStateExpansion : RBThetaExpansion
 };
 
 ///-------------------------------------------------------------------------
-#endif // DWARFELEPHANTRBSTRUCTUREST3F1O1STEADYSTATE_H
+#endif // DWARFELEPHANTRBSTRUCTUREST3F4O1STEADYSTATE_H

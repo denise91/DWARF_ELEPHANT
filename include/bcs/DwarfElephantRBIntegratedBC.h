@@ -65,21 +65,14 @@ protected:
   bool _matrix_seperation_according_to_subdomains;
   bool _compute_output;
   bool _compliant;
-  bool _split_boundary_according_to_subdomains;
 
   std::string _simulation_type;
 
   unsigned int _ID_first_block;
   unsigned int _ID_Aq;
-  unsigned int _ID_Aq_split;
-  std::vector<unsigned int> _subdomain_split;
   unsigned int _ID_Mq;
-  unsigned int _ID_Mq_split;
   unsigned int _ID_Fq;
-  unsigned int _ID_Fq_split;
   unsigned int _ID_Oq;
-
-  Real _output_volume;
 
   DenseVector<Number> _local_out;
   EquationSystems & _es;

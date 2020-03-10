@@ -1,0 +1,17 @@
+[Tests]
+  [./FEDarcyTransient]
+    type = 'Exodiff'
+    input = 'FEDarcyTransient.i'
+    exodiff = 'FEDarcyTransient_out.e'
+  [../]
+  [./FEDarcyTransientStorage]
+    type = 'Exodiff'
+    input = 'FEDarcyTransientStorage.i'
+    exodiff = 'FEDarcyTransientStorage_out.e'
+  [../]
+  [./FEDarcyTransientStorageDirac]
+    type = 'Exodiff'
+    input = 'FEDarcyTransientStorageDirac.i'
+    exodiff = 'FEDarcyTransientStorageDirac_out.e'
+  [../]
+[]

@@ -1,0 +1,27 @@
+[Tests]
+  [./RBDarcyTransient]
+    type = 'Exodiff'
+    input = 'RBDarcyTransient.i'
+    exodiff = 'RBDarcyTransient_out.e'
+  [../]
+  [./RBDarcyTransientStorageConstant]
+    type = 'Exodiff'
+    input = 'RBDarcyTransientStorageConstant.i'
+    exodiff = 'RBDarcyTransientStorageConstant_out.e'
+  [../]
+  [./RBDarcyTransientStorageVarying]
+    type = 'Exodiff'
+    input = 'RBDarcyTransientStorageVarying.i'
+    exodiff = 'RBDarcyTransientStorageVarying_out.e'
+  [../]
+  [./RBDarcyTransientStorageDiracConstant]
+    type = 'Exodiff'
+    input = 'RBDarcyTransientStorageDiracConstant.i'
+    exodiff = 'RBDarcyTransientStorageDiracConstant_out.e'
+  [../]
+  [./RBDarcyTransientStorageDiracVarying]
+    type = 'Exodiff'
+    input = 'RBDarcyTransientStorageDiracVarying.i'
+    exodiff = 'RBDarcyTransientStorageDiracVarying_out.e'
+  [../]
+[]
