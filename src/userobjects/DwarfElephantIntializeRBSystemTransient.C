@@ -324,9 +324,3 @@ void
 DwarfElephantInitializeRBSystemTransient::finalize()
 {
 }
-
-std::vector<std::vector<NumericVector <Number> *> >
-DwarfElephantInitializeRBSystemTransient::getOutputs() const
-{
-  return _outputs;
-}

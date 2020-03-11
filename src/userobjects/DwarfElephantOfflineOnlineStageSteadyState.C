@@ -86,12 +86,12 @@ DwarfElephantOfflineOnlineStageSteadyState::DwarfElephantOfflineOnlineStageStead
 void
 DwarfElephantOfflineOnlineStageSteadyState::setAffineMatrices()
 {
-   _initialize_rb_system._inner_product_matrix -> close();
-    for(unsigned int _q=0; _q<_initialize_rb_system._qa; _q++)
+   _initialize_rb_system.getInnerProductMatrix() -> close();
+    for(unsigned int _q=0; _q<_initialize_rb_system.getQa(); _q++)
     {
-      _rb_problem->rbAssembly(_q).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]);
-      _initialize_rb_system._jacobian_subdomain[_q] ->close();
-      _initialize_rb_system._inner_product_matrix->add(_mu_bar, *_initialize_rb_system._jacobian_subdomain[_q]);
+      _rb_problem->rbAssembly(_q).setCachedJacobianContributions(*_initialize_rb_system.getJacobianSubdomain()[_q]);
+      _initialize_rb_system.getJacobianSubdomain()[_q] ->close();
+      _initialize_rb_system.getInnerProductMatrix()->add(_mu_bar, *_initialize_rb_system.getJacobianSubdomain()[_q]);
     }
 }
 
@@ -100,10 +100,10 @@ DwarfElephantOfflineOnlineStageSteadyState::transferAffineVectors()
 {
     // Transfer the vectors
     // Transfer the data for the F vectors.
-    for(unsigned int _q=0; _q<_initialize_rb_system._qf; _q++)
+    for(unsigned int _q=0; _q<_initialize_rb_system.getQf(); _q++)
     {
-      _rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system._residuals[_q]);
-      _initialize_rb_system._residuals[_q]->close();
+      _rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system.getResiduals()[_q]);
+      _initialize_rb_system.getResiduals()[_q]->close();
     }
 
     // The RB code runs into problems for non-homogeneous boundary conditions
@@ -113,7 +113,7 @@ DwarfElephantOfflineOnlineStageSteadyState::transferAffineVectors()
     //   // Transfer the data for the output vectors.
     //   for(unsigned int i=0; i < _initialize_rb_system._n_outputs; i++)
     //   {
-    //     for(unsigned int _q=0; _q < _initialize_rb_system._ql[i]; _q++)
+    //     for(unsigned int _q=0; _q < _initialize_rb_system.getQl[i]; _q++)
     //     {
     //       _rb_problem->rbAssembly(i).setCachedResidual(*_initialize_rb_system._outputs[i][_q]);
     //       _initialize_rb_system._outputs[i][_q]->close();
@@ -188,25 +188,25 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
         setAffineMatrices();
 
 
-    // TODO: add a function to extract matricies and vectors for further RB analyses
-      SparseMatrix<Number> * _aq0 = _rb_con_ptr->get_Aq(0);
-        _aq0->print_matlab("Aq0");
-      SparseMatrix<Number> * _aq1 = _rb_con_ptr->get_Aq(1);
-          _aq1->print_matlab("Aq1");
-      SparseMatrix<Number> * _aq2 = _rb_con_ptr->get_Aq(2);
-          _aq2->print_matlab("Aq2");
-      SparseMatrix<Number> * _aq3 = _rb_con_ptr->get_Aq(3);
-          _aq3->print_matlab("Aq3");
-      SparseMatrix<Number> * _aq4 = _rb_con_ptr->get_Aq(4);
-          _aq4->print_matlab("Aq4");
-      SparseMatrix<Number> * _aq5 = _rb_con_ptr->get_Aq(5);
-          _aq5->print_matlab("Aq5");
-
-    SparseMatrix<Number> * _inner = _rb_con_ptr->get_inner_product_matrix();
-                _inner->print_matlab("InnerProductMatrix");
-
-      NumericVector<Number> * _fq0 = _rb_con_ptr->get_Fq(0);
-        _fq0->print_matlab("Fq0");
+    // // TODO: add a function to extract matricies and vectors for further RB analyses
+    //   SparseMatrix<Number> * _aq0 = _rb_con_ptr->get_Aq(0);
+    //     _aq0->print_matlab("Aq0");
+    //   SparseMatrix<Number> * _aq1 = _rb_con_ptr->get_Aq(1);
+    //       _aq1->print_matlab("Aq1");
+    //   SparseMatrix<Number> * _aq2 = _rb_con_ptr->get_Aq(2);
+    //       _aq2->print_matlab("Aq2");
+    //   SparseMatrix<Number> * _aq3 = _rb_con_ptr->get_Aq(3);
+    //       _aq3->print_matlab("Aq3");
+    //   SparseMatrix<Number> * _aq4 = _rb_con_ptr->get_Aq(4);
+    //       _aq4->print_matlab("Aq4");
+    //   SparseMatrix<Number> * _aq5 = _rb_con_ptr->get_Aq(5);
+    //       _aq5->print_matlab("Aq5");
+    //
+    // SparseMatrix<Number> * _inner = _rb_con_ptr->get_inner_product_matrix();
+    //             _inner->print_matlab("InnerProductMatrix");
+    //
+    //   NumericVector<Number> * _fq0 = _rb_con_ptr->get_Fq(0);
+    //     _fq0->print_matlab("Fq0");
 
       // Perform the offline stage.
       _console << std::endl;

@@ -210,9 +210,3 @@ void
 DwarfElephantInitializeRBSystemSteadyState::finalize()
 {
 }
-
-std::vector<std::vector<NumericVector <Number> *> >
-DwarfElephantInitializeRBSystemSteadyState::getOutputs() const
-{
-  return _outputs;
-}

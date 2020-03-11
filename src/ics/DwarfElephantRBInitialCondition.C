@@ -536,13 +536,13 @@ DwarfElephantRBInitialCondition::compute()
       const std::set< SubdomainID > & _node_boundary_list = _fe_problem.mesh().getNodeBlockIds(*_current_elem->get_nodes()[i]);
 
       if ((_node_boundary_list.size()>1 && _vector_separation_according_to_subdomains) || (_node_boundary_list.size()>1 && _shared_node_separation_according_to_subdomains))
-        _initialize_rb_system._inital_conditions[*_node_boundary_list.begin()]->set(dof_indices[i], Ue(i));
+        _initialize_rb_system.getInitialConditions()[*_node_boundary_list.begin()]->set(dof_indices[i], Ue(i));
       else if ((_node_boundary_list.size()>1 && !_vector_separation_according_to_subdomains) || (_node_boundary_list.size()>1 && !_shared_node_separation_according_to_subdomains))
       {
-        _initialize_rb_system._inital_conditions[_ID_IC_q_for_shared_nodes]->set(dof_indices[i], Ue(i));
+        _initialize_rb_system.getInitialConditions()[_ID_IC_q_for_shared_nodes]->set(dof_indices[i], Ue(i));
       }
       else
-        _initialize_rb_system._inital_conditions[_ID_IC_q]->set(dof_indices[i], Ue(i));
+        _initialize_rb_system.getInitialConditions()[_ID_IC_q]->set(dof_indices[i], Ue(i));
     }
   }
 }

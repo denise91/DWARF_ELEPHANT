@@ -1078,10 +1078,10 @@ DwarfElephantRBConstructionTransient::init_data()
     RBParameters mu_time;
     RBParameters mu_init;
 
-    if(initialize_rb_system._rb_con_ptr->time_dependent_parameter || varying_timesteps)
+    if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter || varying_timesteps)
         time = 0;
 
-    if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+    if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
     {
       // const DwarfElephantRBStartEndTimeMuAction & act = fe_problem.getMooseApp().actionWarehouse().getAction<DwarfElephantRBStartEndTimeMuAction>("RBStartEndTimeMu");
       // DwarfElephantRBStartEndTimeMuAction & act_nc = const_cast<DwarfElephantRBStartEndTimeMuAction&>(act);
@@ -1110,7 +1110,7 @@ DwarfElephantRBConstructionTransient::init_data()
     const unsigned int n_time_steps = get_n_time_steps();
     Real dt;
     if(varying_timesteps)
-      dt = initialize_rb_system._delta_time;//delta_t_init;
+      dt = initialize_rb_system.getDeltaTime();//delta_t_init;
     else
       dt = get_delta_t();
     const Real euler_theta          = get_euler_theta();
@@ -1129,7 +1129,7 @@ DwarfElephantRBConstructionTransient::init_data()
     DenseMatrix<Number> RB_mass_matrix_N(N,N);
     RB_mass_matrix_N.zero();
     DenseMatrix<Number> RB_M_q_m;
-    if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+    if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
     {
       for (unsigned int q_m=0; q_m<Q_m; q_m++)
       {
@@ -1154,7 +1154,7 @@ DwarfElephantRBConstructionTransient::init_data()
     RB_RHS_matrix.add(1./dt, RB_mass_matrix_N);
 
     DenseMatrix<Number> RB_Aq_a;
-    if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+    if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
     {
       for (unsigned int q_a=0; q_a<Q_a; q_a++)
       {
@@ -1178,7 +1178,7 @@ DwarfElephantRBConstructionTransient::init_data()
     // DenseVector<Number> RB_moose_theta_n;
     RB_RHS_save.resize(N);
     RB_RHS_save.zero();
-    if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+    if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
     {
       for (unsigned int q_f=0; q_f<Q_f; q_f++)
       {
@@ -1212,7 +1212,7 @@ DwarfElephantRBConstructionTransient::init_data()
           DenseMatrix<Number> RB_L2_matrix_N;
 
           DenseVector<Number> RB_IC_q_f;
-          if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+          if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
           {
             for (unsigned int q_ic=0; q_ic<dwarf_elephant_trans_theta_expansion.get_n_IC_terms(); q_ic++)
             {
@@ -1257,7 +1257,7 @@ DwarfElephantRBConstructionTransient::init_data()
     // Set outputs at initial time
     {
       DenseVector<Number> RB_output_vector_N;
-      if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+      if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
       {
         for (unsigned int n=0; n<trans_theta_expansion.get_n_outputs(); n++)
         {
@@ -1293,7 +1293,7 @@ DwarfElephantRBConstructionTransient::init_data()
         // Set error bound at the initial time
           error_bound_all_k[get_time_step()] = std::sqrt(error_bound_sum);
         DenseVector<Number> RB_output_vector_N;
-        if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+        if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
         {
           for (unsigned int n=0; n<trans_theta_expansion.get_n_outputs(); n++)
           {
@@ -1318,7 +1318,7 @@ DwarfElephantRBConstructionTransient::init_data()
           }
         }
 
-        if(!initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+        if(!initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
         {
           alpha_LB = get_stability_lower_bound();
 
@@ -1327,12 +1327,12 @@ DwarfElephantRBConstructionTransient::init_data()
         }
       }
 
-    if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+    if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
       set_parameters(mu_init);
 
     for (unsigned int time_level=1; time_level<=n_time_steps; time_level++)
       {
-        if(varying_timesteps && !initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+        if(varying_timesteps && !initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
         {
           RB_LHS_matrix.zero();
           RB_RHS_matrix.zero();
@@ -1347,12 +1347,12 @@ DwarfElephantRBConstructionTransient::init_data()
               RB_LHS_matrix.add(       euler_theta*trans_theta_expansion.eval_A_theta(q_a,mu), RB_Aq_a);
               RB_RHS_matrix.add( -(1.-euler_theta)*trans_theta_expansion.eval_A_theta(q_a,mu), RB_Aq_a);
             }
-        }else if((!varying_timesteps && initialize_rb_system._rb_con_ptr->time_dependent_parameter)||(varying_timesteps && initialize_rb_system._rb_con_ptr->time_dependent_parameter))
+        }else if((!varying_timesteps && initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)||(varying_timesteps && initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter))
         {
           // Set time dependency for the parameter
           time += dt;
 
-          ID_param = initialize_rb_system._rb_con_ptr->ID_param;
+          ID_param = initialize_rb_system.get_rb_con_ptr()->ID_param;
 
           // const DwarfElephantRBStartEndTimeMuAction & act = fe_problem.getMooseApp().actionWarehouse().getAction<DwarfElephantRBStartEndTimeMuAction>("RBStartEndTimeMu");
           // DwarfElephantRBStartEndTimeMuAction & act_nc = const_cast<DwarfElephantRBStartEndTimeMuAction&>(act);
@@ -1415,7 +1415,7 @@ DwarfElephantRBConstructionTransient::init_data()
 
         // Evaluate outputs
         DenseVector<Number> RB_output_vector_N;
-        if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+        if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
         {
           for (unsigned int n=0; n<trans_theta_expansion.get_n_outputs(); n++)
           {
@@ -1459,7 +1459,7 @@ DwarfElephantRBConstructionTransient::init_data()
               error_bound_all_k[time_level] = std::sqrt(error_bound_sum/residual_scaling_denom(alpha_LB));
 
             // Now evaluated output error bounds
-            if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+            if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
             {
               for (unsigned int n=0; n<trans_theta_expansion.get_n_outputs(); n++)
               {
@@ -1492,7 +1492,7 @@ DwarfElephantRBConstructionTransient::init_data()
             // }
           }
 
-          if(initialize_rb_system._rb_con_ptr->time_dependent_parameter)
+          if(initialize_rb_system.get_rb_con_ptr()->time_dependent_parameter)
             set_parameters(mu_init);
 
       }

@@ -120,7 +120,7 @@ DwarfElephantRBProblem::setReducedInitialCondition()
   const DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
     getUserObject<DwarfElephantInitializeRBSystemTransient>(_initial_rb_userobject);
 
-  _initialize_rb_system._rb_con_ptr->set_rb_evaluation(_rb_eval);
+  _initialize_rb_system.get_rb_con_ptr()->set_rb_evaluation(_rb_eval);
 
   #if defined(LIBMESH_HAVE_CAPNPROTO)
     RBDataDeserialization::TransientRBEvaluationDeserialization _rb_eval_reader(_rb_eval);
@@ -129,20 +129,20 @@ DwarfElephantRBProblem::setReducedInitialCondition()
     _rb_eval.legacy_read_offline_data_from_files(_offline_data_name, true);
   #endif
 
-  _rb_eval.read_in_basis_functions(*_initialize_rb_system._rb_con_ptr, _offline_data_name, true);
+  _rb_eval.read_in_basis_functions(*_initialize_rb_system.get_rb_con_ptr(), _offline_data_name, true);
 
   // Read the reduced state from file and set it as RB_solution
   _file = getParam<std::string>("file");
   fileParser(_rb_eval);
 
   // project the reduced state back to the full state
-  _initialize_rb_system._rb_con_ptr->solution->zero();
+  _initialize_rb_system.get_rb_con_ptr()->solution->zero();
 
   if (_rb_eval.RB_solution.size() > _rb_eval.get_n_basis_functions())
     mooseError("RB_solution in DwarfElephantRBProblem is too long!");
 
   for (auto i : IntRange<unsigned int>(0, _rb_eval.RB_solution.size()))
-    _initialize_rb_system._rb_con_ptr->solution->add(_rb_eval.RB_solution(i), _rb_eval.get_basis_function(i));
+    _initialize_rb_system.get_rb_con_ptr()->solution->add(_rb_eval.RB_solution(i), _rb_eval.get_basis_function(i));
 
   *_eq.get_system("rb0").solution = *_eq.get_system("RBSystem").solution;
   this->getNonlinearSystemBase().update();

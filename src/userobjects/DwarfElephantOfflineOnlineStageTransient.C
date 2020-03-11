@@ -79,20 +79,20 @@ DwarfElephantOfflineOnlineStageTransient::DwarfElephantOfflineOnlineStageTransie
 void
 DwarfElephantOfflineOnlineStageTransient::setAffineMatrices()
 {
-   _initialize_rb_system._inner_product_matrix -> close();
-    for(unsigned int _q=0; _q<_initialize_rb_system._qa; _q++)
+   _initialize_rb_system.getInnerProductMatrix() -> close();
+    for(unsigned int _q=0; _q<_initialize_rb_system.getQa(); _q++)
     {
-      _rb_problem->rbAssembly(_q).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]);
-      _initialize_rb_system._jacobian_subdomain[_q] ->close();
-      _initialize_rb_system._inner_product_matrix->add(_mu_bar, *_initialize_rb_system._jacobian_subdomain[_q]);
+      _rb_problem->rbAssembly(_q).setCachedJacobianContributions(*_initialize_rb_system.getJacobianSubdomain()[_q]);
+      _initialize_rb_system.getJacobianSubdomain()[_q] ->close();
+      _initialize_rb_system.getInnerProductMatrix()->add(_mu_bar, *_initialize_rb_system.getJacobianSubdomain()[_q]);
     }
 
-    _initialize_rb_system._L2_matrix -> close();
-    for(unsigned int _q=0; _q<_initialize_rb_system._qm; _q++)
+    _initialize_rb_system.getL2Matrix() -> close();
+    for(unsigned int _q=0; _q<_initialize_rb_system.getQm(); _q++)
     {
-      _rb_problem->rbAssembly(_q).setCachedMassMatrixContributions(*_initialize_rb_system._mass_matrix_subdomain[_q]);
-      _initialize_rb_system._mass_matrix_subdomain[_q] ->close();
-      _initialize_rb_system._L2_matrix->add(_mu_bar, *_initialize_rb_system._mass_matrix_subdomain[_q]);
+      _rb_problem->rbAssembly(_q).setCachedMassMatrixContributions(*_initialize_rb_system.getMassMatrixSubdomain()[_q]);
+      _initialize_rb_system.getMassMatrixSubdomain()[_q] ->close();
+      _initialize_rb_system.getL2Matrix()->add(_mu_bar, *_initialize_rb_system.getMassMatrixSubdomain()[_q]);
 
     }
 
@@ -103,15 +103,15 @@ DwarfElephantOfflineOnlineStageTransient::transferAffineVectors()
 {
   // Transfer the vectors
   // Transfer the data for the F vectors.
-  for(unsigned int _q=0; _q<_initialize_rb_system._qf; _q++)
+  for(unsigned int _q=0; _q<_initialize_rb_system.getQf(); _q++)
   {
-    _rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system._residuals[_q]);
-    _initialize_rb_system._residuals[_q]->close();
+    _rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system.getResiduals()[_q]);
+    _initialize_rb_system.getResiduals()[_q]->close();
   }
 
-  if(_initialize_rb_system._parameter_dependent_IC)
-    for(unsigned int _q=0; _q<_initialize_rb_system._q_ic; _q++)
-      _initialize_rb_system._inital_conditions[_q]->close();
+  if(_initialize_rb_system.get_parameter_dependent_IC())
+    for(unsigned int _q=0; _q<_initialize_rb_system.getQIc(); _q++)
+      _initialize_rb_system.getInitialConditions()[_q]->close();
 
 
   // The RB code runs into problems for non-homogeneous boundary conditions
@@ -179,10 +179,10 @@ DwarfElephantOfflineOnlineStageTransient::execute()
     // Required for both the Offline and Online stage.
     DwarfElephantRBEvaluationTransient _rb_eval(comm() , _fe_problem);
 
-    if(_initialize_rb_system._parameter_dependent_IC)
+    if(_initialize_rb_system.get_parameter_dependent_IC())
     {
       DwarfElephantRBEvaluationTransient & _dwarf_elephant_trans_rb_eval = cast_ref<DwarfElephantRBEvaluationTransient &>(_rb_eval);
-      _dwarf_elephant_trans_rb_eval.set_parameter_dependent_IC(_initialize_rb_system._parameter_dependent_IC);
+      _dwarf_elephant_trans_rb_eval.set_parameter_dependent_IC(_initialize_rb_system.get_parameter_dependent_IC());
     }
 
     if(!_offline_stage && (_output_file || _store_basis_functions_sorted))
@@ -247,7 +247,7 @@ DwarfElephantOfflineOnlineStageTransient::execute()
      if(_offline_error_bound)
       _rb_con_ptr->get_rb_evaluation().evaluate_RB_error_bound = false;
 
-     if(_initialize_rb_system._varying_timesteps)
+     if(_initialize_rb_system.get_varying_timesteps())
      {
        DwarfElephantRBEvaluationTransient & _dwarf_elephant_trans_rb_eval = cast_ref<DwarfElephantRBEvaluationTransient &>(_rb_eval);
        _dwarf_elephant_trans_rb_eval.varying_timesteps = true;
@@ -256,7 +256,7 @@ DwarfElephantOfflineOnlineStageTransient::execute()
 
       Real _error_bound_final_time = _rb_eval.rb_solve(_online_N);
 
-      _n_time_steps = _initialize_rb_system._n_time_steps;
+      _n_time_steps = _initialize_rb_system.get_n_time_steps();
 
       _console << "Error bound at the final time is " << _error_bound_final_time << std::endl << std::endl;
 

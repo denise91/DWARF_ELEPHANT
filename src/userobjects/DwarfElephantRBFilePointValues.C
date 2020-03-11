@@ -45,10 +45,10 @@ DwarfElephantRBFilePointValues::execute()
     Point _point(_x_coordinates[i], _y_coordinates[i], _z_coordinates[i]);
     if(_simulation_type=="steady") {
       const DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemSteadyState>("initial_rb_userobject");
-      assignPoint(_initialize_rb_system._outputs, i, _point);
+      assignPoint(_initialize_rb_system.getOutputs(), i, _point);
     } else {
       const DwarfElephantInitializeRBSystemTransient & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemTransient>("initial_rb_userobject");
-      assignPoint(_initialize_rb_system._outputs, i, _point);
+      assignPoint(_initialize_rb_system.getOutputs(), i, _point);
     }
   }
 }

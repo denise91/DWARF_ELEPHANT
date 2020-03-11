@@ -68,9 +68,17 @@ class DwarfElephantInitializeRBSystemSteadyState :
     // Method not used in this UserObject.
     virtual void finalize() override;
 
-    std::vector<std::vector<NumericVector <Number> *> > getOutputs() const;
+    std::vector<std::vector<NumericVector <Number> *> > getOutputs() const {return _outputs;}
 
     DwarfElephantRBConstructionSteadyState * get_rb_con_ptr() const {return _rb_con_ptr;}
+
+    unsigned int getQa() const {return _qa;}
+    unsigned int getQf() const {return _qf;}
+    std::vector<unsigned int> getQl() const {return _ql;}
+    SparseMatrix <Number> * getInnerProductMatrix() const {return _inner_product_matrix;}
+    std::vector<SparseMatrix <Number> *> getJacobianSubdomain() const {return _jacobian_subdomain;}
+    std::vector<NumericVector <Number> *> getResiduals() const {return _residuals;}
+    bool getOfflineStage() const {return _offline_stage;}
 
 //--------------------------------PROTECTED---------------------------------
   protected:
@@ -113,18 +121,6 @@ class DwarfElephantInitializeRBSystemSteadyState :
     std::vector<SparseMatrix <Number> *> _jacobian_subdomain;
     std::vector<NumericVector <Number> *> _residuals;
     std::vector<std::vector<NumericVector <Number> *> > _outputs;
-
-    /*Friend Classes*/
-    friend class DwarfElephantRBKernel;
-    friend class DwarfElephantRBDiracKernel;
-    friend class DwarfElephantRBNodalBC;
-    friend class DwarfElephantRBIntegratedBC;
-    friend class DwarfElephantOfflineOnlineStageSteadyState;
-    friend class DwarfElephantRBEvaluationSteadyState;
-    friend class DwarfElephantDakotaOutput;
-    friend class DwarfElephantRBOutput;
-    friend class DwarfElephantRBFilePointValues;
-    friend class DwarfElephantRBMooseThetaObject;
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTINITIALIZERBSYSTEMSTEADYSTATE_H

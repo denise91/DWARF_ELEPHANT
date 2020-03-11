@@ -72,12 +72,26 @@ class DwarfElephantInitializeRBSystemTransient :
     // virtual void finalize() override;
     void finalize();
 
-    std::vector<std::vector<NumericVector <Number> *> > getOutputs() const;
+    std::vector<std::vector<NumericVector <Number> *> > getOutputs() const {return _outputs;}
 
     DwarfElephantRBConstructionTransient * get_rb_con_ptr() const {return _rb_con_ptr;}
     bool get_parameter_dependent_IC() const {return _parameter_dependent_IC;}
     bool get_varying_timesteps() const {return _varying_timesteps;}
     unsigned int get_n_time_steps() const {return _n_time_steps;}
+    Real getDeltaTime() const {return _delta_time;}
+
+    unsigned int getQa() const {return _qa;}
+    unsigned int getQm() const {return _qm;}
+    unsigned int getQf() const {return _qf;}
+    unsigned int getQIc() const {return _q_ic;}
+    std::vector<unsigned int> getQl() const {return _ql;}
+    SparseMatrix <Number> * getInnerProductMatrix() const {return _inner_product_matrix;}
+    SparseMatrix <Number> * getL2Matrix() const {return _L2_matrix;}
+    std::vector<SparseMatrix <Number> *> getJacobianSubdomain() const {return _jacobian_subdomain;}
+    std::vector<SparseMatrix <Number> *> getMassMatrixSubdomain() const {return _mass_matrix_subdomain;}
+    std::vector<NumericVector <Number> *> getResiduals() const {return _residuals;}
+    bool getOfflineStage() const {return _offline_stage;}
+    std::vector<NumericVector <Number> *> getInitialConditions() const {return _inital_conditions;}
 
 //--------------------------------PROTECTED---------------------------------
   protected:
@@ -144,23 +158,17 @@ class DwarfElephantInitializeRBSystemTransient :
     std::vector<NumericVector <Number> *> _inital_conditions;
     std::vector<std::vector<NumericVector <Number> *> > _outputs;
 
-    /*Friend Classes*/
-    friend class DwarfElephantRBKernel;
-    friend class DwarfElephantRBDiracKernel;
-    friend class DwarfElephantRBTimeKernel;
-    friend class DwarfElephantRBNodalBC;
-    friend class DwarfElephantRBIntegratedBC;
-    friend class DwarfElephantOfflineOnlineStageTransient;
-    friend class DwarfElephantRBExecutioner;
-    friend class DwarfElephantDakotaOutput;
-    friend class DwarfElephantRBOutput;
-    friend class DwarfElephantRBInitialCondition;
-    friend class DwarfElephantRBProblem;
-    friend class DwarfElephantRBFilePointValues;
-    friend class DwarfElephantRBIterationAdaptiveDT;
-    friend class DwarfElephantRBEvaluationTransient;
-    friend class DwarfElephantRBMooseThetaObject;
-    friend class DwarfElephantRBStartEndTimeMuAction;
+
+    // friend class DwarfElephantRBTimeKernel;
+    // friend class DwarfElephantOfflineOnlineStageTransient;
+    // friend class DwarfElephantRBExecutioner;
+    // friend class DwarfElephantDakotaOutput;
+    // friend class DwarfElephantRBInitialCondition;
+    // friend class DwarfElephantRBProblem;
+    // friend class DwarfElephantRBFilePointValues;
+    // friend class DwarfElephantRBIterationAdaptiveDT;
+    // friend class DwarfElephantRBEvaluationTransient;
+    // friend class DwarfElephantRBStartEndTimeMuAction;
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTINITIALIZERBSYSTEMTRANSIENT_H

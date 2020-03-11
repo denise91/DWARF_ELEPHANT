@@ -70,14 +70,14 @@ DwarfElephantRBTimeKernel::computeJacobian()
   {
     const DwarfElephantInitializeRBSystemTransient & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemTransient>("initial_rb_userobject");
 
-    if (_ID_Mq >= _initialize_rb_system._qm)
+    if (_ID_Mq >= _initialize_rb_system.getQm())
       mooseError("The number of mass matrices you defined here is not matching the number of mass matrices you specified in the RBClasses Class.");
 
-    if(_initialize_rb_system._offline_stage)
+    if(_initialize_rb_system.getOfflineStage())
     // Add the calculated matrices to the Aq matrices from the RB system.
     if (_fe_problem.getNonlinearSystemBase().getCurrentNonlinearIterationNumber() == 0)
     {
-      _initialize_rb_system._mass_matrix_subdomain[_ID_Mq] -> add_matrix(_local_ke, _var.dofIndices());
+      _initialize_rb_system.getMassMatrixSubdomain()[_ID_Mq] -> add_matrix(_local_ke, _var.dofIndices());
     }
   }
 

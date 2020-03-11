@@ -57,24 +57,19 @@ DwarfElephantRBDiracKernel::computeResidual()
   if(_simulation_type == "steady")  // SteadyState
   {
     const DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemSteadyState>("initial_rb_userobject");
-    if(_initialize_rb_system._offline_stage)
+    if(_initialize_rb_system.getOfflineStage())
       // Add the calculated vectors to the vectors from the RB system.
       if (_c_fe_problem.getNonlinearSystemBase().computingInitialResidual())
-        _initialize_rb_system._residuals[_ID_Fq] -> add_vector(re, _var.dofIndices());
+        _initialize_rb_system.getResiduals()[_ID_Fq] -> add_vector(re, _var.dofIndices());
   }
   else if (_simulation_type == "transient") // Transient
   {
     const DwarfElephantInitializeRBSystemTransient & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemTransient>("initial_rb_userobject");
 
-  //  // if(_initialize_rb_system._exec_flags[0] != EXEC_INITIAL)
-  //   // mooseError("The UserObject 'DwarfElephantInitializeRBSystemTransient' has to be executed on 'initial'. "
-  //   //            "You defined a wrong state in your 'execute_on' line in the input file. "
-  //   //            "Please, correct your settings.");
-  //
-    if(_initialize_rb_system._offline_stage)
+    if(_initialize_rb_system.getOfflineStage())
       // Add the calculated vectors to the vectors from the RB system.
       if (_c_fe_problem.getNonlinearSystemBase().computingInitialResidual())
-        _initialize_rb_system._residuals[_ID_Fq] -> add_vector(re, _var.dofIndices());
+        _initialize_rb_system.getResiduals()[_ID_Fq] -> add_vector(re, _var.dofIndices());
   }
 }
 
@@ -108,20 +103,20 @@ DwarfElephantRBDiracKernel::computeJacobian()
   if(_simulation_type == "steady")  // Steady State
   {
     const DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemSteadyState>("initial_rb_userobject");
-    if(_initialize_rb_system._offline_stage)
+    if(_initialize_rb_system.getOfflineStage())
     // Add the calculated matrices to the Aq matrices from the RB system.
     if (_c_fe_problem.getNonlinearSystemBase().getCurrentNonlinearIterationNumber() == 0)
-        _initialize_rb_system._jacobian_subdomain[_ID_Aq] -> add_matrix(ke, _var.dofIndices());
+        _initialize_rb_system.getJacobianSubdomain()[_ID_Aq] -> add_matrix(ke, _var.dofIndices());
    }
 
   else if(_simulation_type == "transient") // Transient
   {
     const DwarfElephantInitializeRBSystemTransient & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemTransient>("initial_rb_userobject");
-    if(_initialize_rb_system._offline_stage)
+    if(_initialize_rb_system.getOfflineStage())
     // Add the calculated matrices to the Aq matrices from the RB system.
     if (_c_fe_problem.getNonlinearSystemBase().getCurrentNonlinearIterationNumber() == 0)
     {
-        _initialize_rb_system._jacobian_subdomain[_ID_Aq] -> add_matrix(ke, _var.dofIndices());
+        _initialize_rb_system.getJacobianSubdomain()[_ID_Aq] -> add_matrix(ke, _var.dofIndices());
     }
   }
 }

@@ -73,33 +73,33 @@ DwarfElephantRBIntegratedBC::computeResidual()
 
   if(_simulation_type == "steady")  // SteadyState
   {
-    if(_initialize_rb_system->_offline_stage)
+    if(_initialize_rb_system->getOfflineStage())
       // Add the calculated vectors to the vectors from the RB system.
       if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
       {
-        if (_ID_Fq >= _initialize_rb_system->_qf)
+        if (_ID_Fq >= _initialize_rb_system->getQf())
           mooseError("The number of load vectors you defined here is not matching the number of load vectors you specified in the RBClasses Class.");
 
-        _initialize_rb_system->_residuals[_ID_Fq] -> add_vector(_local_re, _var.dofIndices());
+        _initialize_rb_system->getResiduals()[_ID_Fq] -> add_vector(_local_re, _var.dofIndices());
 
         if (_compliant)
-          _initialize_rb_system->_outputs[_ID_Fq][0] -> add_vector(_local_re, _var.dofIndices());
+          _initialize_rb_system->getOutputs()[_ID_Fq][0] -> add_vector(_local_re, _var.dofIndices());
       }
   }
 
   else if (_simulation_type == "transient") // Transient
   {
-    if(_initialize_rb_system_transient->_offline_stage)
+    if(_initialize_rb_system_transient->getOfflineStage())
       // Add the calculated vectors to the vectors from the RB system.
     if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
     {
-      if (_ID_Fq >= _initialize_rb_system_transient->_qf)
+      if (_ID_Fq >= _initialize_rb_system_transient->getQf())
         mooseError("The number of load vectors you defined here is not matching the number of load vectors you specified in the RBClasses Class.");
 
-      _initialize_rb_system_transient->_residuals[_ID_Fq] -> add_vector(_local_re, _var.dofIndices());
+      _initialize_rb_system_transient->getResiduals()[_ID_Fq] -> add_vector(_local_re, _var.dofIndices());
 
-      if (_compliant)
-        _initialize_rb_system_transient->_outputs[_ID_Fq][0] -> add_vector(_local_re, _var.dofIndices());
+      // if (_compliant)
+      //   _initialize_rb_system_transient->getOutputs()[_ID_Fq][0] -> add_vector(_local_re, _var.dofIndices());
       }
     }
 
@@ -130,20 +130,20 @@ DwarfElephantRBIntegratedBC::computeOutput()
 
   if(_simulation_type == "steady")  // SteadyState
   {
-    if(_initialize_rb_system->_offline_stage)
+    if(_initialize_rb_system->getOfflineStage())
       // Add the calculated vectors to the vectors from the RB system.
       if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
       {
-        _initialize_rb_system->_outputs[_ID_Oq][0] -> add_vector(_local_out, _var.dofIndices());
+        _initialize_rb_system->getOutputs()[_ID_Oq][0] -> add_vector(_local_out, _var.dofIndices());
      }
   }
 
   else if (_simulation_type == "transient") // Transient
   {
-    if(_initialize_rb_system_transient->_offline_stage)
+    if(_initialize_rb_system_transient->getOfflineStage())
       // Add the calculated vectors to the vectors from the RB system.
       if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
-         _initialize_rb_system_transient->_outputs[0][_ID_Oq] -> add_vector(_local_out, _var.dofIndices());
+         _initialize_rb_system_transient->getOutputs()[0][_ID_Oq] -> add_vector(_local_out, _var.dofIndices());
   }
 }
 
@@ -172,29 +172,29 @@ DwarfElephantRBIntegratedBC::computeJacobian()
 
   if(_simulation_type == "steady")  // Steady State
   {
-    if (_ID_Aq >= _initialize_rb_system->_qa)
+    if (_ID_Aq >= _initialize_rb_system->getQa())
       mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
 
-    if(_initialize_rb_system->_offline_stage)
+    if(_initialize_rb_system->getOfflineStage())
     // Add the calculated matrices to the Aq matrices from the RB system.
     if (_fe_problem.getNonlinearSystemBase().getCurrentNonlinearIterationNumber() == 0)
-        _initialize_rb_system->_jacobian_subdomain[_ID_Aq] -> add_matrix(_local_ke, _var.dofIndices());
+        _initialize_rb_system->getJacobianSubdomain()[_ID_Aq] -> add_matrix(_local_ke, _var.dofIndices());
    }
 
   else if(_simulation_type == "transient") // Transient
   {
-    if (_ID_Aq >= _initialize_rb_system_transient->_qa)
+    if (_ID_Aq >= _initialize_rb_system_transient->getQa())
       mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
 
-    if (_ID_Mq >= _initialize_rb_system_transient->_qm)
+    if (_ID_Mq >= _initialize_rb_system_transient->getQm())
       mooseError("The number of mass matrices you defined here is not matching the number of mass matrices you specified in the RBClasses Class.");
 
-    if(_initialize_rb_system_transient->_offline_stage)
+    if(_initialize_rb_system_transient->getOfflineStage())
     // Add the calculated matrices to the Aq matrices from the RB system.
     if (_fe_problem.getNonlinearSystemBase().getCurrentNonlinearIterationNumber() == 0)
     {
-      _initialize_rb_system_transient->_jacobian_subdomain[_ID_Aq] -> add_matrix(_local_ke, _var.dofIndices());
-      _initialize_rb_system_transient->_mass_matrix_subdomain[_ID_Mq] -> add_matrix(_local_ke, _var.dofIndices());
+      _initialize_rb_system_transient->getJacobianSubdomain()[_ID_Aq] -> add_matrix(_local_ke, _var.dofIndices());
+      _initialize_rb_system_transient->getMassMatrixSubdomain()[_ID_Mq] -> add_matrix(_local_ke, _var.dofIndices());
     }
   }
 
