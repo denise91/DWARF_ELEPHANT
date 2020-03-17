@@ -34,6 +34,7 @@
 #include "DwarfElephantRBStructuresT2F2O10SteadyState.h"
 #include "DwarfElephantRBStructuresT2F3O10SteadyState.h"
 #include "DwarfElephantRBStructuresT3F1O1SteadyState.h"
+#include "DwarfElephantRBStructuresT3F1O81SteadyState.h"
 #include "DwarfElephantRBStructuresT3F2O1SteadyState.h"
 #include "DwarfElephantRBStructuresT3F3O1SteadyState.h"
 #include "DwarfElephantRBStructuresT3F4O1SteadyState.h"
@@ -49,10 +50,12 @@
 #include "DwarfElephantRBStructuresT4F1O32SteadyState.h"
 #include "DwarfElephantRBStructuresT5F1O1SteadyState.h"
 #include "DwarfElephantRBStructuresT5F1O40SteadyState.h"
+#include "DwarfElephantRBStructuresT5F1O81SteadyState.h"
 #include "DwarfElephantRBStructuresT5F3O1SteadyState.h"
 #include "DwarfElephantRBStructuresT5F7O1SteadyState.h"
 #include "DwarfElephantRBStructuresT6F1O1SteadyState.h"
 #include "DwarfElephantRBStructuresT6F1O32SteadyState.h"
+#include "DwarfElephantRBStructuresT6F1O81SteadyState.h"
 #include "DwarfElephantRBStructuresT7F8O80SteadyState.h"
 #include "DwarfElephantRBStructuresT7F8O2385SteadyState.h"
 #include "DwarfElephantRBStructuresT7F8O2400SteadyState.h"
@@ -304,7 +307,7 @@ public:
   FEProblemBase & get_fe_problem(){return fe_problem;}
 
   FEProblemBase & fe_problem;
-  DwarfElephantRBT5F1O40SteadyStateExpansion _rb_theta_expansion;
+  DwarfElephantRBT3F1O81SteadyStateExpansion _rb_theta_expansion;
   // DwarfElephantRBT14F14O84SteadyStateExpansion _rb_theta_expansion;
     // DwarfElephantRBT18F19O1SteadyStateExpansion _rb_theta_expansion;
     // DwarfElephantRBT14F15O1SteadyStateExpansion _rb_theta_expansion;

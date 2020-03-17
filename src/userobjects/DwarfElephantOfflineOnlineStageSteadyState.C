@@ -188,7 +188,7 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
         setAffineMatrices();
 
 
-    // // TODO: add a function to extract matricies and vectors for further RB analyses
+    // TODO: add a function to extract matricies and vectors for further RB analyses
     //   SparseMatrix<Number> * _aq0 = _rb_con_ptr->get_Aq(0);
     //     _aq0->print_matlab("Aq0");
     //   SparseMatrix<Number> * _aq1 = _rb_con_ptr->get_Aq(1);
@@ -204,9 +204,9 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
     //
     // SparseMatrix<Number> * _inner = _rb_con_ptr->get_inner_product_matrix();
     //             _inner->print_matlab("InnerProductMatrix");
-    //
-    //   NumericVector<Number> * _fq0 = _rb_con_ptr->get_Fq(0);
-    //     _fq0->print_matlab("Fq0");
+
+      // NumericVector<Number> * _fq0 = _rb_con_ptr->get_Fq(0);
+      //   _fq0->print_matlab("Fq0");
 
       // Perform the offline stage.
       _console << std::endl;
