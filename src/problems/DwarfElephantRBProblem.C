@@ -16,7 +16,8 @@ InputParameters validParams<DwarfElephantRBProblem>()
   params.addParam<bool>("use_reduced_initial_condition", false, "Enable/disable the use of the a reduced initial condition.");
   params.addParam<bool>("user_defined_assembly_size", false, "User defines the size of RBAssembly.");
   params.addParam<unsigned int>("assembly_size", 0 ,"Size of RBAssembly.");
-  params.addParam<UserObjectName>("initial_rb_userobject", "","Name of the UserObject for initializing the RB system.");
+  params.addParam<UserObjectName>("initial_rb_userobject","initializeRBSystem","Name of the UserObject for initializing the RB system.");
+  params.addParam<UserObjectName>("offline_online_rb_userobject", "performRBSystem" ,"Name of the UserObject for the offline/online stage.");
   params.addParam<std::string>("file", "Name and path of the data file, valid delimiter is new line.");
   params.addParam<std::string>("offline_data_name","offline_data","Folder where the offline data should be stored.");
   return params;
@@ -24,11 +25,12 @@ InputParameters validParams<DwarfElephantRBProblem>()
 
 DwarfElephantRBProblem::DwarfElephantRBProblem(const InputParameters & params):
   FEProblemBase(params),
+  _initial_rb_userobject(getParam<UserObjectName>("initial_rb_userobject")),
+  _offline_online_rb_userobject(getParam<UserObjectName>("offline_online_rb_userobject")),
   _nl_sys(std::make_shared<DwarfElephantSystem>(*this, "rb0")),
   _use_reduced_initial_condition(getParam<bool>("use_reduced_initial_condition")),
   _user_defined_assembly_size(getParam<bool>("user_defined_assembly_size")),
   _assembly_size(getParam<unsigned int>("assembly_size")),
-  _initial_rb_userobject(getParam<UserObjectName>("initial_rb_userobject")),
   _offline_data_name(getParam<std::string>("offline_data_name"))
 {
     _nl = _nl_sys;

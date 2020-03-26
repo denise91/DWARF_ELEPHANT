@@ -51,32 +51,14 @@ InputParameters validParams<DwarfElephantInitializeRBSystemTransient>()
 DwarfElephantInitializeRBSystemTransient::DwarfElephantInitializeRBSystemTransient(const InputParameters & params):
   GeneralUserObject(params),
   _use_displaced(getParam<bool>("use_displaced")),
-  _skip_matrix_assembly_in_rb_system(getParam<bool>("skip_matrix_assembly_in_rb_system")),
-  _skip_vector_assembly_in_rb_system(getParam<bool>("skip_vector_assembly_in_rb_system")),
   _offline_stage(getParam<bool>("offline_stage")),
-  _deterministic_training(getParam<bool>("deterministic_training")),
-  _quiet_mode(getParam<bool>("quiet_mode")),
-  _normalize_rb_bound_in_greedy(getParam<bool>("normalize_rb_bound_in_greedy")),
-  _nonzero_initialization(getParam<bool>("nonzero_initialization")),
   _parameter_dependent_IC(getParam<bool>("parameter_dependent_IC")),
   _initialized(false),
-  _max_truth_solves(getParam<int>("max_truth_solves")),
-  _n_training_samples(getParam<unsigned int>("n_training_samples")),
-  _training_parameters_random_seed(getParam<unsigned int>("training_parameters_random_seed")),
-  _N_max(getParam<unsigned int>("N_max")),
-  _n_time_steps(getParam<unsigned int>("n_time_steps")),
-  _delta_N(getParam<unsigned int>("delta_N")),
-  _rel_training_tolerance(getParam<Real>("rel_training_tolerance")),
-  _abs_training_tolerance(getParam<Real>("abs_training_tolerance")),
   _delta_time(getParam<Real>("delta_t")),
-  _euler_theta(getParam<Real>("euler_theta")),
-  _POD_tol(getParam<Real>("POD_tol")),
   _continuous_parameter_min_values(getParam<std::vector<Real>>("parameter_min_values")),
   _continuous_parameter_max_values(getParam<std::vector<Real>>("parameter_max_values")),
   _discrete_parameter_values_in(getParam<std::vector<Real>>("discrete_parameter_values")),
   _system_name(getParam<std::string>("system")),
-//  _parameters_filename(getParam<std::string>("parameters_filename")),
-  _init_filename(getParam<std::string>("init_filename")),
   _continuous_parameters(getParam<std::vector<std::string>>("parameter_names")),
   _discrete_parameters(getParam<std::vector<std::string>>("discrete_parameter_names")),
   _es(_use_displaced ? _fe_problem.getDisplacedProblem()->es() : _fe_problem.es()),
@@ -84,8 +66,6 @@ DwarfElephantInitializeRBSystemTransient::DwarfElephantInitializeRBSystemTransie
   _sys(&_es.get_system<TransientNonlinearImplicitSystem>(_system_name)),
   _varying_timesteps(getParam<bool>("varying_timesteps")),
   _time_dependent_parameter(getParam<bool>("time_dependent_parameter")),
-  // _growth_rate(getParam<Real>("growth_rate")),
-  // _threshold(getParam<Real>("threshold")),
   _ID_time_dependent_param(getParam<std::vector<unsigned int>>("ID_time_dependent_param")),
   _start_time(getParam<Real>("start_time")),
   _end_time(getParam<Real>("end_time"))
@@ -97,17 +77,17 @@ DwarfElephantInitializeRBSystemTransient::processParameters()
 {
   /// Set the non-temporal data
   // Set the random seed for the RNG. By default -1 is set, meaning that std::time is used as a seed for the RNG.
-  _rb_con_ptr->set_training_random_seed(_training_parameters_random_seed);
+  _rb_con_ptr->set_training_random_seed(getParam<unsigned int>("training_parameters_random_seed"));
   // Set quiet mode.
-  _rb_con_ptr->set_quiet_mode(_quiet_mode);
+  _rb_con_ptr->set_quiet_mode(getParam<bool>("quiet_mode"));
 
   // Initialization of the RB parameters.
-  _rb_con_ptr->set_Nmax(_N_max);
+  _rb_con_ptr->set_Nmax(getParam<unsigned int>("N_max"));
 
-  _rb_con_ptr->set_rel_training_tolerance(_rel_training_tolerance);
-  _rb_con_ptr->set_abs_training_tolerance(_abs_training_tolerance);
+  _rb_con_ptr->set_rel_training_tolerance(getParam<Real>("rel_training_tolerance"));
+  _rb_con_ptr->set_abs_training_tolerance(getParam<Real>("abs_training_tolerance"));
 
-  _rb_con_ptr->set_normalize_rb_bound_in_greedy(_normalize_rb_bound_in_greedy);
+  _rb_con_ptr->set_normalize_rb_bound_in_greedy(getParam<bool>("normalize_rb_bound_in_greedy"));
 
   RBParameters _mu_min;
   RBParameters _mu_max;
@@ -140,22 +120,22 @@ DwarfElephantInitializeRBSystemTransient::processParameters()
 
    _rb_con_ptr->initialize_training_parameters(_rb_con_ptr->get_parameters_min(),
                                                _rb_con_ptr->get_parameters_max(),
-                                               _n_training_samples,
+                                               getParam<unsigned int>("n_training_samples"),
                                                _log_scaling,
-                                               _deterministic_training);
+                                               getParam<bool>("deterministic_training"));
 
   /// Set the temporal data
-  _rb_con_ptr->set_n_time_steps(_n_time_steps);
+  _rb_con_ptr->set_n_time_steps(getParam<unsigned int>("n_time_steps"));
   _rb_con_ptr->set_delta_t(_delta_time);
-  _rb_con_ptr->set_euler_theta(_euler_theta);
+  _rb_con_ptr->set_euler_theta(getParam<Real>("euler_theta"));
   _rb_con_ptr->set_time_step(0);
 
-  _rb_con_ptr->nonzero_initialization = _nonzero_initialization;
-  _rb_con_ptr->init_filename = _init_filename;
+  _rb_con_ptr->nonzero_initialization = getParam<bool>("nonzero_initialization");
+  _rb_con_ptr->init_filename = getParam<std::string>("init_filename");
 
-  _rb_con_ptr->set_POD_tol(_POD_tol);
-  _rb_con_ptr->set_max_truth_solves(_max_truth_solves);
-  _rb_con_ptr->set_delta_N(_delta_N);
+  _rb_con_ptr->set_POD_tol(getParam<Real>("POD_tol"));
+  _rb_con_ptr->set_max_truth_solves(getParam<int>("max_truth_solves"));
+  _rb_con_ptr->set_delta_N(getParam<unsigned int>("delta_N"));
 
   TransientRBEvaluation & trans_rb_eval = cast_ref<TransientRBEvaluation &>(_rb_con_ptr->get_rb_evaluation());
   trans_rb_eval.pull_temporal_discretization_data(*_rb_con_ptr);
@@ -197,7 +177,7 @@ DwarfElephantInitializeRBSystemTransient::initializeOfflineStage()
 
   // Initialize the RB construction. Note, we skip the matrix and vector
   // assembly, since this is already done by MOOSE.
-  _rb_con_ptr->initialize_rb_construction(_skip_matrix_assembly_in_rb_system, _skip_vector_assembly_in_rb_system);
+  _rb_con_ptr->initialize_rb_construction(getParam<bool>("skip_matrix_assembly_in_rb_system"), getParam<bool>("skip_vector_assembly_in_rb_system"));
 
   // Save the A's, F's and output vectors from the RBConstruction class in pointers.
   // This additional saving of the pointers is required because otherwise a the RBEvaluation object has

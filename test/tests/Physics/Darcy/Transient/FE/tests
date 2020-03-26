@@ -4,6 +4,11 @@
     input = 'FEDarcyTransient.i'
     exodiff = 'FEDarcyTransient_out.e'
   [../]
+  [./FEDarcyPenalty]
+    type = 'Exodiff'
+    input = 'FEDarcyTransientPenalty.i'
+    exodiff = 'FEDarcyTransientPenalty_out.e'
+  [../]
   [./FEDarcyTransientStorage]
     type = 'Exodiff'
     input = 'FEDarcyTransientStorage.i'

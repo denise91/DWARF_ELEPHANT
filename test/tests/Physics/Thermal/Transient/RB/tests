@@ -4,6 +4,11 @@
     input = 'RBThermalTransient.i'
     exodiff = 'RBThermalTransient_out.e'
   [../]
+  [./RBThermalTransientRobin]
+    type = 'Exodiff'
+    input = 'RBThermalTransientRobin.i'
+    exodiff = 'RBThermalTransientRobin_out.e'
+  [../]
   [./RBThermalTransientRadioConstant]
     type = 'Exodiff'
     input = 'RBThermalTransientRadiogenicHeatProductionConstant.i'

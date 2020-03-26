@@ -34,22 +34,11 @@ InputParameters validParams<DwarfElephantInitializeRBSystemSteadyState>()
 DwarfElephantInitializeRBSystemSteadyState::DwarfElephantInitializeRBSystemSteadyState(const InputParameters & params):
   GeneralUserObject(params),
   _use_displaced(getParam<bool>("use_displaced")),
-  _skip_matrix_assembly_in_rb_system(getParam<bool>("skip_matrix_assembly_in_rb_system")),
-  _skip_vector_assembly_in_rb_system(getParam<bool>("skip_vector_assembly_in_rb_system")),
   _offline_stage(getParam<bool>("offline_stage")),
-  _deterministic_training(getParam<bool>("deterministic_training")),
-  _quiet_mode(getParam<bool>("quiet_mode")),
-  _normalize_rb_bound_in_greedy(getParam<bool>("normalize_rb_bound_in_greedy")),
-  _n_training_samples(getParam<unsigned int>("n_training_samples")),
-  _training_parameters_random_seed(getParam<unsigned int>("training_parameters_random_seed")),
-  _N_max(getParam<unsigned int>("N_max")),
-  _rel_training_tolerance(getParam<Real>("rel_training_tolerance")),
-  _abs_training_tolerance(getParam<Real>("abs_training_tolerance")),
   _continuous_parameter_min_values(getParam<std::vector<Real>>("parameter_min_values")),
   _continuous_parameter_max_values(getParam<std::vector<Real>>("parameter_max_values")),
   _discrete_parameter_values_in(getParam<std::vector<Real>>("discrete_parameter_values")),
   _system_name(getParam<std::string>("system")),
-//  _parameters_filename(getParam<std::string>("parameters_filename")),
   _continuous_parameters(getParam<std::vector<std::string>>("parameter_names")),
   _discrete_parameters(getParam<std::vector<std::string>>("discrete_parameter_names")),
   _es(_use_displaced ? _fe_problem.getDisplacedProblem()->es() : _fe_problem.es()),
@@ -62,18 +51,18 @@ void
 DwarfElephantInitializeRBSystemSteadyState::processParameters()
 {
   // Set the random seed for the RNG. By default -1 is set, meaning that std::time is used as a seed for the RNG.
-  _rb_con_ptr->set_training_random_seed(_training_parameters_random_seed);
+  _rb_con_ptr->set_training_random_seed(getParam<unsigned int>("training_parameters_random_seed"));
 
   // Set quiet mode.
-  _rb_con_ptr->set_quiet_mode(_quiet_mode);
+  _rb_con_ptr->set_quiet_mode(getParam<bool>("quiet_mode"));
 
   // Initialization of the RB parameters.
-  _rb_con_ptr->set_Nmax(_N_max);
+  _rb_con_ptr->set_Nmax(getParam<unsigned int>("N_max"));
 
-  _rb_con_ptr->set_rel_training_tolerance(_rel_training_tolerance);
-  _rb_con_ptr->set_abs_training_tolerance(_abs_training_tolerance);
+  _rb_con_ptr->set_rel_training_tolerance(getParam<Real>("rel_training_tolerance"));
+  _rb_con_ptr->set_abs_training_tolerance(getParam<Real>("abs_training_tolerance"));
 
-  _rb_con_ptr->set_normalize_rb_bound_in_greedy(_normalize_rb_bound_in_greedy);
+  _rb_con_ptr->set_normalize_rb_bound_in_greedy(getParam<bool>("normalize_rb_bound_in_greedy"));
 
   RBParameters _mu_min;
   RBParameters _mu_max;
@@ -106,9 +95,9 @@ DwarfElephantInitializeRBSystemSteadyState::processParameters()
 
    _rb_con_ptr->initialize_training_parameters(_rb_con_ptr->get_parameters_min(),
                                                _rb_con_ptr->get_parameters_max(),
-                                               _n_training_samples,
+                                               getParam<unsigned int>("n_training_samples"),
                                                _log_scaling,
-                                               _deterministic_training);
+                                               getParam<bool>("deterministic_training"));
 }
 
 
@@ -126,7 +115,7 @@ DwarfElephantInitializeRBSystemSteadyState::initializeOfflineStage()
 
   // Initialize the RB construction. Note, we skip the matrix and vector
   // assembly, since this is already done by MOOSE.
-  _rb_con_ptr->initialize_rb_construction(_skip_matrix_assembly_in_rb_system, _skip_vector_assembly_in_rb_system);
+  _rb_con_ptr->initialize_rb_construction(getParam<bool>("skip_matrix_assembly_in_rb_system"),getParam<bool>("skip_vector_assembly_in_rb_system"));
 
    // Save the A's, F's and output vectors from the RBConstruction class in pointers.
    // This additional saving of the pointers is required because otherwise a the RBEvaluation object has

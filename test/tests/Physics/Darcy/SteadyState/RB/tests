@@ -4,4 +4,9 @@
     input = 'RBDarcySteady.i'
     exodiff = 'RBDarcySteady_out.e'
   [../]
+  [./RBDarcySteadyPenalty]
+    type = 'Exodiff'
+    input = 'RBDarcySteadyPenalty.i'
+    exodiff = 'RBDarcySteadyPenalty_out.e'
+  [../]
 []

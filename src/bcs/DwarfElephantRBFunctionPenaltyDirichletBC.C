@@ -22,7 +22,7 @@ DwarfElephantRBFunctionPenaltyDirichletBC::DwarfElephantRBFunctionPenaltyDirichl
 Real
 DwarfElephantRBFunctionPenaltyDirichletBC::computeQpResidual()
 {
-  return _p * _test[_i][_qp] * (_func.value(_t, _q_point[_qp]) + _u[_qp]);
+  return _p * -_test[_i][_qp] * (-_func.value(_t, _q_point[_qp]) + _u[_qp]);
 }
 
 Real

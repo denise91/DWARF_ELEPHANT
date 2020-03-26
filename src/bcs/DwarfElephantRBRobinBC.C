@@ -24,11 +24,11 @@ DwarfElephantRBRobinBC::DwarfElephantRBRobinBC(const InputParameters & parameter
 Real
 DwarfElephantRBRobinBC::computeQpResidual()
 {
-  return _test[_i][_qp] * ((_alpha*_u[_qp])+_value);
+  return -_test[_i][_qp] * (_alpha*_u[_qp]-_value);
 }
 
 Real
 DwarfElephantRBRobinBC::computeQpJacobian()
 {
-  return -_alpha * _phi[_j][_qp] * _test[_i][_qp];
+  return _alpha * _phi[_j][_qp] * _test[_i][_qp];
 }

@@ -1,0 +1,12 @@
+[Tests]
+  [./FEERTSteady]
+    type = 'Exodiff'
+    input = 'FEERTSteady.i'
+    exodiff = 'FEERTSteady_out.e'
+  [../]
+  [./FEERTSteadyVectorPostProcessor]
+    type = 'CSVDiff'
+    input = 'FEERTSteadyVectorPostProcessor.i'
+    csvdiff = 'FEERTSteadyVectorPostProcessor_out_potential_electrodes_0001.csv'
+  [../]
+[]

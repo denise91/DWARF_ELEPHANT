@@ -62,7 +62,7 @@
 
 [UserObjects]
 [./initializeRBSystem]
-  type = TestDwarfElephantInitializeRBSystemSteadyStateT3F3O1
+  type = TestDwarfElephantInitializeRBSystemSteadyStateT5A3F3O1
   execute_on = 'initial'
   N_max = 50
   n_training_samples = 100
@@ -74,7 +74,7 @@
   training_parameters_random_seed = 200
 [../]
 [./performRBSystem]
-  type = TestDwarfElephantOfflineOnlineStageSteadyStateT3F3O1
+  type = TestDwarfElephantOfflineOnlineStageSteadyStateT5A3F3O1
   online_mu = '1.0 2.38 1.0 0.0 0.00999999999999999'
   execute_on = 'timestep_end'
 [../]

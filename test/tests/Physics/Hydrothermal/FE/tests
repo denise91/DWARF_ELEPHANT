@@ -1,0 +1,12 @@
+[Tests]
+  [./Hydrothermal]
+    type = 'Exodiff'
+    input = 'Hydrothermal.i'
+    exodiff = 'Hydrothermal_out.e'
+  [../]
+  [./HydrothermalCSV]
+    type = 'CSVDiff'
+    input = 'Hydrothermal.i'
+    csvdiff = 'Hydrothermal_out.csv'
+  [../]
+[]

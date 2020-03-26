@@ -79,7 +79,7 @@
 
 [UserObjects]
 [./initializeRBSystem]
-  type = TestDwarfElephantInitializeRBSystemTransientT4F3O1M1
+  type = TestDwarfElephantInitializeRBSystemTransientT4A3F3O1M1
   execute_on = 'initial'
   N_max = 100
   n_training_samples = 100
@@ -100,7 +100,7 @@
   execute_on = initial
 [../]
 [./performRBSystem]
-  type = TestDwarfElephantOfflineOnlineStageTransientT4F3O1M1
+  type = TestDwarfElephantOfflineOnlineStageTransientT4A3F3O1M1
   online_mu = '1.0e-2 1 1.0e-2 1.6e2'
   execute_on = 'timestep_end'
   output_console = false

@@ -1,0 +1,17 @@
+[Tests]
+  [./RBERTSteady]
+    type = 'Exodiff'
+    input = 'RBERTSteady.i'
+    exodiff = 'RBERTSteady_out.e'
+  [../]  
+  [./RBERTSteadyVaryingDirac]
+    type = 'Exodiff'
+    input = 'RBERTSteadyVaryingDirac.i'
+    exodiff = 'RBERTSteadyVaryingDirac_out.e'
+  [../]  
+  [./RBERTSteadyVectorPostProcessor]
+    type = 'Exodiff'
+    input = 'RBERTSteadyVectorPostProcessor.i'
+    exodiff = 'RBERTSteadyVectorPostProcessor_out.e'
+  [../]
+[]

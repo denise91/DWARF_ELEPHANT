@@ -4,6 +4,11 @@
     input = 'RBDarcyTransient.i'
     exodiff = 'RBDarcyTransient_out.e'
   [../]
+  [./RBDarcyTransientPenalty]
+    type = 'Exodiff'
+    input = 'RBDarcyTransientPenalty.i'
+    exodiff = 'RBDarcyTransientPenalty_out.e'
+  [../]
   [./RBDarcyTransientStorageConstant]
     type = 'Exodiff'
     input = 'RBDarcyTransientStorageConstant.i'

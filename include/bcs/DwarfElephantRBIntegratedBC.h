@@ -7,18 +7,15 @@
  */
 
 ///-------------------------------------------------------------------------
-#ifndef DWARFELEPHANTRBINTEGRATEDBC_H
-#define DWARFELEPHANTRBINTEGRATEDBC_H
+#pragma once
 
 ///---------------------------------INCLUDES--------------------------------
 // MOOSE includes
 #include "IntegratedBC.h"
-#include "BlockRestrictable.h"
 
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantInitializeRBSystemSteadyState.h"
 #include "DwarfElephantInitializeRBSystemTransient.h"
-#include "MooseVariableScalar.h"
 
 ///-------------------------------------------------------------------------
 // Forward declarations
@@ -45,10 +42,6 @@ public:
   virtual void computeResidual() override;
   virtual void computeJacobian() override;
   virtual void computeOutput();
-  virtual void computeJacobianBlock(unsigned int jvar) override;
-  void computeJacobianBlockScalar(unsigned int jvar) override;
-  virtual void computeNonlocalJacobian() override {}
-  virtual void computeNonlocalOffDiagJacobian(unsigned int /* jvar */) override {}
   virtual void initialSetup() override;
 
 //--------------------------------PROTECTED---------------------------------
@@ -56,9 +49,7 @@ protected:
 
   /*Methods*/
   virtual Real computeQpResidual() override;
-  virtual Real computeQpJacobian() override;
   virtual Real computeQpOutput();
-  virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
 
   /*Attributes*/
   bool _use_displaced;
@@ -82,4 +73,3 @@ protected:
 };
 
 ///-------------------------------------------------------------------------
-#endif /* DWARFELEPHANTRBINTEGRATEDBC_H */

@@ -1,7 +1,8 @@
 #include "DwarfElephantRBIntegratedBC.h"
 #include "SubProblem.h"
 #include "SystemBase.h"
-#include "MooseVariable.h"
+#include "MooseVariableFE.h"
+#include "MooseVariableScalar.h"
 #include "Assembly.h"
 
 // libMesh includes
@@ -211,34 +212,6 @@ DwarfElephantRBIntegratedBC::computeJacobian()
   }
 }
 
-void
-DwarfElephantRBIntegratedBC::computeJacobianBlock(unsigned int jvar)
-{
-  DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), jvar);
-
-  for (_qp=0; _qp<_qrule->n_points(); _qp++)
-    for (_i=0; _i<_test.size(); _i++)
-      for (_j=0; _j<_phi.size(); _j++)
-      {
-        if (_var.number() == jvar)
-          ke(_i,_j) += _JxW[_qp]*_coord[_qp]*computeQpJacobian();
-        else
-          ke(_i,_j) += _JxW[_qp]*_coord[_qp]*computeQpOffDiagJacobian(jvar);
-      }
-}
-
-void
-DwarfElephantRBIntegratedBC::computeJacobianBlockScalar(unsigned int jvar)
-{
-  DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), jvar);
-
-  MooseVariableScalar & jv = _sys.getScalarVariable(_tid, jvar);
-  for (_qp = 0; _qp < _qrule->n_points(); _qp++)
-    for (_i = 0; _i < _test.size(); _i++)
-      for (_j = 0; _j < jv.order(); _j++)
-        ke(_i, _j) += _JxW[_qp] * _coord[_qp] * computeQpOffDiagJacobian(jvar);
-}
-
 Real
 DwarfElephantRBIntegratedBC::computeQpResidual()
 {
@@ -247,18 +220,6 @@ DwarfElephantRBIntegratedBC::computeQpResidual()
 
 Real
 DwarfElephantRBIntegratedBC::computeQpOutput()
-{
-  return 0;
-}
-
-Real
-DwarfElephantRBIntegratedBC::computeQpJacobian()
-{
-  return 0;
-}
-
-Real
-DwarfElephantRBIntegratedBC::computeQpOffDiagJacobian(unsigned int /*jvar*/)
 {
   return 0;
 }

@@ -256,7 +256,7 @@ DwarfElephantOfflineOnlineStageTransient::execute()
 
       Real _error_bound_final_time = _rb_eval.rb_solve(_online_N);
 
-      _n_time_steps = _initialize_rb_system.get_n_time_steps();
+      _n_time_steps = _rb_con_ptr->get_n_time_steps();
 
       _console << "Error bound at the final time is " << _error_bound_final_time << std::endl << std::endl;
 

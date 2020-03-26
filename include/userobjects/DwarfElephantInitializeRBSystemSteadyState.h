@@ -85,23 +85,13 @@ class DwarfElephantInitializeRBSystemSteadyState :
 
     /* Attributes */
     bool _use_displaced;
-    bool _skip_matrix_assembly_in_rb_system;
-    bool _skip_vector_assembly_in_rb_system;
     bool _offline_stage;
-    bool _deterministic_training;
-    bool _quiet_mode;
-    bool _normalize_rb_bound_in_greedy;
 
-    unsigned int _n_training_samples;
-    unsigned int _training_parameters_random_seed;
-    unsigned int _N_max;
     unsigned int _n_outputs;
     unsigned int _qa;
     unsigned int _qf;
     std::vector<unsigned int> _ql;
 
-    Real _rel_training_tolerance;
-    Real _abs_training_tolerance;
     std::vector<Real> _continuous_parameter_min_values;
     std::vector<Real> _continuous_parameter_max_values;
     std::vector<Real> _discrete_parameter_values_in;

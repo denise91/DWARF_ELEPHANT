@@ -4,6 +4,11 @@
     input = 'FEThermalTransient.i'
     exodiff = 'FEThermalTransient_out.e'
   [../]
+  [./FEThermalTransientRobin]
+    type = 'Exodiff'
+    input = 'FEThermalTransientRobin.i'
+    exodiff = 'FEThermalTransientRobin_out.e'
+  [../]
   [./FEThermalTransientRadio]
     type = 'Exodiff'
     input = 'FEThermalTransientRadiogenicHeatProduction.i'

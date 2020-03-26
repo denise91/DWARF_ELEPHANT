@@ -6,8 +6,7 @@
  */
 
 ///-------------------------------------------------------------------------
-#ifndef DWARFELEPHANTRBCLASSESTRANSIENT_H
-#define DWARFELEPHANTRBCLASSESTRANSIENT_H
+#pragma once
 
 ///---------------------------------INCLUDES--------------------------------
 //#if defined(LIBMESH_HAVE_SLEPC) && defined(LIBMESH_HAVE_GLPK)
@@ -33,37 +32,37 @@
 #include "DwarfElephantRBFunctionTimeMuAction.h"
 #include "DwarfElephantRBProblem.h"
 
-#include "DwarfElephantRBStructuresT1F1O1M1Transient.h"
-#include "DwarfElephantRBStructuresT2F1O1M1Transient.h"
-#include "DwarfElephantRBStructuresT2F1O3M2Transient.h"
-#include "DwarfElephantRBStructuresT2F2O1M2Transient.h"
-#include "DwarfElephantRBStructuresT2F2O12M1Transient.h"
-#include "DwarfElephantRBStructuresT2F2O16M1Transient.h"
-#include "DwarfElephantRBStructuresT2F3O1M2Transient.h"
-#include "DwarfElephantRBStructuresT2F3O3M2Transient.h"
-#include "DwarfElephantRBStructuresT3F1O1M1Transient.h"
-#include "DwarfElephantRBStructuresT3F1O3M1Transient.h"
-#include "DwarfElephantRBStructuresT3F1O80M1Transient.h"
-#include "DwarfElephantRBStructuresT3F1O80M2Transient.h"
-#include "DwarfElephantRBStructuresT3F4O1M2Transient.h"
-#include "DwarfElephantRBStructuresT3F4O3M2Transient.h"
-#include "DwarfElephantRBStructuresT3F3O3M2IC1Transient.h"
-#include "DwarfElephantRBStructuresT4F1O1M1Transient.h"
-#include "DwarfElephantRBStructuresT4F5O1M1Transient.h"
-#include "DwarfElephantRBStructuresT4F1O1M1IC1Transient.h"
-#include "DwarfElephantRBStructuresT5F1O1M1Transient.h"
-#include "DwarfElephantRBStructuresT5F5O1M1Transient.h"
-#include "DwarfElephantRBStructuresT5F5O3M1Transient.h"
-#include "DwarfElephantRBStructuresT5F4O1M2Transient.h"
-#include "DwarfElephantRBStructuresT6F4O1M3Transient.h"
-#include "DwarfElephantRBStructuresT6F6O1M1Transient.h"
-#include "DwarfElephantRBStructuresT6F1O1M1IC3Transient.h"
-#include "DwarfElephantRBStructuresT6F5O27M1IC1Transient.h"
-#include "DwarfElephantRBStructuresT7F5O1M1IC1Transient.h"
-#include "DwarfElephantRBStructuresT7F8O1M1Transient.h"
-#include "DwarfElephantRBStructuresT8F9O1M1Transient.h"
-#include "DwarfElephantRBStructuresT10F9O1M1Transient.h"
-#include "DwarfElephantRBStructuresT18F19O1M1Transient.h"
+#include "DwarfElephantRBStructuresT1A1F1O1M1Transient.h"
+#include "DwarfElephantRBStructuresT2A2F1O1M1Transient.h"
+#include "DwarfElephantRBStructuresT2A2F1O3M2Transient.h"
+#include "DwarfElephantRBStructuresT2A2F2O1M2Transient.h"
+#include "DwarfElephantRBStructuresT2A2F2O12M1Transient.h"
+#include "DwarfElephantRBStructuresT2A2F2O16M1Transient.h"
+#include "DwarfElephantRBStructuresT2A2F3O1M2Transient.h"
+#include "DwarfElephantRBStructuresT2A3F3O3M2Transient.h"
+#include "DwarfElephantRBStructuresT3A3F1O1M1Transient.h"
+#include "DwarfElephantRBStructuresT3A3F1O3M1Transient.h"
+#include "DwarfElephantRBStructuresT3A3F1O80M1Transient.h"
+#include "DwarfElephantRBStructuresT3A3F1O80M2Transient.h"
+#include "DwarfElephantRBStructuresT3A3F4O1M2Transient.h"
+#include "DwarfElephantRBStructuresT3A3F4O3M2Transient.h"
+#include "DwarfElephantRBStructuresT3A3F3O3M2IC1Transient.h"
+#include "DwarfElephantRBStructuresT4A3F1O1M1Transient.h"
+#include "DwarfElephantRBStructuresT4A5F5O1M1Transient.h"
+#include "DwarfElephantRBStructuresT4A3F1O1M1IC1Transient.h"
+#include "DwarfElephantRBStructuresT5A3F4O1M2Transient.h"
+#include "DwarfElephantRBStructuresT5A5F1O1M1Transient.h"
+#include "DwarfElephantRBStructuresT5A5F5O1M1Transient.h"
+#include "DwarfElephantRBStructuresT5A5F5O3M1Transient.h"
+#include "DwarfElephantRBStructuresT6A3F4O1M3Transient.h"
+#include "DwarfElephantRBStructuresT6A3F6O1M1Transient.h"
+#include "DwarfElephantRBStructuresT6A3F1O1M1IC3Transient.h"
+#include "DwarfElephantRBStructuresT6A5F5O1M1IC1Transient.h"
+#include "DwarfElephantRBStructuresT6A5F5O27M1IC1Transient.h"
+#include "DwarfElephantRBStructuresT7A6F8O1M1Transient.h"
+#include "DwarfElephantRBStructuresT8A7F9O1M1Transient.h"
+#include "DwarfElephantRBStructuresT14A7F9O1M1Transient.h"
+#include "DwarfElephantRBStructuresT18A10F19O1M1Transient.h"
 
 // Forward Declarations
 namespace libMesh
@@ -221,9 +220,7 @@ public:
   std::vector<DenseVector<Number>> RB_moose_theta_object_q;
 
   // DwarfElephantRBT6F4O1M3TransientExpansion _rb_theta_expansion;
-  DwarfElephantRBT3F1O1M1TransientExpansion _rb_theta_expansion;
+  DwarfElephantRBT3A3F1O1M1TransientExpansion _rb_theta_expansion;
   // DwarfElephantRBT5F4O1M2TransientExpansion _rb_theta_expansion;
   // DwarfElephantRBT6F6O1M1TransientExpansion _rb_theta_expansion;
 };
-///-------------------------------------------------------------------------
-#endif // DWARFELEPHANTRBCLASSESTRANSIENT_H

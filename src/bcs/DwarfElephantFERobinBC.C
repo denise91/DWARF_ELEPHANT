@@ -25,7 +25,7 @@ DwarfElephantFERobinBC::DwarfElephantFERobinBC(const InputParameters & parameter
 Real
 DwarfElephantFERobinBC::computeQpResidual()
 {
-  return _test[_i][_qp] * ((_alpha*_u[_qp])-_value);
+  return _test[_i][_qp] * (_alpha*_u[_qp]-_value);
 }
 
 Real

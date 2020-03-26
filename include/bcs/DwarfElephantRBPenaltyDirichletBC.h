@@ -9,8 +9,7 @@
 
 
 ///-------------------------------------------------------------------------
-#ifndef DWARFELEPHANTRBPENALTYDIRICHLETBC_H
-#define DWARFELEPHANTRBPENALTYDIRICHLETBC_H
+#pragma once
 
 ///---------------------------------INCLUDES--------------------------------
 // MOOSE includes (DwarfElephant package)
@@ -44,5 +43,3 @@ private:
   Real _p;
   const Real & _v;
 };
-
-#endif // DWARFELEPHANTRBPENEALTYDIRICHLETBC_H

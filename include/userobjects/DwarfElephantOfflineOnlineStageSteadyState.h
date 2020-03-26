@@ -39,6 +39,8 @@ namespace libMesh
 class MooseMesh;
 class NonlinearSystemBase;
 class Assembly;
+class DwarfElephantRBProblem;
+class DwarfElephantInitializeRBSystemSteadyState;
 class DwarfElephantOfflineOnlineStageSteadyState;
 
 ///----------------------------INPUT PARAMETERS-----------------------------

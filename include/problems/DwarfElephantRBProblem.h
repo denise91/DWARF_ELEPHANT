@@ -55,6 +55,9 @@ class DwarfElephantRBProblem :
 
     void fileParser(DwarfElephantRBEvaluationTransient & _rb_eval);
 
+    UserObjectName _initial_rb_userobject;
+    UserObjectName _offline_online_rb_userobject;
+
     // virtual MooseVariable & getVariable(THREAD_ID tid, const std::string & var_name) override;
 
 //--------------------------------PROTECTED---------------------------------
@@ -72,12 +75,10 @@ class DwarfElephantRBProblem :
 
     unsigned int _assembly_size;
 
-    UserObjectName _initial_rb_userobject;
-
     std::string _file;
     std::string _offline_data_name;
 
-    friend class DwarfElephantRBEvaluationTransient;
+    // friend class DwarfElephantRBEvaluationTransient;
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTRBPROBLEM_H

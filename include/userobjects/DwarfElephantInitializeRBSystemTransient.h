@@ -77,7 +77,6 @@ class DwarfElephantInitializeRBSystemTransient :
     DwarfElephantRBConstructionTransient * get_rb_con_ptr() const {return _rb_con_ptr;}
     bool get_parameter_dependent_IC() const {return _parameter_dependent_IC;}
     bool get_varying_timesteps() const {return _varying_timesteps;}
-    unsigned int get_n_time_steps() const {return _n_time_steps;}
     Real getDeltaTime() const {return _delta_time;}
 
     unsigned int getQa() const {return _qa;}
@@ -98,22 +97,10 @@ class DwarfElephantInitializeRBSystemTransient :
 
     /* Attributes */
     bool _use_displaced;
-    bool _skip_matrix_assembly_in_rb_system;
-    bool _skip_vector_assembly_in_rb_system;
     bool _offline_stage;
-    bool _deterministic_training;
-    bool _quiet_mode;
-    bool _normalize_rb_bound_in_greedy;
-    bool _nonzero_initialization;
     bool _parameter_dependent_IC;
     bool _initialized;
 
-    int _max_truth_solves;
-    unsigned int _n_training_samples;
-    unsigned int _training_parameters_random_seed;
-    unsigned int _N_max;
-    unsigned int _n_time_steps;
-    unsigned int _delta_N;
     unsigned int _n_outputs;
     unsigned int _qa;
     unsigned int _qm;
@@ -121,18 +108,12 @@ class DwarfElephantInitializeRBSystemTransient :
     unsigned int _q_ic;
     std::vector<unsigned int> _ql;
 
-    Real _rel_training_tolerance;
-    Real _abs_training_tolerance;
     Real _delta_time;
-    Real _euler_theta;
-    Real _POD_tol;
     std::vector<Real> _continuous_parameter_min_values;
     std::vector<Real> _continuous_parameter_max_values;
     std::vector<Real> _discrete_parameter_values_in;
 
     std::string _system_name;
-//    std::string _parameters_filename;
-    std::string _init_filename;
     std::vector<std::string> _continuous_parameters;
     std::vector<std::string> _discrete_parameters;
     std::map< std::string, std::vector<Real> > _discrete_parameter_values;
@@ -144,8 +125,6 @@ class DwarfElephantInitializeRBSystemTransient :
 
     bool _varying_timesteps;
     bool _time_dependent_parameter;
-    // Real _growth_rate;
-    // Real _threshold;
     std::vector<unsigned int> _ID_time_dependent_param;
     Real _start_time;
     Real _end_time;
