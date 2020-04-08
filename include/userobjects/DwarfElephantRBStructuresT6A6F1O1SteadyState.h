@@ -41,6 +41,7 @@ struct DwarfElephantRBT6A6F1O1SteadyStateExpansion : RBThetaExpansion
     attach_A_theta(&_theta_a_3);
     attach_A_theta(&_theta_a_4);
     attach_A_theta(&_theta_a_5);
+    attach_A_theta(&_rb_theta);
 
     attach_F_theta(&_rb_theta);
 
