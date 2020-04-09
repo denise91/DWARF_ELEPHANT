@@ -1,0 +1,12 @@
+[Tests]
+  [./MatlabOutput]
+    type = 'Exodiff'
+    input = 'MatlabOutputTransient.i'
+    exodiff = 'MatlabOutputTransient_out.e'
+  [../]
+  [./PythonOutput]
+    type = 'Exodiff'
+    input = 'PythonOutputTransient.i'
+    exodiff = 'PythonOutputTransient_out.e'
+  [../]
+[]

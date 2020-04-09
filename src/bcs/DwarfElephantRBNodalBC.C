@@ -19,8 +19,8 @@ InputParameters validParams<DwarfElephantRBNodalBC>()
 
   params.addRequiredParam<UserObjectName>("initial_rb_userobject", "Name of the UserObject for initializing the RB system.");
   params.addParam<std::string>("simulation_type", "steady", "Determines whether the simulation is steady state or transient.");
-  params.addParam<std::vector<unsigned int>>("ID_Fq","ID of the load vector.");
-  params.addParam<std::vector<unsigned int>>("ID_Aq", "ID 0f the stiffness matrix.");
+  params.addParam<std::vector<unsigned int>>("ID_Fq",std::vector<unsigned int> {0},"ID of the load vector.");
+  params.addParam<std::vector<unsigned int>>("ID_Aq",std::vector<unsigned int> {0}, "ID of the stiffness matrix.");
   params.addParam<unsigned int>("ID_Mq", 0 , "ID 0f the mass matrix.");
   params.addParam<bool>("compute_output",false,"Determines whether an output function is used or not");
   params.addParam<bool>("use_displaced", false, "Enable/disable the use of the displaced mesh for the data retrieving.");
@@ -41,12 +41,6 @@ DwarfElephantRBNodalBC::DwarfElephantRBNodalBC(const InputParameters & parameter
     _ID_Mq(getParam<unsigned int>("ID_Mq"))
 {
     _rb_problem = cast_ptr<DwarfElephantRBProblem *>(&_fe_problem);
-
-    if(_ID_Fq.size()==0)
-      _ID_Fq = {0};
-
-    if(_ID_Aq.size()==0)
-      _ID_Aq = {0};
 }
 
 ///-------------------------------------------------------------------------
@@ -84,7 +78,7 @@ DwarfElephantRBNodalBC::computeResidual() // DwarfElephantRBNodalBC::computeResi
           {
             if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
             {
-              _rb_problem->rbAssembly(_ID_Fq[i]).cacheResidual(dof_idx, -res);
+              _rb_problem->rbAssembly().cacheResidual(dof_idx, -res,_ID_Fq[i]);
               // _initialize_rb_system->_residuals[_ID_Fq]->set(dof_idx, -res);
             }
           }
@@ -99,7 +93,7 @@ DwarfElephantRBNodalBC::computeResidual() // DwarfElephantRBNodalBC::computeResi
 
         if(_initialize_rb_system_transient->getOfflineStage())
           if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())
-            _rb_problem->rbAssembly(_ID_Fq[i]).cacheResidual(dof_idx, -res);
+            _rb_problem->rbAssembly().cacheResidual(dof_idx, -res, _ID_Fq[i]);
       }
     }
 
@@ -126,7 +120,8 @@ DwarfElephantRBNodalBC::computeJacobian()
     dof_id_type cached_row = _var.nodalDofIndex();
 
     // Cache the user's computeQpJacobian() value for later use.
-    _fe_problem.assembly(0).cacheJacobianContribution(cached_row, cached_row, cached_val);
+    // for(unsigned int i = 0; i < _ID_Aq.size(); i++)
+    //   _rb_problem->rbAssembly(0).cacheJacobianContribution(cached_row, cached_row, cached_val,_ID_Aq[i]);
 
     if (_simulation_type == "steady")
     {
@@ -146,15 +141,14 @@ DwarfElephantRBNodalBC::computeJacobian()
               if (*it-_ID_first_block >= _initialize_rb_system->getQa())
                mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
 
-              _rb_problem->rbAssembly(*it-_ID_first_block).cacheJacobianContribution(cached_row, cached_row, cached_val);
+              _rb_problem->rbAssembly().cacheJacobianContribution(cached_row, cached_row, cached_val,*it-_ID_first_block);
             }
            }
            else{
              for(unsigned int i = 0; i < _ID_Aq.size(); i++){
                if (_ID_Aq[i] >= _initialize_rb_system->getQa())
                 mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
-
-	               _rb_problem->rbAssembly(_ID_Aq[i]).cacheJacobianContribution(cached_row, cached_row, cached_val);
+	               _rb_problem->rbAssembly().cacheJacobianContribution(cached_row, cached_row, cached_val,_ID_Aq[i]);
             }
           }
         }
@@ -178,7 +172,7 @@ DwarfElephantRBNodalBC::computeJacobian()
               if (*it-_ID_first_block >= _initialize_rb_system_transient->getQa())
                 mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
 
-              _rb_problem->rbAssembly(*it-_ID_first_block).cacheJacobianContribution(cached_row, cached_row, cached_val);
+              _rb_problem->rbAssembly().cacheJacobianContribution(cached_row, cached_row, cached_val,*it-_ID_first_block);
             }
           }
           else
@@ -187,13 +181,13 @@ DwarfElephantRBNodalBC::computeJacobian()
               if (_ID_Aq[i] >= _initialize_rb_system_transient->getQa())
                 mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
 
-              _rb_problem->rbAssembly(_ID_Aq[i]).cacheJacobianContribution(cached_row, cached_row, cached_val);
+              _rb_problem->rbAssembly().cacheJacobianContribution(cached_row, cached_row, cached_val,_ID_Aq[i]);
             }
           }
           if (_ID_Mq >= _initialize_rb_system_transient->getQm())
            mooseError("The number of mass matrices you defined here is not matching the number of mass matrices you specified in the RBClasses Class.");
 
-          _rb_problem->rbAssembly(_ID_Mq).cacheMassMatrixContribution(cached_row, cached_row, cached_val);
+          _rb_problem->rbAssembly().cacheMassMatrixContribution(cached_row, cached_row, cached_val,_ID_Mq);
        }
     }
 

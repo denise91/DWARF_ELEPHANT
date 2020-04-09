@@ -4,8 +4,7 @@
  */
 
 ///-------------------------------------------------------------------------
-#ifndef DWARFELEPHANTRBPROBLEM_H
-#define DWARFELEPHANTRBPROBLEM_H
+#pragma once
 
 ///---------------------------------INCLUDES--------------------------------
 // MOOSE includes
@@ -45,7 +44,7 @@ class DwarfElephantRBProblem :
 
     NonlinearSystem & getNonlinearSystem() override { return *_nl_sys; }
 
-    virtual DwarfElephantRBAssembly & rbAssembly(unsigned int subdomain_id) { return *_rb_assembly[subdomain_id]; }
+    virtual DwarfElephantRBAssembly & rbAssembly() { return *_rb_assembly; }
 
     virtual void newRBAssemblyArray(NonlinearSystemBase & nl);
 
@@ -68,7 +67,7 @@ class DwarfElephantRBProblem :
     // line above with this line:
     //NonlinearSystem * _nl_sys;
 
-    std::vector<DwarfElephantRBAssembly *> _rb_assembly;
+    DwarfElephantRBAssembly * _rb_assembly;
 
     bool _use_reduced_initial_condition;
     bool _user_defined_assembly_size;
@@ -80,5 +79,3 @@ class DwarfElephantRBProblem :
 
     // friend class DwarfElephantRBEvaluationTransient;
 };
-///-------------------------------------------------------------------------
-#endif // DWARFELEPHANTRBPROBLEM_H

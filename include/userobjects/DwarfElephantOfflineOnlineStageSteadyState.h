@@ -4,8 +4,7 @@
  */
 
 ///-------------------------------------------------------------------------
-#ifndef DWARFELEPHANTOFFLINEONLINESTAGESTEADYSTATE_H
-#define DWARFELEPHANTOFFLINEONLINESTAGESTEADYSTATE_H
+#pragma once
 
 ///---------------------------------INCLUDES--------------------------------
 //libMesh includes
@@ -87,6 +86,7 @@ class DwarfElephantOfflineOnlineStageSteadyState :
     bool _norm_online_values;
     bool _load_basis_function;
     bool _write_output;
+    bool _only_assembly;
 
     unsigned int _norm_id;
     unsigned int _n_outputs;
@@ -124,5 +124,3 @@ class DwarfElephantOfflineOnlineStageSteadyState :
 
     friend class DwarfElephantDakotaOutput;
 };
-///-------------------------------------------------------------------------
-#endif // DWARFELEPHANTOFFLINEONLINESTAGESTEADYSTATE_H

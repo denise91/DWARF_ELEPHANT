@@ -28,6 +28,7 @@ InputParameters validParams<DwarfElephantOfflineOnlineStageTransient>()
     params.addParam<bool>("output_csv", false, "Determines whether an output of interest is passed to the CSV file.");
     params.addParam<bool>("compliant", false, "Specifies if you have a compliant or non-compliant case.");
     params.addParam<bool>("norm_online_values", false, "Determines wether online parameters are normed.");
+    params.addParam<bool>("only_assembly", false, "Only the matricies and vectors are assembled. The RB algorithm is not excuted.");
     params.addParam<unsigned int>("norm_id", 0, "Defines the id of the parameter that will be used for the normalization.");
     params.addParam<unsigned int>("online_N", 0, "Defines the dimension of the online stage.");
     params.addParam<std::string>("system","rb0","The name of the system that should be read in.");
@@ -56,6 +57,7 @@ DwarfElephantOfflineOnlineStageTransient::DwarfElephantOfflineOnlineStageTransie
     _output_csv(getParam<bool>("output_csv")),
     _compliant(getParam<bool>("compliant")),
     _norm_online_values(getParam<bool>("norm_online_values")),
+    _only_assembly(getParam<bool>("only_assembly")),
     _norm_id(getParam<unsigned int>("norm_id")),
     _n_outputs(getParam<unsigned int>("n_outputs")),
     _system_name(getParam<std::string>("system")),
@@ -74,6 +76,12 @@ DwarfElephantOfflineOnlineStageTransient::DwarfElephantOfflineOnlineStageTransie
 {
   if(_online_stage==true & _online_mu_parameters.size()==0)
     mooseError("You have not defined the online parameters.");
+
+  /* If only the matricies are assembled the online_stage has to be set to false
+   * since no offline stage has been exectuded priorly.
+   */
+  if(_only_assembly && _online_stage)
+    _online_stage = false;
 }
 
 void
@@ -82,18 +90,18 @@ DwarfElephantOfflineOnlineStageTransient::setAffineMatrices()
    _initialize_rb_system.getInnerProductMatrix() -> close();
     for(unsigned int _q=0; _q<_initialize_rb_system.getQa(); _q++)
     {
-      _rb_problem->rbAssembly(_q).setCachedJacobianContributions(*_initialize_rb_system.getJacobianSubdomain()[_q]);
-      _initialize_rb_system.getJacobianSubdomain()[_q] ->close();
+      _rb_problem->rbAssembly().setCachedJacobianContributions(*_initialize_rb_system.getJacobianSubdomain()[_q],_q);
+
+      _initialize_rb_system.getJacobianSubdomain()[_q]->close();
       _initialize_rb_system.getInnerProductMatrix()->add(_mu_bar, *_initialize_rb_system.getJacobianSubdomain()[_q]);
     }
 
-    _initialize_rb_system.getL2Matrix() -> close();
+    _initialize_rb_system.getL2Matrix()->close();
     for(unsigned int _q=0; _q<_initialize_rb_system.getQm(); _q++)
     {
-      _rb_problem->rbAssembly(_q).setCachedMassMatrixContributions(*_initialize_rb_system.getMassMatrixSubdomain()[_q]);
+      _rb_problem->rbAssembly().setCachedMassMatrixContributions(*_initialize_rb_system.getMassMatrixSubdomain()[_q],_q);
       _initialize_rb_system.getMassMatrixSubdomain()[_q] ->close();
       _initialize_rb_system.getL2Matrix()->add(_mu_bar, *_initialize_rb_system.getMassMatrixSubdomain()[_q]);
-
     }
 
 }
@@ -105,7 +113,7 @@ DwarfElephantOfflineOnlineStageTransient::transferAffineVectors()
   // Transfer the data for the F vectors.
   for(unsigned int _q=0; _q<_initialize_rb_system.getQf(); _q++)
   {
-    _rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system.getResiduals()[_q]);
+    _rb_problem->rbAssembly().setCachedResidual(*_initialize_rb_system.getResiduals()[_q],_q);
     _initialize_rb_system.getResiduals()[_q]->close();
   }
 
@@ -211,14 +219,13 @@ DwarfElephantOfflineOnlineStageTransient::execute()
         setAffineMatrices();
 
       // Perform the offline stage.
-      _console << std::endl;
-      offlineStage();
-      _console << std::endl;
-
-      // for(unsigned int i =0; i < _n_outputs; i++)
-      // {
-      //   _rb_con_ptr->get_output_vector(i,0)->print_matlab("VectorClose" + std::to_string(i));
-      // }
+      if(!_only_assembly)
+      {
+        // Perform the offline stage.
+        _console << std::endl;
+        offlineStage();
+        _console << std::endl;
+      }
     }
 
     if(_online_stage)

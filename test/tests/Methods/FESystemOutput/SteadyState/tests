@@ -1,0 +1,12 @@
+[Tests]
+  [./MatlabOutput]
+    type = 'Exodiff'
+    input = 'MatlabOutputSteady.i'
+    exodiff = 'MatlabOutputSteady_out.e'
+  [../]
+  [./PythonOutput]
+    type = 'Exodiff'
+    input = 'PythonOutputSteady.i'
+    exodiff = 'PythonOutputSteady_out.e'
+  [../]
+[]

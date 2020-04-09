@@ -132,7 +132,7 @@ public:
 
   virtual Real train_reduced_basis(const bool resize_rb_eval_data=true) override;
 
-  virtual Real train_reduced_basis_steady(const bool resize_rb_eval_data=true);
+  virtual Real train_reduced_basis_with_greedy_steady(const bool resize_rb_eval_data=true);
 
   void enrich_RB_space_for_initial_conditions();
 

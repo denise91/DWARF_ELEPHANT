@@ -404,6 +404,11 @@ DwarfElephantRBConstructionTransient::init_data()
   Real
   DwarfElephantRBConstructionTransient::train_reduced_basis(const bool resize_rb_eval_data)
   {
+    if (get_RB_training_type() == "POD")
+    {
+      libmesh_error_msg("POD RB training is not supported with TransientRBConstruction");
+    }
+
     compute_truth_projection_error = true;
 
     Real value = 0;
@@ -412,7 +417,7 @@ DwarfElephantRBConstructionTransient::init_data()
 
     // adaptive_timestepping = false;
     if (parameter_dependent_IC || varying_timesteps || time_dependent_parameter)
-      value = train_reduced_basis_steady(resize_rb_eval_data);
+      value = train_reduced_basis_with_greedy_steady(resize_rb_eval_data);
     else
       value = Parent::train_reduced_basis(resize_rb_eval_data);
 
@@ -474,7 +479,7 @@ DwarfElephantRBConstructionTransient::init_data()
 
 
   Real
-  DwarfElephantRBConstructionTransient::train_reduced_basis_steady(const bool resize_rb_eval_data)
+  DwarfElephantRBConstructionTransient::train_reduced_basis_with_greedy_steady(const bool resize_rb_eval_data)
   {
   LOG_SCOPE("train_reduced_basis()", "RBConstruction");
 

@@ -95,10 +95,15 @@ DwarfElephantRBProblem::newRBAssemblyArray(NonlinearSystemBase & nl)
       size = boundaries;
   }
 
-  _rb_assembly.resize(size);
+  // _rb_assembly.resize(size);
+  //
+  // for (unsigned int i = 0; i < size; i++)
+  _rb_assembly = new DwarfElephantRBAssembly(nl, 0);
 
-  for (unsigned int i = 0; i < size; i++)
-    _rb_assembly[i] = new DwarfElephantRBAssembly(nl, i);
+  _rb_assembly->setCachedResidualContributionSize(size);
+  _rb_assembly->setCachedOutputContributionSize(size);
+  _rb_assembly->setCachedJacobianContributionSize(size);
+  _rb_assembly->setCachedMassContributionSize(size);
 }
 
 // MooseVariable &
