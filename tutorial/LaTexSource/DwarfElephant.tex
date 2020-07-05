@@ -1,0 +1,348 @@
+\documentclass[11pt, a4paper, DIV=14]{scrartcl}
+\usepackage{pdfpages}
+% \usepackage[letterpaper, margin=2cm]{geometry}
+\usepackage{eurosym}
+\usepackage[labelfont={bf}]{caption}
+\usepackage{xcolor}
+\usepackage[hyper]{apacite}
+\usepackage{amssymb}
+\usepackage{textcomp}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{url}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+% for footnote under table
+% \usepackage{footnote}
+% \makesavenoteenv{tabular}
+\usepackage{tablefootnote}
+\usepackage{tabularx}
+
+\DeclareSymbolFont{eulerletters}{U}{zeur}{b}{n}
+\DeclareMathSymbol{\eulerD}{\mathord}{eulerletters}{`D}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\begin{document}
+
+\title{DwarfElephant}\label{DwarfElephantTutorial}
+
+\maketitle
+
+\section{Introduction}
+For this tutorial, we are using an application to the Multiphysics Object-Orientated Simulation Environment (MOOSE) \cite{moose-web-page, tonks_et_al}, namely the DwarfElephant package. The application implements the reduced basis (RB) method, which is a model order reduction technique. Meaning the method aims at significantly reducing the dimensionality of the finite element (FE) problems. This is realized via a separation resulting in an offline and online stage. During the offline phase, all expensive pre-computations are performed allowing a fast execution of the online stage. Therefore, the online stage can be effectively used in, for instance, parameter studies, which require many forward simulations. For further details refer to Section \ref{Theory_DE}.
+
+MOOSE, primarily developed by the Idaho National Laboratory, offers a built-in parallelization. The framework builds upon the libMesh \cite{kirk_et_al} and PETSc \cite{balay_et_al} libraries. The RB implementation mainly uses the rbOOmit package provided by libMesh. A built-in parallelization is especially advantageous since constructing parallelized problems for HPC infrastructures is often anything but trivial. For further details regarding the software packages, refer to Section \ref{Implementation}.
+
+\section{The Reduced Basis Method} \label{Theory_DE}
+Note, that the following explanation about the RB method is very brief for further details, regarding the mathematical background, refer to \cite{prud_et_al}, \cite{quarteroni_et_al}, and \cite{hest_et_al}. For more information about the method in a geoscientific context we refer to \cite{degen_et_al}.
+
+In general, the RB method is independent of the discretization scheme; however, since MOOSE is an FE solver, we explain the background of the RB approach by considering an FE problem that can be defined by a parametric coercive partial differential equation (PDE). We further assume throughout the entire tutorial that the PDE is affine parameter-dependent,  i.e., it can be expressed as a sum of terms that are compromised of a parameter-dependent and -independent part. For a thermal conduction problem, the diffusive part of the equation is always the same, only the thermal conductivity is varying for, for instance, different rock types. That does not mean that both parts can be evaluated independently of each other. Hence, the thermal diffusion ($\nabla^2 T$) is the parameter-independent part of the PDE, whereas the thermal conductivity ($\lambda$) is the parameter-dependent part.  In contrast to the Dirichlet boundary conditions, Neumann and Robin boundary conditions appear in the integral form and are generally dependent on our parameters. In our specific example, however, we consider a parameter-independent Neumann boundary condition only.
+
+The principal idea of the RB approach is to take advantage of the decomposition by implementing an offline-online procedure. During the offline stage, all the expensive pre-computations are performed. The cost of these pre-computations is dependent on the high-dimensional FE solution because several solves of the full FE problem are required to build the low-order approximations, which will be explained in the following. Hence, it is advisable to perform the offline stage for large-scale models, where the solution of a single FE problem is already extremely time-consuming, on HPC infrastructures if available.
+
+In the offline-stage, performed once, we solve for the RB functions. Hence, the computational cost depends on $\mathcal{N}$. In the online-stage, performed many times -- for each new $\mu$, the computational cost is of the dimension $N$. Considering $N \ll \mathcal{N}$, this means that the online stage has a much lower computational cost because of the largely reduced dimensionality of the problem \cite{prud_et_al, veroy2005, quarteroni_et_al, hest_et_al}. In case of our geothermal conduction example, we can perform the online-stage for any new thermal conductivity that falls within the range of the training set. 
+
+\section{Problem Description}
+In the following we will consider a geothermal conduction problem as given in (\ref{conduction_DE}):
+\begin{equation}
+- \lambda \nabla^2 T = 0,
+\label{conduction_DE}
+\end{equation}
+%
+where $\lambda$ is the thermal conductivity and $T$ the temperature. In our case, we consider a steady-state problem without sources and sinks, thus ending up with an elliptic PDE.
+
+For performance and convergence reasons we take only dimensionless parameters and variables into account. Therefore, we nondimensionalize the length by (\ref{length dimensionless_DE}):
+% 
+\begin{equation}
+l^* = \frac{l}{l_{\textrm{ref}}}. 
+\label{length dimensionless_DE}
+\end{equation}
+%
+Throughout the entire tutorial the stars or asterisks denote the dimensionless quantities; the quantities without any asterisks refer to the dimensional quantities and the subscript ``ref'' denotes the reference parameter used for the nondimensionalization. Here,  $l_{\textrm{ref}}$ is 1000 m.
+
+\noindent The thermal conductivity is nondimesionalized by applying (\ref{thermal conductivity dimensionless_DE}):
+%
+\begin{equation}
+\lambda^* = \frac{\lambda}{\lambda_{\textrm{ref}}}.
+\label{thermal conductivity dimensionless_DE}
+\end{equation}
+%
+The reference thermal conductivity is, in our example, 1.05 W m\textsuperscript{-1} K\textsuperscript{-1} (i.e., the smallest thermal conductivity). 
+
+Finally, the nondimensionalisation of the temperature is performed with (\ref{temperature dimensionless_DE}):
+%
+\begin{equation}
+T^*=\frac{T-T_{\textrm{ref}}}{T_{\textrm{ref}}},
+\label{temperature dimensionless_DE}
+\end{equation}
+% 
+where the reference temperature $T_{\textrm{ref}}$ is taken as 10 \textdegree C. All model and simulation parameters are found in Table \ref{thermal_properties_DE} and \ref{simulation parameters_DE}. The mesh is uniformly refined and has in total 1,658 nodes and 8,127 elements (Fig. \ref{simulations_DE}).
+
+\begin{figure}
+\center
+\includegraphics[width=0.7\textwidth]{Figures/no_fault_model}
+\caption{Mesh representation of a three-layer model. The model has a Dirichlet boundary condition at the top and a Neumann boundary condition at the bottom of the model. Note, that the mesh is dimensionless for performance reasons.}
+\label{simulations_DE}
+\end{figure}
+
+% \cite{rock_properties}
+\begin{table}
+\caption{Thermal and model properties for the synthetic model \protect\cite{rock_properties}. Take into account that both the thermal conductivity and the length are dimensionless ($\lambda_{ref}$ = 1.05 W m\textsuperscript{-1} K\textsuperscript{-1} and $l_{ref}$ = 1,000 m).}
+\label{thermal_properties_DE}
+\begin{tabular}{|p{4cm}|C{4cm}|C{2cm}|C{2cm}|C{2cm}|}
+\hline\noalign{\smallskip}
+unit & thermal conductivity [W m\textsuperscript{-1}  K\textsuperscript{-1}] / & \multicolumn{3}{c|}{extension in}\\
+\cline{3-5}
+& thermal conductivity [-] & x-direction [-] & y-direction [-] & z-direction [-] \\
+\noalign{\smallskip}\hline\noalign{\smallskip}
+top layer (shale) & 1.05 / 1.00 & 0.00 - 1.00 & 0.00 - 1.00 & 0.66 - 1.00 \\
+middle layer (sandstone) & 2.50 / 2.38 & 0.00 - 1.00 & 0.00 - 1.00 & 0.33 - 0.66 \\
+bottom layer (shale) & 1.05 / 1.0 & 0.00 - 1.00 & 0.00 - 1.00 & 0.00 - 0.33 \\
+\noalign{\smallskip}\hline
+\end{tabular}
+\end{table}
+
+\begin{table}
+\center
+\caption{Simulation parameters for the reduced basis method of the synthetic model.}
+\label{simulation parameters_DE}
+\begin{tabular}{|l|c|c|}
+\hline\noalign{\smallskip}
+Simulation parameter & Value\\
+\noalign{\smallskip}\hline\noalign{\smallskip}
+Solver type & Newton\\
+Linear solver tolerance & 10\textsuperscript{-8}\\
+Nonlinear solver tolerance & 10\textsuperscript{-8}\\
+Preconditioner type &  hypre\\
+Hypre type & boomerang\\
+ksp\_gmres\_restart & 101 \\
+Rel. training tolerance & 10\textsuperscript{-5} \\
+Parameter range (Layer 1 and 3) & 0.5 to 5.0 \\
+Parameter range (Layer 2) & 0.5 to 7.0 \\
+Number of parameters & 3 \\
+Number of training samples & 20 \\
+Maximum number of basis functions &  20\\
+\noalign{\smallskip}\hline
+\end{tabular}
+\end{table}
+
+\section{Prerequisites and First Steps}
+Please, be aware that throughout the entire tutorial we are assuming that the MOOSE software package is correctly installed in the directory \textcolor{violet}{projects/moose}. For further information on how to install MOOSE refer to \cite{moose-web-page}.
+
+ As the first step download the DwarfElephant package from the Git Repository (\url{https://github.com/denise91/DwarfElephant}) into the folder \textcolor{violet}{projects/DwarfElephant}. Afterwards compile the package with the \textcolor{blue}{make} command. Note, if you want to use the transient RB implementation you have to ensure that the SLEPc library \cite{slepc} is enabled during the libMesh build.
+
+After successfully setting up the DwarfElephant package we can start with our first RB example. Therefore create an empty input file with the name FirstRBProblem.i within the folder \textcolor{violet}{projects/DwarfElephant}. The complete input file of this tutorial is also stored in the RBFirstProblem.i file.
+
+\section{Implementation} \label{Implementation}
+In this section, we will explain the implementation of the RB method within MOOSE.  In order to use this code package, it is necessary that the problem can be described as a linear PDE.
+
+\subsection{Mesh, Variables, and Global Params}
+The DwarfElephant package has no additional mesh classes. Consequently, the usage of the Mesh and MeshModifier classes does not differ from MOOSE. Hence, for further explanation regarding the Mesh refer to the MOOSE examples and tutorials. Note that for efficiency reasons for both the solver and the method, we consider only dimensionless meshes.
+
+As for the mesh classes, the here presented package does not offer any additional variable classes. Therefore, refer to the MOOSE examples and tutorials for further information about the usage of this feature.
+
+Analog to the mesh and variable classes, the DwarfElephant package does not add any additional features to the GlobalParam class. For further information about the global parameters please refer to the MOOSE examples and tutorials.
+
+\subsection{Kernels}
+Kernels are in MOOSE responsible for implementing the PDEs, so they define the ``physics'' of a problem.  In contrast to the standard finite element (FE) method, the RB method needs the PDE decomposed into a parameter-dependent and independent part. Additionally, each parameter that should be variable during the online stage requires its own contribution to the stiffness matrix.  Therefore, we implemented the \textcolor{violet}{DwarfElephantRBKernel}. This Kernel class implements additionally an automatic splitting of the stiffness matrix into the mesh subdomains. However, the IDs of the individual stiffness matrices can be directly defined over the input file and hence any kind of decomposition is possible. Note that the  \textcolor{violet}{DwarfElephantRBKernel} does not implement any specific PDE. This Kernel has the same role as the Kernel provided by MOOSE. Hence, if you want to implement a PDE  and want to use the RB method for the simulations you have to ensure that your own Kernel inherits from the DwarfElephantRBKernel instead of the Kernel.
+
+\subsection{BCs}
+A similar scenario as for the Kernels is encountered for the boundary conditions. If the boundaries have a parameter-dependent part an affine decomposition has to be performed. MOOSE offers two types of boundary conditions: nodal and integrated boundary conditions. Nodal boundary conditions are forced boundary conditions (i.e., Dirichlet boundary conditions), in contrast, integrated boundary conditions are boundary conditions that appear in the weak form of the PDE (i.e., Neumann boundary conditions). Be aware that due to the implementation libMesh is using, which destroys the affine decomposition for Dirichlet boundary conditions, non-zero Dirichlet boundary conditions problematic. Hence, it is important to nondimensionalize the PDE in such a way that the Dirichlet boundary condition is equal to zero. This leads also to an improved solver tolerance.
+
+If you want to implement your own BC, it has to inherit from the \textcolor{violet}{DwarfElephantRBNodalBC} or the \textcolor{violet}{DwarfElephantRBIntegratedBC} class. Both of these boundary condition classes are responsible for performing the necessary RB related operations.
+
+\subsection{Materials}
+As already mentioned the RB method requires a decomposition into a parameter-dependent and independent part. Materials are in general parameter-dependent. Hence, in most of the cases, it is not useful to define a Material class for the RB method. The parameter-dependent parts of the PDE will be later defined in a separate block. Nonetheless, the package has a few Material classes, which are used for validation purposes within the FE method.
+
+\subsection{Problem, Executioner and UserObjects}
+For the RB method, the assembly procedure had to be modified from the FE version MOOSE provides. Additionally, we have to perform the solve directly over the libMesh class \textcolor{violet}{RBConstruction} and are accordingly bypassing the \textcolor{violet}{NonlinearSystem} class from MOOSE. Therefore, a new Problem (\textcolor{violet}{DwarfElephantRBProblem}), System (\textcolor{violet}{DwarfElephantSystem}) and Executioner (\textcolor{violet}{DwarfElephantRB\-Executioner}) class are implemented. Note that the Executioner of the RB Problem is the same for the steady-state and transient case because the time-stepping has to be included in the basis construction. However, this tutorial covers the steady-state case only.
+
+To use the RB method in MOOSE two types of UserObjects are required.
+The UserObject \textcolor{violet}{DwarfElephant\-Initialize\-RB\-System\-Steady\-State}/\textcolor{violet}{DwarfElephant\-Initialize\-RB\-System\-Transient} and \textcolor{violet}{Dwarf\-Elephant\-Offline\-Online\-Stage\-Steady\-State}/\textcolor{violet}{Dwarf\-Elephant\-Offline\-Online\-Stage\-Transient}. The first UserObject, which has to be executed on \textcolor{violet}{initial}, is responsible for initializing the RB System for the steady state and transient case, respectively. Here, all necessary parameter for the RB construction have to be defined for more information about these parameters we refer to Section \ref{Practical:UserObjects_DE}. 
+
+The second UserObject performs both the offline and online stage, where both can also be performed separately. Be aware that this UserObject has to be executed on \textcolor{violet}{timestep\_end} because for this UserObject all matrices and vectors must have been assembled. The necessary parameters are related to the storing options and the online stage, again we refer to Section \ref{Practical:UserObjects_DE} for further details.
+Keep in mind that the number of parameters is problem specific and need to be defined at the beginning of each new problem.
+
+\subsection{PostProcessors}
+For the PostProcessors, we offer two ways either on the full or reduced model. In order to do the postprocessing on the full model you can use the PostProcessors provided by MOOSE but you have to execute them on the \textcolor{violet}{time\_step} 'custom'. However, performing the postprocessing on the full instead of the reduced model is not advisable in terms of efficiency. Hence, we strongly advise using the second option for the postprocessing. Keep in mind that the current implementation only supports postprocessing steps on the reduced model that are affinely decomposable  (meaning linearly dependent on the variable). If you want to perform the postprocessing on the reduced model you have to decompose the operation into a parameter-dependent and -independent part (analog to the Kernel and BC). Currently, the package contains a reduced order version of the MOOSE PostProcessors  \textcolor{violet}{ElementalVariableValue},  \textcolor{violet}{NodalVariableValue}, and  \textcolor{violet}{PointValue}. Note, that for implementation reasons these PostProcessors (\textcolor{violet}{DwarfElephantRBElementalVariableValue},  \textcolor{violet}{DwarfElephantRBNodalVariableValue}, and  \textcolor{violet}{DwarfElephantRBPointValue}) are defined as UserObjects. Furthermore, keep in mind that in the RB literature the post processed values are referred to as the output of interest.
+
+\subsection{Outputs}
+All MOOSE Output classes can be used in the same way for the RB and FE Problem. We just offer an additional Output class \textcolor{violet}{DwarfElephantDakotaOutput} to output PostProcessor values in a format that is compatible to the Dakota framework \cite{adams_et_al}. In case you are using the RB please method set the boolean \textcolor{violet}{use\_rb} to true.
+
+\section{A Geothermal Conduction Problem} \label{Thermal Conduction_DE}
+In this section, we will explain the usage of the RB method within MOOSE through the above described thermal conduction problem. Note, that although we are using in this tutorial a geophysical problem the DwarfElephant package is physics independent and is therefore not restricted to geophysical problems. 
+
+\subsection{Mesh}
+For our example please copy the provided mesh file (\textcolor{violet}{RB\_mesh\_3layers.e}) into the DwarfElephant folder and load the file with the following command into your simulation. The mesh capabilities are entirely from the MOOSE Framework. Hence, for further information, we refer to \cite{moose-web-page}.
+\begin{lstlisting}
+[Mesh] 
+    file = RB_mesh_3layers.e
+[ ]
+\end{lstlisting}
+
+\subsection{Variables}
+We define the temperature as our variable of interest since we are considering a geothermal conduction problem for our example simulation. Again, we did not add any functionality to this class and therefore we advise to visit \cite{moose-web-page} for further details.
+\begin{lstlisting}
+[Variables]
+    [./temperature]
+    [../]
+[ ]
+\end{lstlisting}
+
+\subsection{GlobalParams}
+For this example we define the variable and the initial\_rb\_userobject as global parameters. Also the functionality of the GlobalParams is the one from MOOSE (check \cite{moose-web-page} for more information).
+\begin{lstlisting}
+[GlobalParams]
+    variable = temperature
+    initial_rb_userobject = initializeRBSystem
+[]
+\end{lstlisting}
+
+\subsection{Kernels}
+As previously mentioned we have to separately implement the parameter-dependent and independent part. Therefore, we need to define only the diffusion part in the Kernel Block. If nothing else is defined, then the number of generated stiffness matrices corresponds to the number of subdomains. If that is not desired you have to set the boolean \textcolor{violet}{matrix\_seperation\_according\_to\_subdomains} to false.
+\begin{lstlisting}
+[Kernels]
+    [./RBConduction]
+        type = DwarfElephantRBDiffusion
+    [../]
+[]
+\end{lstlisting}
+
+\subsection{BCs}
+The default settings to not consider any splitting in accordance with the mesh for the boundaries. In case you need to define several load vectors use the \textcolor{violet}{ID\_Fq} identifier. Per default, the ID is set to zero.
+In our example, we define a zero Dirichlet BC for the top and a Neumann BC for the bottom of the model. Both boundaries are stored in the load vector zero.
+\begin{lstlisting}
+[BCs]
+    [./top]
+        type = DwarfElephantRBDirichletBC
+        boundary = 2
+        value = 0.00
+    [../]
+
+    [./bottom]
+        type = DwarfElephantRBNeumannBC
+        boundary = 1
+        value = 3.71
+    [../]
+[]
+\end{lstlisting}
+
+\subsection{Problem and Executioner}
+As mentioned above we need a separate Problem and Executioner class. Please define them in your input file as:
+\begin{lstlisting}
+[Problem]
+    type = DwarfElephantRBProblem
+[]
+
+[Executioner]
+    type = DwarfElephantRBExecutioner
+    solve_type = 'Newton'
+    l_tol = 1.e-8
+    nl_rel_tol = 1.e-8}
+[]
+\end{lstlisting}
+
+\subsection{UserObjects}\label{Practical:UserObjects_DE}
+In this section, we define the parameter-dependent part of the problem. In order to run the simulation for this tutorial ensure that in the \textcolor{violet}{DwarfElephantRBClassesSteadyState.h} file (\textcolor{violet}{projects\textbackslash\- DwarfElephant\textbackslash\-include\textbackslash userobjects}) the line under ``\textcolor{violet}{FEProblemBase \& fe\_problem;}'' is equal to \textcolor{violet}{DwarfElephantRBP1T3EqualF1O1SteadyStateExpansion \_rb\_theta\_expansion;}
+To execute the offline-online procedure for the steady state and transient case the UserObjects \textcolor{violet}{DwarfElephantOfflineOnlineStageSteadyState} and \textcolor{violet}{DwarfElephantOfflineOnlineStageTransient} are needed.
+In this example we will use the steady state classes. The definition of the input parameters are found in Tab. \ref{RB parameters_DE} :
+
+\begin{table}
+\caption{Input parameters for the RB simulation.}
+\begin{tabular}{|p{4cm}|p{8cm}|}
+\hline\noalign{\smallskip}
+Parameter & Definition\\
+\noalign{\smallskip}\hline\noalign{\smallskip}
+N\_max & maximal number of basis functions \\
+n\_training\_samples & number of samples in the training set\\
+parameter\_names & name of the parameters (for reusability please use mu\_0 to mu\_n)\\
+parameter\_min\_values & lower bound of the parameter range \\
+parameter\_max\_values & upper bound of the parameter range \\
+store\_basis\_functions & defines whether the basis functions are stored in the offline data folder \\
+online\_mu & definition of the online parameters \\
+\noalign{\smallskip}\hline
+\end{tabular}
+\label{RB parameters_DE}
+\end{table}
+
+
+\begin{lstlisting}
+[UserObjects]
+    [./initializeRBSystem]
+        type = DwarfElephantInitializeRBSystemSteadyState
+        execute_on = 'initial'
+        N_max = 20
+        n_training_samples = 100
+        rel_training_tolerance = 1.e-5
+        parameter_names = 'mu_0 mu_1 mu_2'   
+        parameter_min_values = '1.0 1.0 1.0'
+        parameter_max_values = '5.15 7.15 5.15'
+    [../]
+
+    [./performRBSystem]
+        type = DwarfElephantOfflineOnlineStageSteadyState
+        store_basis_functions = true
+        online_mu = '1.05 2.5 1.05'
+        execute_on = 'timestep_end'
+    [../]
+[]
+\end{lstlisting}
+
+Note: Since the first UserObject has the task to initialize the RB System it has to be executed on the initial time step. The other UserObject has to be executed at the end of the timestep because the matrices and vectors have to be assembled first.
+
+\subsection{Outputs}
+For the Output class the standard MOOSE classes can be used.
+\begin{lstlisting}
+[Outputs]
+    exodus = true
+    execute_on = 'timestep_end'
+    [./console]
+        type = Console
+        outlier_variable_norms = false
+    [../]
+[]
+\end{lstlisting}
+
+\subsection{Run}
+Now, all parameters are set. Go to the folder \textcolor{violet}{projects/DwarfElephant/} (\textcolor{blue}{cd projects/DwarfElephant}) and compile the code with the \textcolor{blue}{make} command. Afterwards run the example with:
+
+ \textcolor{blue}{./DwarfElephant-opt -i RBFirstProblem.i} 
+ 
+\noindent The resulting temperature distribution is stored in the file \textcolor{violet}{RBFirstProblem\_out.e} and should look like Fig. \ref{contour_DE}.
+
+\begin{figure}[h]
+\center
+\includegraphics[width=0.6\textwidth]{Figures/no_fautl_model_contour}
+\caption{Temperature distribution for a three-layer model. Note that both the mesh dimensions and the temperature have been normalized for numerical reasons and are hence dimensionless. The model has a reference temperature of 10 \textdegree C, a reference length of \mbox{1,000 m} and solver tolerances of 10\textsuperscript{-8}.}
+\label{contour_DE}
+\end{figure}
+
+\bibliographystyle{apacite}  
+\bibliography{Bib}
+
+\end{document}
