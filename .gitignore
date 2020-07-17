@@ -95,6 +95,7 @@ build
 !**/gold/*.vtu
 !**/gold/*.pvtu
 !/Tutorial/*.e
+!/test/tests/Meshes/*.e
 !/Tutorial/*.pdf
 
 peacock_run_tmp.i
