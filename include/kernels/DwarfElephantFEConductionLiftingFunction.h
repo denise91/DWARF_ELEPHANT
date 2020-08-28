@@ -39,7 +39,7 @@ protected:
   /* Attributes */
   const MaterialProperty<Real> &_lambda;
 
-  Function * _lifting_function;
+  const Function * _lifting_function;
 };
 
 ///-------------------------------------------------------------------------

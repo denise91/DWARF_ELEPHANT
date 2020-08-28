@@ -50,6 +50,7 @@
 #include "DwarfElephantGeom3DRBThetaExpansion_RFA.h"
 #include "DwarfElephantEIMStructures.h"
 #include "libmesh/vtk_io.h"
+#include "libmesh/exodusII_io.h"
 #include "DwarfElephantNonAffineFunction_3DRBRFA.h"
 #include <boost/lexical_cast.hpp>
 #include<sstream>
@@ -98,7 +99,7 @@ struct ShiftedGaussian : public RBParametrizedFunction
 {
     virtual Number evaluate(const RBParameters & mu,
                           const Point & p,
-                          const Elem & elem)
+                          const Elem & /*elem*/)
     {
         Real center_x = mu.get_value("mu_0");
         Real center_y = mu.get_value("mu_1");
@@ -460,7 +461,7 @@ this->get_equation_systems());
     compute_error_X_norm_vs_N(FullFEsolution.get(), mu, _es);
   }
 
-  virtual void truth_assembly()
+  virtual void truth_assembly() override
 {
   LOG_SCOPE("truth_assembly()", "RBConstruction");
   unsigned int  M = 0;

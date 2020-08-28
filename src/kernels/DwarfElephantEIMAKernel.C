@@ -29,7 +29,7 @@ void DwarfElephantEIMAKernel::computeJacobian()
         _local_ke.zero();        
 
 	const DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemSteadyState>("initial_rb_userobject");
-        unsigned int N_basis_EIM = _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().get_n_basis_functions();
+        //unsigned int N_basis_EIM = _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().get_n_basis_functions();
         unsigned int _ID_Aq_offset = _initialize_rb_system._rb_con_ptr->get_rb_theta_expansion().get_n_A_terms() - _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().get_n_basis_functions();
         for (unsigned int _i_eim_basis_function = 0; _i_eim_basis_function < _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().get_n_basis_functions(); _i_eim_basis_function++)
         {

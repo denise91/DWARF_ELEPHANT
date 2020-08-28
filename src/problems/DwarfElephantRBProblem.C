@@ -35,7 +35,7 @@ DwarfElephantRBProblem::DwarfElephantRBProblem(const InputParameters & params):
 
 DwarfElephantRBProblem::~DwarfElephantRBProblem()
 {
-  FEProblemBase::deleteAssemblyArray();
+  //FEProblemBase::deleteAssemblyArray();
 }
 
 void

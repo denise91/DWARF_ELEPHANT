@@ -17,7 +17,16 @@ protected:
   virtual Real computeQpResidual() override;
   virtual Real computeQpJacobian() override;
 
-  Function & _function;
+  //Function & _function;
+  Real _needle_center_x;
+  Real _needle_center_y;
+  Real _needle_center_z;
+  Real _needle_axis_theta;
+  Real _needle_axis_phi;
+  Real r_0;
+  Real l_0;
+  Real r;
+  Real l;
 };
 
 #endif

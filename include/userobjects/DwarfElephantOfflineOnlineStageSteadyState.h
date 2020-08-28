@@ -68,7 +68,6 @@ class DwarfElephantOfflineOnlineStageSteadyState :
     virtual void initialize() override;
     virtual void execute() override;
     virtual void finalize() override;
-    
 
     ~DwarfElephantOfflineOnlineStageSteadyState()
     {
@@ -113,6 +112,8 @@ class DwarfElephantOfflineOnlineStageSteadyState :
     RBParameters _rb_online_mu;
 
     DwarfElephantRBProblem * _rb_problem;
+    
+
 
     friend class DwarfElephantDakotaOutput;
 };

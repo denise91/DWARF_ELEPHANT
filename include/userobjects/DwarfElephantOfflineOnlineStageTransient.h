@@ -25,7 +25,8 @@
 #include "DwarfElephantInitializeRBSystemTransient.h"
 #include "DwarfElephantRBProblem.h"
 
-
+#include <unistd.h>
+#include <ios>
 ///-------------------------------------------------------------------------
 // Forward Declarations
 namespace libMesh
@@ -67,6 +68,7 @@ class DwarfElephantOfflineOnlineStageTransient :
     virtual void initialize() override;
     virtual void execute() override;
     virtual void finalize() override;
+    void process_mem_usage(double& vm_usage, double& resident_set);
 
 //--------------------------------PROTECTED---------------------------------
   protected:
@@ -113,6 +115,13 @@ class DwarfElephantOfflineOnlineStageTransient :
     
     RBParameters _mu_ref;
 
+    unsigned int _num_online_solves;
+    unsigned int _mesh_index;
+    std::vector<std::vector<Real>> _online_mu_vec;
+    unsigned int _Aq_mat_offset;
+    unsigned int _Mq_mat_offset;
+    
+    
     friend class DwarfElephantRBEvaluationTransient;
     friend class DwarfElephantDakotaOutput;
 };

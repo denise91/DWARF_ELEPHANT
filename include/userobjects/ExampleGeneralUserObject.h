@@ -36,7 +36,7 @@ protected:
   const VariablePhiValue & _phi;
   const VariableTestValue & _test;
 
-  QBase *& _qrule;
+  const QBase *const & _qrule;
   unsigned int _qp;
   unsigned int _i;
   unsigned int _j;

@@ -19,10 +19,17 @@
 ///---------------------------------INCLUDES--------------------------------
 //#if defined(LIBMESH_HAVE_SLEPC) && defined(LIBMESH_HAVE_GLPK)
 
+
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <array>
 // libMesh includes
 #include "libmesh/sparse_matrix.h"
 #include "libmesh/petsc_matrix.h"
-
+#include "libmesh/enum_io_package.h"
 // libMesh includes (RB package)
 #include "libmesh/transient_rb_evaluation.h"
 #include "libmesh/transient_rb_construction.h"
@@ -35,6 +42,9 @@
 #include "DwarfElephantOfflineOnlineStageTransient.h"
 #include "DwarfElephantGeom3DTransientRBThetaExpansion_RFA.h"
 
+// for memory logging function
+#include <unistd.h>
+#include <ios>
 /*
 #include "DwarfElephantRBStructuresT1F1O1M1Transient.h"
 #include "DwarfElephantRBStructuresT2F1O1M1Transient.h"
@@ -73,7 +83,7 @@ class DwarfElephantInitializeRBSystemSteadyState;
 
 struct DwarfElephantCustomTransientTheta : RBTheta
 {
-  virtual Number evaluate (const RBParameters & _mu)
+  virtual Number evaluate (const RBParameters & /*_mu*/)
   {
     return 0.05;//0*_mu.get_value("mu_0");
   }
@@ -101,7 +111,8 @@ struct DwarfElephantRBCustomTransientThetaExpansion : TransientRBThetaExpansion
   {
     // Setting up the RBThetaExpansion object
     attach_M_theta(&_rb_theta);
-
+    attach_A_theta(&_rb_theta);
+    attach_A_theta(&_rb_theta);
     attach_A_theta(&_rb_theta);
     attach_A_theta(&_rb_theta);
     //attach_A_theta(&adv_x);
@@ -109,7 +120,7 @@ struct DwarfElephantRBCustomTransientThetaExpansion : TransientRBThetaExpansion
    // attach_A_theta(&adv_y);
 
     attach_F_theta(&_rb_theta);
-    //attach_F_theta(&_rb_theta);
+    attach_F_theta(&_rb_theta);
 
     //attach_output_theta(&_rb_theta);
 
@@ -121,12 +132,6 @@ struct DwarfElephantRBCustomTransientThetaExpansion : TransientRBThetaExpansion
   RBTheta _rb_theta;         // Default RBTheta object, simply returns one.
 };
 
-struct DummyMAssembly : ElemAssembly
-{
-  virtual void interior_assembly(FEMContext & dummy)
-  { }
-};
-
 struct debugAssemblyExpansion : TransientRBAssemblyExpansion
 {
     debugAssemblyExpansion()
@@ -135,79 +140,7 @@ struct debugAssemblyExpansion : TransientRBAssemblyExpansion
     }
     DummyMAssembly M0;
 };
-struct DwarfElephantRBCustomTransientAssemblyExpansion : TransientRBAssemblyExpansion
-{
-  DwarfElephantRBCustomTransientAssemblyExpansion()
-  {
-    attach_M_assembly(&M0);
-    attach_M_assembly(&M1);
-    attach_M_assembly(&M2);
-    attach_M_assembly(&M3);
-    attach_M_assembly(&M4);
-    attach_M_assembly(&M5);
-    attach_M_assembly(&M6);
-    attach_M_assembly(&M7);
-    attach_M_assembly(&M8);
-    attach_M_assembly(&M9);
-    attach_M_assembly(&M10);
-    attach_M_assembly(&M11);
-    attach_M_assembly(&M12);
-    attach_M_assembly(&M13);
-    attach_M_assembly(&M14);
-    attach_M_assembly(&M15);
-    attach_M_assembly(&M16);
-    attach_M_assembly(&M17);
-    attach_M_assembly(&M18);
-    attach_M_assembly(&M19);
-    attach_M_assembly(&M20);
-    attach_M_assembly(&M21);
-    attach_M_assembly(&M22);
-    attach_M_assembly(&M23);
-    attach_M_assembly(&M24);
-    attach_M_assembly(&M25);
-    attach_M_assembly(&M26);
-    attach_M_assembly(&M27);
-    attach_M_assembly(&M28);
-    attach_M_assembly(&M29);
-    attach_M_assembly(&M30);
-    attach_M_assembly(&M31);
-    
-    
-  }
-  DummyMAssembly M0;
-  DummyMAssembly M1;
-  DummyMAssembly M2;
-  DummyMAssembly M3;
-  DummyMAssembly M4;
-  DummyMAssembly M5;
-  DummyMAssembly M6;
-  DummyMAssembly M7;
-  DummyMAssembly M8;
-  DummyMAssembly M9;
-  DummyMAssembly M10;
-  DummyMAssembly M11;
-  DummyMAssembly M12;
-  DummyMAssembly M13;
-  DummyMAssembly M14;
-  DummyMAssembly M15;
-  DummyMAssembly M16;
-  DummyMAssembly M17;
-  DummyMAssembly M18;
-  DummyMAssembly M19;
-  DummyMAssembly M20;
-  DummyMAssembly M21;
-  DummyMAssembly M22;
-  DummyMAssembly M23;
-  DummyMAssembly M24;
-  DummyMAssembly M25;
-  DummyMAssembly M26;
-  DummyMAssembly M27;
-  DummyMAssembly M28;
-  DummyMAssembly M29;
-  DummyMAssembly M30;
-  DummyMAssembly M31;
-  
-};
+
 
 ///------------------------DWARFELEPHANTRBEVALUATION------------------------
 class DwarfElephantRBEvaluationTransient : public TransientRBEvaluation
@@ -387,7 +320,7 @@ public:
       }
     }
   
-  virtual Real uncached_compute_residual_dual_norm(const unsigned int N)
+  virtual Real uncached_compute_residual_dual_norm(const unsigned int N) override
   {
         LOG_SCOPE("uncached_compute_residual_dual_norm()", "TransientRBEvaluation");
 
@@ -597,7 +530,7 @@ public:
                                                    bool read_error_bound_data=true,
                                                    const bool read_binary_data=true) override;
   
-  virtual Real compute_residual_dual_norm(const unsigned int N)
+  virtual Real compute_residual_dual_norm(const unsigned int N) override
 {
   LOG_SCOPE("compute_residual_dual_norm()", "TransientRBEvaluation");
 
@@ -656,7 +589,10 @@ public:
   //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
   
   Geom3DTransientRBThetaExpansion _rb_theta_expansion;
-  
+//  M_theta_10 _rb_theta_expansion;
+ //A_theta_10 _rb_theta_expansion;
+  //BC_heat_source_thetas _rb_theta_expansion;
+  //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
 
   std::vector<DenseVector<Number>> RB_IC_q_vector;
   
@@ -682,7 +618,15 @@ public:
 
   // Type of the system
   typedef DwarfElephantRBConstructionTransient _sys_type;
+
+  std::string execute_command(const char *     cmd);
   
+  void write_mesh_node_coords_and_elem_connectivities();
+
+  void print_matrix(SparseMatrix<Number> * mat_in, std::string filename);
+
+  void print_vector(NumericVector<Number> * vec_in, std::string filename);
+
   void set_up_error_norm_v_N_vec()
   {
       error_norm_sum_v_N.resize(get_rb_evaluation().get_n_basis_functions());
@@ -720,7 +664,7 @@ public:
       
   }
 
-  void FE_solve_debug(RBParameters mu, int write_interval, int num_param_values=1)
+  void FE_solve_debug(RBParameters mu, int write_interval, int /*num_param_values*/, int mesh_index, std::vector<unsigned int> _temp_averaging_node_ids)
   { // computes the full FE solution and returns it as a vector of numeric vectors
       const unsigned int Q_a = get_rb_theta_expansion().get_n_A_terms();
       const unsigned int Q_f = get_rb_theta_expansion().get_n_F_terms();
@@ -730,8 +674,29 @@ public:
       const unsigned int n_time_steps = get_n_time_steps();
       const Real euler_theta = get_euler_theta();
       TransientRBThetaExpansion & trans_theta_expansion =
-    cast_ref<TransientRBThetaExpansion &>(get_rb_theta_expansion());
+      cast_ref<TransientRBThetaExpansion &>(get_rb_theta_expansion());
+      Real A_freq_factor = 3.1e98;
+      Real E_act = 6.28e5;
+      Real R_ideal_gas = 8.314;
+      //Real _needle_neighbourhood_RMS_temp_final = 0; //holds the Root Mean Squared temperature at the final time in a 2cm ball around the needle center.
+      
+      std::unique_ptr<NumericVector<Number>> _needle_neighbourhood_temp = NumericVector<Number>::build(this->comm());
+      _needle_neighbourhood_temp->init(this->n_dofs(),this->n_local_dofs(),false,PARALLEL);
+      _needle_neighbourhood_temp->zero();
+      
+      std::unique_ptr<NumericVector<Number>> _arrhenius_integral = NumericVector<Number>::build(this->comm());
+      _arrhenius_integral->init(this->n_dofs(),this->n_local_dofs(),false,PARALLEL);
+      _arrhenius_integral->zero();
+      
+      std::unique_ptr<NumericVector<Number>> _tissue_damage = NumericVector<Number>::build(this->comm());
+      _tissue_damage->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+      _tissue_damage->zero();
+      _tissue_damage->add(1.0);
 
+      std::unique_ptr<NumericVector<Number>> temp_vec_L2_norm = NumericVector<Number>::build(this->comm());
+      temp_vec_L2_norm->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+      temp_vec_L2_norm->zero();
+      
       const unsigned int Q_m = trans_theta_expansion.get_n_M_terms();
       initialize_truth();
       set_time_step(0);
@@ -760,6 +725,8 @@ public:
 
       
       Real dt = get_delta_t();
+      Real temperature_L2_norm_sq = 0;
+      Real temperature_L2_norm_time_integral = 0;
       // Prepare LHS matrix for full order FE solve
      
       
@@ -826,15 +793,19 @@ public:
               {
                   if (q_f == 0)
                       temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(q_f, mu));
-                  //else // To use EIM approximation of the heat source
-                  //    temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
-                  else if (q_f == 1)
-                  {   
-                      _nonAffineF->close();
-                      *temp_vec=*_nonAffineF;
-                  } 
-                  else
-                      break;
+                  else // To use EIM approximation of the heat source
+                      {
+                        temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
+                        Real F_theta_value = get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu);
+                        int test = 0;
+                      }
+                  //else if (q_f == 1)
+                  //{   
+                  //    _nonAffineF->close();
+                  //    *temp_vec=*_nonAffineF;
+                  //} 
+                  //else
+                  //    break;
               }
               else
                   temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(q_f, mu));
@@ -847,10 +818,11 @@ public:
               //if (get_rb_theta_expansion().eval_F_theta(q_f,mu) != 1.0)
                 //        libMesh::out << "q_f = " << q_f << " F_theta diff = "<< get_rb_theta_expansion().eval_F_theta(q_f,mu) - 1.0 << std::endl;
             }
+
             }
             this->matrix->close();
             this->rhs->close();
-            
+            this->matrix->print_matlab("transient_stiffness_matrix.m");
       // truth_assembly assembles into matrix and rhs, so use those for the solve
             solve_for_matrix_and_rhs(*get_linear_solver(), *matrix, *rhs);
       // The matrix doesn't change at each timestep, so we
@@ -863,6 +835,7 @@ public:
             }
             FullFEsolution[time_level-1]->add(*solution);
             // load projection error into column _k of temporal_data matrix
+            //solution->print_matlab("FE_solution_"+ std::to_string(time_level)+".m");
             if (compute_truth_projection_error)
                 set_error_temporal_data();
             
@@ -872,33 +845,92 @@ public:
 
                 std::ostringstream file_name;
 
-                file_name << "truth.e.";
+                file_name << "temp_r0_" << mu.get_value("mu_0") << "_l0_"<< mu.get_value("mu_1") << "_mesh_" << mesh_index << "_";
                 file_name << std::setw(3)
                     << std::setprecision(0)
                     << std::setfill('0')
                     << std::right
-                    << time_level;
-
+                    << time_level << ".e";
+ 
                 #ifdef LIBMESH_HAVE_EXODUS_API
-                //ExodusII_IO(get_mesh()).write_equation_systems (file_name.str(),
-                //                                          this->get_equation_systems());
-                #endif
-                std::ostringstream file_name2;
+                ExodusII_IO(get_mesh()).write_equation_systems (file_name.str(),
+                                                          this->get_equation_systems());
+                #endif 
+                /*std::ostringstream file_name2;
                 file_name2 << "out_"
                         << std::setprecision(0)
                         << std::setfill('0')
                         << std::right
                         << time_level
                         << ".vtu";
-                VTKIO(get_mesh()).write_equation_systems(file_name2.str(), this->get_equation_systems());
+                VTKIO(get_mesh()).write_equation_systems(file_name2.str(), this->get_equation_systems()); */
+            }
+            inner_product_matrix->vector_mult(*temp_vec_L2_norm,*solution);
+            temperature_L2_norm_sq = temp_vec_L2_norm->dot(*solution);
+            temperature_L2_norm_time_integral += sqrt(temperature_L2_norm_sq)*dt;
+            temp_vec_L2_norm->zero();
+            
+           
+            //*(this->solution) = *_temperature_soln[time_step-1];
+            //VTKIO(get_mesh()).write_equation_systems("test_temp_" + std::to_string(time_step) + ".vtu", this->get_equation_systems());
+            for (unsigned int node = 0; node < this->n_local_dofs(); node++) // could be parallelized
+            {
+                Real integral_prev_step[] = {0};
+                std::vector<unsigned int> index = {_arrhenius_integral->first_local_index() + node};
+                _arrhenius_integral->get(index,integral_prev_step);
+                if (time_level == 1)
+                    _arrhenius_integral->set(_arrhenius_integral->first_local_index() + node,integral_prev_step[0] - 0.5*dt*A_freq_factor*exp(-E_act/(R_ideal_gas * ((*solution)(_arrhenius_integral->first_local_index() + node) + 310.15) )));
+                else if (time_level < n_time_steps)
+                    _arrhenius_integral->set(_arrhenius_integral->first_local_index() + node,integral_prev_step[0] - dt*A_freq_factor*exp(-E_act/(R_ideal_gas * ((*solution)(_arrhenius_integral->first_local_index() + node) + 310.15))));
+                else
+                    _arrhenius_integral->set(_arrhenius_integral->first_local_index() + node,integral_prev_step[0] - 0.5*dt*A_freq_factor*exp(-E_act/(R_ideal_gas * ((*solution)(_arrhenius_integral->first_local_index() + node) + 310.15))));
             }
         }
 
     // Set reuse_preconditioner back to false for subsequent solves.
       linear_solver->reuse_preconditioner(false);
-
+      for (unsigned int node = 0; node < this->n_local_dofs(); node++) // could be parallelized
+          {
+              if ((*_tissue_damage)(_tissue_damage->first_local_index() + node))
+                  if (exp((*_arrhenius_integral)(_tissue_damage->first_local_index() + node)) >= exp(-1.0))
+                      _tissue_damage->set(_tissue_damage->first_local_index() + node,0.0);
+          }
+      _tissue_damage->close();
+      this->get_equation_systems().get_system("aux0").solution->close();
+      *(this->get_equation_systems().get_system("aux0").solution) = *_tissue_damage;
+      std::ostringstream tissue_dmg_file_name;
+      tissue_dmg_file_name  << "tissue_damage_r0_" << mu.get_value("mu_0") << "_l0_" << mu.get_value("mu_1") << "_mesh_" << mesh_index << ".vtu"; 
+      VTKIO(get_mesh()).write_equation_systems(tissue_dmg_file_name.str(), this->get_equation_systems());
+      if (this->processor_id() == 0)
+      {
+        std::ostringstream outfilename;
+        outfilename << "Temperature_L2_norm_time_integral_r0_" << mu.get_value("mu_0") << "_l0_" << mu.get_value("mu_1") << "_mesh_" << mesh_index << ".txt"; 
+        std::ofstream outfile;
+        outfile.open(outfilename.str());
+        outfile << temperature_L2_norm_time_integral;
+        outfile.close();
+      }
+      
+      for (unsigned int avg_node_id = 0; avg_node_id < _temp_averaging_node_ids.size(); avg_node_id++)
+      {
+          if (solution->first_local_index() <= _temp_averaging_node_ids[avg_node_id] && _temp_averaging_node_ids[avg_node_id] <= solution->first_local_index() + this->n_local_dofs())
+              _needle_neighbourhood_temp->set(solution->first_local_index() + avg_node_id,(*solution)(solution->first_local_index() + avg_node_id));
+      }
+      inner_product_matrix->vector_mult(*temp_vec_L2_norm,*_needle_neighbourhood_temp);
+      temperature_L2_norm_sq = temp_vec_L2_norm->dot(*_needle_neighbourhood_temp);
+      temperature_L2_norm_time_integral = sqrt(temperature_L2_norm_sq);
+      if (this->processor_id() == 0)
+      {
+        std::ostringstream outfilename;
+        outfilename << "Temperature_RMS_aroundNeedle_r0_" << mu.get_value("mu_0") << "_l0_" << mu.get_value("mu_1") << "_mesh_" << mesh_index << ".txt"; 
+        std::ofstream outfile;
+        outfile.open(outfilename.str());
+        outfile << temperature_L2_norm_time_integral;
+        outfile.close();
+      }
       // Compute RB solution and RB_v_FE error in energy norm here
       // Create sparse matrices to hold assembled mass matrix and A matrix
+      /*
       DwarfElephantRBEvaluationTransient & trans_rb_eval = dynamic_cast<DwarfElephantRBEvaluationTransient&>(get_rb_evaluation());
       Number error_energy_norm;
       get_rb_evaluation().set_parameters(mu);
@@ -910,7 +942,7 @@ public:
           
 
           online_error_bound_v_N[N-1] = get_rb_evaluation().rb_solve(N);
-          this->load_rb_solution();
+          //this->load_rb_solution();
           error_energy_norm = 0;
           for (unsigned int time_level=1; time_level<=n_time_steps; time_level++)
           {
@@ -920,7 +952,7 @@ public:
               {
                   _RB_solution[time_level-1]->add((trans_rb_eval.RB_temporal_solution_data[time_level])(i),get_rb_evaluation().get_basis_function(i));     
               }
-              //*_RB_solution[time_level-1]-=*FullFEsolution[time_level-1];
+              //  *_RB_solution[time_level-1]-=*FullFEsolution[time_level-1];
               _RB_solution[time_level-1]->add(-1.,*(FullFEsolution[time_level-1].get()));
               A_mu->vector_mult(*temp_vec_error,*(_RB_solution[time_level-1].get()));
               error_energy_norm += temp_vec_error -> dot(*(_RB_solution[time_level-1].get()));
@@ -932,8 +964,195 @@ public:
           error_energy_norm = std::sqrt(error_energy_norm);
           error_norm_sum_v_N[N-1] = error_energy_norm/static_cast<double>(num_param_values);
           // Write out the error energy norm for the particular value of N to file
-      }
+      }*/
   
+  }
+
+  void FE_solve_steady(RBParameters mu)
+  {
+      std::string exec_string = "parallel";
+      const unsigned int Q_a = get_rb_theta_expansion().get_n_A_terms();
+      const unsigned int Q_f = get_rb_theta_expansion().get_n_F_terms();
+      unsigned int M = 1;
+      if (dynamic_cast<DwarfElephantRBEvaluationTransient&>(get_rb_evaluation())._RB_RFA)
+          M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+      
+      std::unique_ptr<SparseMatrix<Number>> A_mu;
+      
+      A_mu = SparseMatrix<Number>::build(this->comm());
+      this->get_dof_map().attach_matrix(*A_mu);
+      A_mu->init();
+      A_mu->zero();
+      A_mu->close();
+
+      std::unique_ptr<NumericVector<Number>> FullFEsolution = NumericVector<Number>::build(this->comm());
+      FullFEsolution->init(this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+      FullFEsolution->zero();
+      FullFEsolution->close();
+
+      this->matrix->close();
+      this -> matrix -> zero();
+      this -> rhs -> zero();
+      libMesh::out << std::endl;
+      for (unsigned int q_a=0; q_a<Q_a; q_a++)
+      {
+          matrix->add(get_rb_theta_expansion().eval_A_theta(q_a,mu), *get_Aq(q_a));
+          A_mu -> add(get_rb_theta_expansion().eval_A_theta(q_a,mu),*get_Aq(q_a));
+          libMesh::out << "ATheta " << q_a << " = " << get_rb_theta_expansion().eval_A_theta(q_a,mu) << std::endl;
+      }
+      matrix->print_matlab("A_mu_" + exec_string + ".m");
+      std::unique_ptr<NumericVector<Number>> temp_vec = NumericVector<Number>::build(this->comm());
+      temp_vec->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+      temp_vec->zero();
+      for (unsigned int q_f=0; q_f<Q_f; q_f++)
+      {
+          *temp_vec = *get_Fq(q_f);/*
+          if (q_f == 0)
+          {
+              temp_vec->scale( get_rb_theta_expansion().eval_F_theta(q_f, mu));
+              libMesh::out << "FTheta " << q_f << " = " << get_rb_theta_expansion().eval_F_theta(q_f,mu) << std::endl;
+          }
+          else 
+          {
+              temp_vec->scale(get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
+              Real F_theta_value = get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu);
+              int test = 0;
+              libMesh::out << "FTheta " << q_f << " = " << F_theta_value << std::endl;
+          }*/
+          temp_vec->scale( get_rb_theta_expansion().eval_F_theta(q_f, mu));
+          rhs->add(*temp_vec);
+          libMesh::out << "FTheta " << q_f << " = " << get_rb_theta_expansion().eval_F_theta(q_f,mu) << std::endl;
+      }
+      
+//      rhs->print_matlab("rhs_matlab_script_" + exec_string + ".m");
+      print_matrix(matrix, "test_A_matrix.txt");
+
+      print_vector(rhs, "test_f_vector.txt");
+/*
+      std::ofstream outfile;
+      outfile.open("/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/rhs_parallel_node_id_" + std::to_string(this->comm().rank()) + ".txt");
+      for (unsigned int i = rhs->first_local_index(); i < rhs->last_local_index(); i++)
+      {
+          outfile << i << " " << (*rhs)(i) << endl;
+      }
+      outfile.close();*/
+      this->matrix->close();
+      this->rhs->close();
+      this->matrix->print_matlab("steady_solve_stiffness_matrix.m");  
+      // truth_assembly assembles into matrix and rhs, so use those for the solve
+      solve_for_matrix_and_rhs(*get_linear_solver(), *matrix, *rhs);
+      // The matrix doesn't change at each timestep, so we
+      // can set reuse_preconditioner == true
+      linear_solver->reuse_preconditioner(true);
+
+      if (assert_convergence)
+      {
+          check_convergence(*get_linear_solver());
+      }
+      FullFEsolution->add(*solution);
+      solution->print_matlab("steady_soln.m");
+            
+      libMesh::out << std::endl << "Plot Steady State Solution" << std::endl;
+
+      std::ostringstream file_name;
+
+      file_name << "temp_r0_" << mu.get_value("mu_0") << "_l0_"<< mu.get_value("mu_1") << "_steady.e";
+ 
+      #ifdef LIBMESH_HAVE_EXODUS_API
+      ExodusII_IO(get_mesh()).write_equation_systems (file_name.str(),
+                                                          this->get_equation_systems());
+      #endif
+      VTKIO(get_mesh()).write_equation_systems(file_name.str(), this->get_equation_systems());
+  }
+
+  void computeTissueDamage(unsigned int _num_online_solves, std::vector<std::vector<Real>> _online_mu_vec)
+  {
+    
+      RBParameters _rb_online_mu;
+      DwarfElephantRBEvaluationTransient & trans_rb_eval = dynamic_cast<DwarfElephantRBEvaluationTransient&>(get_rb_evaluation());
+      unsigned int _online_N = 0;
+      const unsigned int n_time_steps = get_n_time_steps();
+      const Real euler_theta = get_euler_theta();
+      Real dt = get_delta_t();
+      Real A_freq_factor = 3.1e98;
+      Real E_act = 6.28e5;
+      Real R_ideal_gas = 8.314;
+      
+      std::unique_ptr<NumericVector<Number>> _arrhenius_integral = NumericVector<Number>::build(this->comm());
+      _arrhenius_integral->init(this->n_dofs(),this->n_local_dofs(),false,PARALLEL);
+      _arrhenius_integral->zero();
+      
+      _tissue_damage = NumericVector<Number>::build(this->comm());
+      _tissue_damage->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+      _tissue_damage->zero();
+      _tissue_damage->add(1.0);
+      
+      _temperature_soln.resize(n_time_steps);
+      
+      for (unsigned int _i_online_solve = 0; _i_online_solve < _num_online_solves; _i_online_solve++)
+      {
+          for (unsigned int  _q = 0; _q < _online_mu_vec[_i_online_solve].size(); _q++)
+          {
+              std::string  _mu_name = "mu_" + std::to_string(_q);
+              _rb_online_mu.set_value(_mu_name, _online_mu_vec[_i_online_solve][_q]);
+      
+              this->set_n_time_steps(n_time_steps);
+              this->set_delta_t(dt);
+              this->set_euler_theta(euler_theta);
+              this->set_time_step(0);
+          }
+          
+          trans_rb_eval.set_parameters(_rb_online_mu);
+          trans_rb_eval.print_parameters();
+  
+          if(_online_N==0)
+              _online_N = this->get_rb_evaluation().get_n_basis_functions();
+          
+          std::cout << "Number of basis functions: " << _online_N;
+          //Real _error_bound_final_time = trans_rb_eval.rb_solve(_online_N); 
+          //this->load_rb_solution();
+          for (unsigned int time_step = 1; time_step <= n_time_steps; time_step++)
+          {
+            if (_i_online_solve == 0)
+            {
+                _temperature_soln[time_step - 1] = NumericVector<Number>::build(this->comm());
+                _temperature_soln[time_step - 1]->init(this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+            }
+            _temperature_soln[time_step - 1]->zero();
+            for (int i = 0; i < _online_N; i++)
+            {
+                _temperature_soln[time_step-1]->add((trans_rb_eval.RB_temporal_solution_data[time_step])(i),get_rb_evaluation().get_basis_function(i));     
+            }
+            _temperature_soln[time_step-1]->add(310.15); // Add the body core temperature to the solution
+            //*(this->solution) = *_temperature_soln[time_step-1];
+            //VTKIO(get_mesh()).write_equation_systems("test_temp_" + std::to_string(time_step) + ".vtu", this->get_equation_systems());
+            for (unsigned int node = 0; node < this->n_local_dofs(); node++) // could be parallelized
+            {
+                Real integral_prev_step[] = {0};
+                std::vector<unsigned int> index = {_arrhenius_integral->first_local_index() + node};
+                _arrhenius_integral->get(index,integral_prev_step);
+                if (time_step == 1)
+                    _arrhenius_integral->set(_arrhenius_integral->first_local_index() + node,integral_prev_step[0] - 0.5*dt*A_freq_factor*exp(-E_act/(R_ideal_gas * (*_temperature_soln[time_step - 1])(_arrhenius_integral->first_local_index() + node))));
+                else if (time_step < n_time_steps)
+                    _arrhenius_integral->set(_arrhenius_integral->first_local_index() + node,integral_prev_step[0] - dt*A_freq_factor*exp(-E_act/(R_ideal_gas * (*_temperature_soln[time_step - 1])(_arrhenius_integral->first_local_index() + node))));
+                else
+                    _arrhenius_integral->set(_arrhenius_integral->first_local_index() + node,integral_prev_step[0] - 0.5*dt*A_freq_factor*exp(-E_act/(R_ideal_gas * (*_temperature_soln[time_step - 1])(_arrhenius_integral->first_local_index() + node))));
+            }
+              
+          }
+          this->solution->zero();
+          for (unsigned int node = 0; node < this->n_local_dofs(); node++) // could be parallelized
+          {
+              if ((*_tissue_damage)(_tissue_damage->first_local_index() + node))
+                  //_tissue_damage->set(node,(*_arrhenius_integral)(node));
+                  if (exp((*_arrhenius_integral)(_tissue_damage->first_local_index() + node)) >= exp(-1.0))
+                      _tissue_damage->set(_tissue_damage->first_local_index() + node,0.0);
+          }
+      }
+      this->solution->close();
+      _tissue_damage->close();
+      *(this->solution) = *_tissue_damage;
+      VTKIO(get_mesh()).write_equation_systems("tissuedamage.vtu", this->get_equation_systems());
   }
   
   NumericVector<Number> * get_nonAffineF() // To test error caused by EIM in the RB solution
@@ -989,6 +1208,8 @@ public:
   void enrich_RB_space_for_initial_conditions();
   
   virtual void compute_Fq_representor_innerprods(bool compute_inner_products=true) override;
+  
+  void process_mem_usage(double& vm_usage, double& resident_set);
 
   unsigned int u_var;
 
@@ -997,7 +1218,12 @@ public:
   std::vector<Number> error_norm_sum_v_N;
   std::vector<Real> online_error_bound_v_N;
   DwarfElephantRBCustomTransientAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
+  //QM_10 Dummy_TransientRBAssemblyExpansion;
+  //QM_0 Dummy_TransientRBAssemblyExpansion;
+  //debugAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
   std::unique_ptr<NumericVector<Number>> _nonAffineF;
+  std::vector<std::unique_ptr<NumericVector<Number>>> _temperature_soln;
+  std::unique_ptr<NumericVector<Number>> _tissue_damage;
   //debugAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
 private:
   /**

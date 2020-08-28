@@ -53,13 +53,19 @@ struct ShiftedGaussian_3DRFA : public RBParametrizedFunction
 
     Real r_0 = mu.get_value("mu_0");
     Real l_0 = mu.get_value("mu_1");
-    Real x_prime = mu.get_value("mu_2");
-    Real y_prime = mu.get_value("mu_3");
-    Real z_prime = mu.get_value("mu_4");
-    Number result;
+
     Number x_new, y_new, z_new, t0;
-    double matrix[3][3]={0}, vec[3][1]={0}, L = 0.1, r = 3e-3, l = 5e-2;
+    double matrix[3][3]={0}, vec[3][1]={0}, L = 0.1, r = mu.get_value("mu_9"), l = mu.get_value("mu_10");
     double d = 3*r, h = 1.5*l;
+    
+    Real _needle_center_x = mu.get_value("mu_2");
+    Real _needle_center_y = mu.get_value("mu_3");
+    Real _needle_center_z = mu.get_value("mu_4");
+    Real _needle_axis_theta = mu.get_value("mu_5");
+    Real _needle_axis_phi = mu.get_value("mu_6");
+    
+    Real _needle_power = mu.get_value("mu_7");
+
 if (elem.subdomain_id() == 1)
  {
   matrix[0][0] = 1.0;
@@ -347,7 +353,25 @@ if (elem.subdomain_id() == 32)
 x_new = matrix[0][0]*p(0) + matrix[0][1]*p(1) + matrix[0][2]*p(2) + vec[0][0];
 y_new = matrix[1][0]*p(0) + matrix[1][1]*p(1) + matrix[1][2]*p(2) + vec[1][0];
 z_new = matrix[2][0]*p(0) + matrix[2][1]*p(1) + matrix[2][2]*p(2) + vec[2][0];
-return 10*exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2) + pow(z_prime - z_new,2)));//exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2) + pow(z_prime - z_new,2))) * t0; // Forcing function for geometrical parametrization example
+//return 1e4*exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2) + pow(z_prime - z_new,2))/1e-4);//exp(-(pow(x_prime - x_new,2) + pow(y_prime - y_new,2) + pow(z_prime - z_new,2))) * t0; // Forcing function for geometrical parametrization example
+VectorValue<Real> _A_bar(x_new,y_new,z_new);
+
+
+  VectorValue<Real> _Z_cap(std::sin(_needle_axis_theta)*std::cos(_needle_axis_phi),std::sin(_needle_axis_theta)*std::sin(_needle_axis_phi),std::cos(_needle_axis_theta));
+
+  VectorValue<Real> _O_cap(_needle_center_x, _needle_center_y, _needle_center_z);
+
+  VectorValue<Real> _temp_vec = _A_bar - _O_cap;
+  VectorValue<Real> _r_A_bar = _temp_vec - _Z_cap * (_temp_vec * _Z_cap);
+
+  Real _r_needle = _r_A_bar.norm();
+  Real _z_needle = _temp_vec * _Z_cap; 
+
+  Real Q_G = exp(-pow(_r_needle,2)/(2. * pow(2.201e-3,2)));
+  Real _sigmoid_plus = 1./(1. + exp(-1.303e4*(_z_needle - 1.052e-2)));
+  Real _sigmoid_minus = 1./(1. + exp(-1.303e4*(_z_needle + 1.052e-2)));
+  Real P = (_needle_power * 1.383e15 * pow(_z_needle,4) + 2.624e6)*(_sigmoid_minus *(1. - _sigmoid_plus));
+  return P*Q_G*t0;
  } 
  }; 
 #endif //DWARFELEPHANTNONAFFINEFUNCTION_H

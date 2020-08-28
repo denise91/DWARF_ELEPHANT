@@ -21,7 +21,9 @@
 // MOOSE includes (DwarfElephant package)
 #include "DwarfElephantSystem.h"
 #include "DwarfElephantRBClassesTransient.h"
-#include "DwarfElephantRBClassesSteadyState.h"
+
+#include <unistd.h>
+#include <ios>
 ///-------------------------------------------------------------------------
 // Forward Declarations
 namespace libMesh
@@ -37,7 +39,8 @@ class MooseMesh;
 class DwarfElephantSystem;
 class DwarfElephantRBConstructionTransient;
 class DwarfElephantRBEvaluationTransient;
-class DwarfElephantRBConstructionSteadyState;
+//class DwarfElephantRBConstructionSteadyState;
+//class DwarfElephantRBEvaluationSteadyState;
 class DwarfElephantInitializeRBSystemTransient;
 
 ///----------------------------INPUT PARAMETERS-----------------------------
@@ -53,16 +56,8 @@ class DwarfElephantInitializeRBSystemTransient :
   public:
     DwarfElephantInitializeRBSystemTransient(const InputParameters & params);
 
-    ~DwarfElephantInitializeRBSystemTransient()
-    {
-      // Delete statements added to prevent memory leaks
-      if (_use_EIM) 
-      { 
-          delete _eim_eval_ptr;
-      }
-      delete _rb_eval_ptr;
-          
-    }
+    ~DwarfElephantInitializeRBSystemTransient();
+    
     /* Methods */
 
     void processParameters() const;
@@ -87,6 +82,8 @@ class DwarfElephantInitializeRBSystemTransient :
     void AssignAffineMatricesAndVectors() const;
 
     std::vector<std::vector<NumericVector <Number> *> > getOutputs() const;
+    
+    void process_mem_usage(double& vm_usage, double& resident_set);
 
 //--------------------------------PROTECTED---------------------------------
   protected:
@@ -166,6 +163,7 @@ class DwarfElephantInitializeRBSystemTransient :
     mutable std::vector<NumericVector <Number> *> _residuals;
     mutable std::vector<std::vector<NumericVector <Number> *> > _outputs;
     mutable NumericVector<Number> * _fullFEnonAffineF;
+    mutable std::vector<dof_id_type> _temp_averaging_node_ids;
     
     bool _RB_RFA;
 
@@ -183,6 +181,7 @@ class DwarfElephantInitializeRBSystemTransient :
     friend class DwarfElephantRBEvaluationSteadyState;
     friend class RBInnerProductMatrixTransient;
     friend class DwarfElephantFTestKernelTransient;
+    friend class DwarfElephantRBRFHeatsourceKernel;
 };
 ///-------------------------------------------------------------------------
 #endif // DWARFELEPHANTINITIALIZERBSYSTEMTRANSIENT_H

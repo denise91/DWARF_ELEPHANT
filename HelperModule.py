@@ -30,6 +30,15 @@ def ReadRBFThetaTextFile(InputFile):
     RBFThetaString = InputFile.readline()
     return RBFThetaString[7:-1:1]
 
+def ReadRBMThetaTextFile(InputFile):
+    RBMThetaStrings = InputFile.readlines()
+    StructMTheta = []
+    for string in RBMThetaStrings:
+        TempString = string.rstrip("\n")
+        StructMTheta.append(TempString[7:-1:1])
+    return StructMTheta
+
+
 def WriteRBThetaCFile(FileName, ThetaName, ThetaDefinition):
     FileName.write("struct "+ThetaName+" : RBTheta\n")
     FileName.write("{\n")
@@ -45,7 +54,7 @@ def WriteRBThetaCFile(FileName, ThetaName, ThetaDefinition):
     if "L" in NewStructTheta:
      FileName.write("  double L = 0.1;\n")
     if "k" in NewStructTheta:
-     FileName.write("   double k = 1;\n")
+     FileName.write("   double k = 0.52;\n")
     if "d" in NewStructTheta:
      FileName.write("    double d = 3*r;\n")
     if "h" in NewStructTheta:
@@ -55,6 +64,57 @@ def WriteRBThetaCFile(FileName, ThetaName, ThetaDefinition):
     FileName.write("    return "+NewStructTheta+";\n")
     FileName.write("  }\n")
     FileName.write("};\n")
+
+def WriteRBThetaCFile_Perf(FileName, ThetaName, ThetaDefinition):
+    FileName.write("struct "+ThetaName+" : RBTheta\n")
+    FileName.write("{\n")
+    FileName.write("  virtual Number evaluate (const RBParameters & _mu)\n")
+    FileName.write("  {\n")
+    TempStructTheta = ThetaDefinition.replace("r_0","!@#$")#"""_mu.get_value("mu_0")""")
+    NewStructTheta = TempStructTheta.replace("l_0",")(*&")#"""_mu.get_value("mu_1")""")
+    
+    if "r" in NewStructTheta:
+     FileName.write("    Real r = 0.003;\n") 
+    if "l" in NewStructTheta:
+     FileName.write("  Real  l = 0.05;\n") 
+    if "L" in NewStructTheta:
+     FileName.write("  Real L = 0.1;\n")
+    FileName.write("   Real omega = 1.9e5;\n")
+    if "d" in NewStructTheta:
+     FileName.write("    Real d = 3*r;\n")
+    if "h" in NewStructTheta:
+     FileName.write("    Real h = 1.5*l;\n")
+    TempStructTheta = NewStructTheta.replace("!@#$","""_mu.get_value("mu_0")""")
+    NewStructTheta = TempStructTheta.replace(")(*&","""_mu.get_value("mu_1")""")
+    FileName.write("    return "+NewStructTheta+";\n")
+    FileName.write("  }\n")
+    FileName.write("};\n")
+
+def WriteRBThetaCFile_M(FileName, ThetaNum, ThetaDefinition):
+    FileName.write("struct MTheta_subdomain_"+str(ThetaNum)+": RBTheta\n")
+    FileName.write("{\n")
+    FileName.write("  virtual Number evaluate (const RBParameters & _mu)\n")
+    FileName.write("  {\n")
+    TempStructTheta = ThetaDefinition.replace("r_0","!@#$")#"""_mu.get_value("mu_0")""")
+    NewStructTheta = TempStructTheta.replace("l_0",")(*&")#"""_mu.get_value("mu_1")""")
+    
+    if "r" in NewStructTheta:
+     FileName.write("    Real r = 0.003;\n") 
+    if "l" in NewStructTheta:
+     FileName.write("  Real  l = 0.05;\n") 
+    if "L" in NewStructTheta:
+     FileName.write("  Real L = 0.1;\n")
+    FileName.write("   Real rho_C = 3.82e6;\n")
+    if "d" in NewStructTheta:
+     FileName.write("    Real d = 3*r;\n")
+    if "h" in NewStructTheta:
+     FileName.write("    Real h = 1.5*l;\n")
+    TempStructTheta = NewStructTheta.replace("!@#$","""_mu.get_value("mu_0")""")
+    NewStructTheta = TempStructTheta.replace(")(*&","""_mu.get_value("mu_1")""")
+    FileName.write("    return rho_C * "+NewStructTheta+";\n")
+    FileName.write("  }\n")
+    FileName.write("};\n")
+
 
 def AffineObject_sort_key(Aq_object):
     return Aq_object[0]
@@ -145,10 +205,17 @@ def PrintNeumannBCBlock(mesh_block_ids, ID_Fq, value,variable):
       print "matrix_seperation_according_to_subdomains = false"
       print "[../]"      
 
-def AppendToKernelList(KernelList, bln_form,suffix,mesh_block_ids,block_num,ID_Aq):
+def AppendToKernelList(KernelList, bln_form,suffix,mesh_block_ids,block_num,ID_Aq,matrix_type):
       KernelList.append("[./"+bln_form+suffix+"_"+mesh_block_ids[block_num][1]+"]\n")
       KernelList.append("  type = DwarfElephantRB"+ bln_form+suffix + "\n")
-      KernelList.append("  ID_Aq = "+str(ID_Aq) + "\n")
+      if matrix_type == "mass":
+            KernelList.append("  ID_Mq = "+str(ID_Aq) + "\n")
+      elif matrix_type == "stiffness":
+            KernelList.append("  ID_Aq = "+str(ID_Aq) + "\n")
+      else:
+            print """matrix_type argument is wrong. Choose one of two options: 1."mass"; 2."stiffness"."""
+            quit()
+      KernelList.append("  simulation_type = transient\n")
       KernelList.append("  block = "+mesh_block_ids[block_num][0] + "\n")
       KernelList.append("matrix_seperation_according_to_subdomains = false" + "\n")
       KernelList.append("[../]" + "\n")

@@ -117,7 +117,7 @@ DwarfElephantRBConstructionSteadyState::train_reduced_basis(const bool resize_rb
       //  }
       
       //else
-        Real truth_X_norm = truth_solve(-1);
+        //Real truth_X_norm = truth_solve(-1);
 //
 //      // Add orthogonal part of the snapshot to the RB space
       libMesh::out << "Enriching the RB space" << std::endl;

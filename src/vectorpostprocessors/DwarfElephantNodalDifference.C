@@ -1,6 +1,12 @@
 #include "DwarfElephantNodalDifference.h"
 #include "Function.h"
 #include "DwarfElephantRBClassesSteadyState.h"
+#include "libmesh/nonlinear_implicit_system.h"
+
+//namespace libMesh
+//{
+//    class NonlinearImplicitSystem;
+//}
 
 template <>
 InputParameters

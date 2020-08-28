@@ -18,6 +18,6 @@ DwarfElephantFileIC::DwarfElephantFileIC(const InputParameters & parameters)
 Real
 DwarfElephantFileIC::value(const Point & /*p*/)
 {
-  DwarfElephantInitialConditionFileReader & _file_func = cast_ref<DwarfElephantInitialConditionFileReader &>(_func);
+  const DwarfElephantInitialConditionFileReader & _file_func = cast_ref<const DwarfElephantInitialConditionFileReader &>(_func);
   return _file_func.value(*_current_node);
 }

@@ -26,6 +26,14 @@ def ReadRBAThetaTextFile(InputFile):
         StructTheta.append(TempString[7:-1:1])
     return StructTheta
 
+def ReadRBMThetaTextFile(InputFile):
+    RBMThetaStrings = InputFile.readlines()
+    StructMTheta = []
+    for string in RBMThetaStrings:
+        TempString = string.rstrip("\n")
+        StructMTheta.append(TempString[7:-1:1])
+    return StructMTheta
+
 def ReadRBFThetaTextFile(InputFile):
     RBFThetaString = InputFile.readline()
     return RBFThetaString[7:-1:1]
@@ -45,7 +53,7 @@ def WriteRBThetaCFile(FileName, ThetaName, ThetaDefinition):
     if "L" in NewStructTheta:
      FileName.write("  Real L = 0.1;\n")
     if "k" in NewStructTheta:
-     FileName.write("   Real k = 1;\n")
+     FileName.write("   Real k = 0.52;\n")
     if "d" in NewStructTheta:
      FileName.write("    Real d = 3*r;\n")
     if "h" in NewStructTheta:
@@ -53,6 +61,56 @@ def WriteRBThetaCFile(FileName, ThetaName, ThetaDefinition):
     TempStructTheta = NewStructTheta.replace("!@#$","""_mu.get_value("mu_0")""")
     NewStructTheta = TempStructTheta.replace(")(*&","""_mu.get_value("mu_1")""")
     FileName.write("    return "+NewStructTheta+";\n")
+    FileName.write("  }\n")
+    FileName.write("};\n")
+
+def WriteRBThetaCFile_Perf(FileName, ThetaName, ThetaDefinition):
+    FileName.write("struct "+ThetaName+" : RBTheta\n")
+    FileName.write("{\n")
+    FileName.write("  virtual Number evaluate (const RBParameters & _mu)\n")
+    FileName.write("  {\n")
+    TempStructTheta = ThetaDefinition.replace("r_0","!@#$")#"""_mu.get_value("mu_0")""")
+    NewStructTheta = TempStructTheta.replace("l_0",")(*&")#"""_mu.get_value("mu_1")""")
+    
+    if "r" in NewStructTheta:
+     FileName.write("    Real r = 0.003;\n") 
+    if "l" in NewStructTheta:
+     FileName.write("  Real  l = 0.05;\n") 
+    if "L" in NewStructTheta:
+     FileName.write("  Real L = 0.1;\n")
+    FileName.write("   Real omega = 1.9e5;\n")
+    if "d" in NewStructTheta:
+     FileName.write("    Real d = 3*r;\n")
+    if "h" in NewStructTheta:
+     FileName.write("    Real h = 1.5*l;\n")
+    TempStructTheta = NewStructTheta.replace("!@#$","""_mu.get_value("mu_0")""")
+    NewStructTheta = TempStructTheta.replace(")(*&","""_mu.get_value("mu_1")""")
+    FileName.write("    return "+NewStructTheta+";\n")
+    FileName.write("  }\n")
+    FileName.write("};\n")
+
+def WriteRBThetaCFile_M(FileName, ThetaNum, ThetaDefinition):
+    FileName.write("struct MTheta_subdomain_"+str(ThetaNum)+": RBTheta\n")
+    FileName.write("{\n")
+    FileName.write("  virtual Number evaluate (const RBParameters & _mu)\n")
+    FileName.write("  {\n")
+    TempStructTheta = ThetaDefinition.replace("r_0","!@#$")#"""_mu.get_value("mu_0")""")
+    NewStructTheta = TempStructTheta.replace("l_0",")(*&")#"""_mu.get_value("mu_1")""")
+    
+    if "r" in NewStructTheta:
+     FileName.write("    Real r = 0.003;\n") 
+    if "l" in NewStructTheta:
+     FileName.write("  Real  l = 0.05;\n") 
+    if "L" in NewStructTheta:
+     FileName.write("  Real L = 0.1;\n")
+    FileName.write("   Real rho_C = 3.82e6;\n")
+    if "d" in NewStructTheta:
+     FileName.write("    Real d = 3*r;\n")
+    if "h" in NewStructTheta:
+     FileName.write("    Real h = 1.5*l;\n")
+    TempStructTheta = NewStructTheta.replace("!@#$","""_mu.get_value("mu_0")""")
+    NewStructTheta = TempStructTheta.replace(")(*&","""_mu.get_value("mu_1")""")
+    FileName.write("    return rho_C * "+NewStructTheta+";\n")
     FileName.write("  }\n")
     FileName.write("};\n")
 
@@ -268,8 +326,8 @@ AfterBCText = """[Problem]
   type = DwarfElephantRBExecutioner
   simulation_type = 'transient'
   solve_type = 'Newton'
-  l_tol = 1.0e-8
-  nl_rel_tol = 1.0e-8
+  l_tol = 1e-6#1.0e-8
+  nl_rel_tol = 1e-6#1.0e-8
   #offline_stage = false
 []
 
@@ -277,9 +335,9 @@ AfterBCText = """[Problem]
 [./initializeRBSystem]
   type = DwarfElephantInitializeRBSystemTransient
   use_EIM = false#true#
-  N_max_EIM = 0#60#
-  n_training_samples_EIM = 0#200#
-  rel_training_tolerance_EIM = 1e-11
+  N_max_EIM = 0#5#50#50#
+  n_training_samples_EIM = 0#50#300#
+  rel_training_tolerance_EIM = 1e-8
   #abs_training_tolerance_EIM = 1e-4
   parameter_names_EIM = 'mu_0 mu_1 mu_2 mu_3 mu_4'# mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
   parameter_min_values_EIM = '1e-3 3e-2 -0.01 -0.01 -0.01'#'0.001 0.002 -0.02 -0.02 -0.02'
@@ -288,10 +346,10 @@ AfterBCText = """[Problem]
   best_fit_type_EIM = projection
   euler_theta_RB = 1 #backward euler
   execute_on = 'initial'
-  N_max_RB = 20
-  n_time_steps_RB = 5#10
+  N_max_RB = 10
+  n_time_steps_RB = 400
   delta_N_RB = 1
-  delta_t_RB = 0.1
+  delta_t_RB = 0.5
   POD_tol = -1e-6 #should be negative for the transient case
   max_truth_solves_RB = 500
   #offline_stage_RB = false
@@ -302,6 +360,7 @@ AfterBCText = """[Problem]
   parameter_max_values_RB = '5e-3 7e-2 0.01 0.01 0.01'#'0.005 0.006 0.02 0.02 0.02'
   normalize_rb_bound_in_greedy = true
   RB_RFA = false#true#
+  
 [../]
 #[./EIMInnerProductMatrixComputation]
 #  type = DwarfElephantComputeEIMInnerProductMatrixTransient
@@ -312,22 +371,26 @@ AfterBCText = """[Problem]
   type = DwarfElephantOfflineOnlineStageTransient
   #offline_stage = false
   online_stage = false
-  online_mu = '3e-03 5e-2 0.01 0.01 0.01'#'0.003 0.004 -0.01 -0.01 -0.01'
-  mu_ref = '3e-3 5e-2 0 0 0'
+  online_mu = '2e-03 4e-2 0.01 0.01 0.01'#'2e-03 4e-2 0.01 0.01 0.01'#'0.003 0.05 0 0 0'
+  mu_ref = '2e-03 4e-2 0.01 0.01 0.01'#'2e-03 4e-2 0.01 0.01 0.01'
   online_N = 0
   execute_on = 'timestep_end'
+  num_online_solves = 1#3
+  online_mu_0= '1.2e-3 2e-2 -0.01 -0.01 -0.01 ' 
+  #online_mu_1= '2.2e-3 3e-2 -0.1 -0.1 -0.1 ' 
+  #online_mu_2= '3.4e-3 5e-3 -0.1 -0.1 -0.1 ' 
 [../]
 []
 
 [Outputs]
-exodus = true
+#exodus = true
+vtk = true
 # csv = true   # only required for the PostProcessors
 print_perf_log = true
   [./console]
     type = Console
     outlier_variable_norms = false
   [../]
-[]
-"""
+[]"""
 
 

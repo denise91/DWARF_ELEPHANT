@@ -44,7 +44,7 @@ struct ShiftedGaussianTest : public RBParametrizedFunction
 {
   virtual Number evaluate(const RBParameters & mu,
                           const Point & p,
-                          const Elem & elem)
+                          const Elem & /*elem*/)
   {
     
     Real _needle_center_x = mu.get_value("mu_0");
@@ -52,7 +52,7 @@ struct ShiftedGaussianTest : public RBParametrizedFunction
     
     
     Real _needle_center_y = mu.get_value("mu_1");
-    Real _needle_center_z = 0.;
+    //Real _needle_center_z = 0.;
     Real _needle_axis_theta = pi/2.0;
     Real _needle_axis_phi = mu.get_value("mu_2");
     
@@ -87,7 +87,7 @@ struct InverseSquaredRFHeatSource : public RBParametrizedFunction
 {
      virtual Number evaluate(const RBParameters & mu,
                           const Point & p,
-                          const Elem & elem)
+                          const Elem & /*elem*/)
   {
     Real _needle_center_x = mu.get_value("mu_0");
     //Real _variance = mu.get_value("mu_1");
@@ -115,7 +115,7 @@ Real l = 0.01;
     Real _eval_PlaneA = _normal_planeA*distA;
     Real _eval_PlaneB = _normal_planeB*distB;
     Real _result = 0.0;
-    Real p_along_nA = distA*_normal_planeA;
+    //Real p_along_nA = distA*_normal_planeA;
     Real p_along_nB = distB*_normal_planeB;
     if (_eval_PlaneA >= 0)
     {
@@ -138,7 +138,7 @@ Real l = 0.01;
 struct AffineFunction : RBParametrizedFunction
 {
     virtual Number evaluate(const RBParameters & mu,
-                            const Point & p,
+                            const Point & /*p*/,
                             const Elem & elem)
     {
         Real val_subdomain_0 = mu.get_value("mu_0");
@@ -189,10 +189,10 @@ struct DwarfElephantEIMFAssembly : RBEIMAssembly
 
   void get_eim_basis_function_values(const Elem * _elem, const QBase * _qrule,std::vector<Number>  & eim_values)
   {
-    evaluate_basis_function(0,*_elem, *_qrule,eim_values);
+    evaluate_basis_function(0,*_elem, _qrule->get_points(),eim_values);
   }  
 
-  virtual void interior_assembly(FEMContext & c)
+  virtual void interior_assembly(FEMContext & /*c*/)
   {
   }
 };

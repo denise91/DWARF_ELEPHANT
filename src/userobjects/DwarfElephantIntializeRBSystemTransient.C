@@ -118,6 +118,17 @@ DwarfElephantInitializeRBSystemTransient::DwarfElephantInitializeRBSystemTransie
     std::cout << "Created InitializeRBSystemTransient object " << DwarfElephantInitializeRBSystemTransient::name() << std::endl;
 }
 
+DwarfElephantInitializeRBSystemTransient::~DwarfElephantInitializeRBSystemTransient()
+{
+      // Delete statements added to prevent memory leaks
+      if (_use_EIM) 
+      { 
+          delete _eim_eval_ptr;
+      }
+      delete _rb_eval_ptr;
+          
+}
+
 void
 DwarfElephantInitializeRBSystemTransient::processParameters() const
 { 
@@ -248,6 +259,9 @@ DwarfElephantInitializeRBSystemTransient::processEIMParameters()
 void
 DwarfElephantInitializeRBSystemTransient::initializeOfflineStage()
 {
+      using std::cout;
+  using std::endl;
+  //double vm, rss;
   // Get and process the necessary input parameters for the
   // offline stage
   //  _rb_con_ptr->process_parameters_file(_parameters_filename);
@@ -258,6 +272,7 @@ DwarfElephantInitializeRBSystemTransient::initializeOfflineStage()
 
   // Initialize the RB construction. Note, we skip the matrix and vector
   // assembly, since this is already done by MOOSE.
+  
   _rb_con_ptr->initialize_rb_construction(_skip_matrix_assembly_in_rb_system, _skip_vector_assembly_in_rb_system);
 
   // Save the A's, F's and output vectors from the RBConstruction class in pointers.
@@ -322,6 +337,8 @@ DwarfElephantInitializeRBSystemTransient::initializeOfflineStage()
 void
 DwarfElephantInitializeRBSystemTransient::initializeEIM()
 {
+
+
         _eim_con_ptr = &_es.add_system<DwarfElephantEIMConstructionSteadyState>("EIMSystem");
   _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionTransient> ("RBSystem");
 
@@ -370,10 +387,19 @@ DwarfElephantInitializeRBSystemTransient::execute()
   // GetPot infile (_parameters_filename);
 
   // Add a new equation system for the RB construction.
+  using std::cout;
+  using std::endl;
+  double vm, rss;
+  std::ofstream outfile;
+
   if (!_use_EIM) { _rb_con_ptr = &_es.add_system<DwarfElephantRBConstructionTransient> ("RBSystem");}
   else
       initializeEIM();
-
+  process_mem_usage(vm, rss);
+  cout << "InitializeRBSystem Execute; rb_con object created VM: " << vm << "; RSS: " << rss << endl;
+  //outfile.open("Memory_usage_trace_2.csv",std::ofstream::app);
+  //outfile << vm << ", " << rss << endl;
+  //outfile.close();
   if (_offline_stage){
     if (!_use_EIM)
     {
@@ -417,6 +443,11 @@ DwarfElephantInitializeRBSystemTransient::execute()
     // Pass a pointer of the RBEvaluation object to the
     // RBConstruction object
     _rb_con_ptr->set_rb_evaluation(*_rb_eval_ptr);}
+  process_mem_usage(vm, rss);
+  cout << "InitializeRBSystem Execute; rb_eval object created; offline stage initialized VM: " << vm << "; RSS: " << rss << endl;
+  //outfile.open("Memory_usage_trace_2.csv",std::ofstream::app);
+  //outfile << vm << ", " << rss << endl;
+  //outfile.close();
 }
 
 void
@@ -513,4 +544,49 @@ DwarfElephantInitializeRBSystemTransient::AssignAffineMatricesAndVectors() const
         _outputs[i][_q] = _rb_con_ptr->get_output_vector(i,_q);
     
     _fullFEnonAffineF = _rb_con_ptr->get_nonAffineF();
+}
+
+void 
+DwarfElephantInitializeRBSystemTransient::process_mem_usage(double& vm_usage, double& resident_set)
+{
+   //////////////////////////////////////////////////////////////////////////////
+//
+// process_mem_usage(double &, double &) - takes two doubles by reference,
+// attempts to read the system-dependent data for a process' virtual memory
+// size and resident set size, and return the results in KB.
+//
+// On failure, returns 0.0, 0.0
+   using std::ios_base;
+   using std::ifstream;
+   using std::string;
+
+   vm_usage     = 0.0;
+   resident_set = 0.0;
+
+   // 'file' stat seems to give the most reliable results
+   //
+   ifstream stat_stream("/proc/self/stat",ios_base::in);
+
+   // dummy vars for leading entries in stat that we don't care about
+   //
+   string pid, comm, state, ppid, pgrp, session, tty_nr;
+   string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+   string utime, stime, cutime, cstime, priority, nice;
+   string O, itrealvalue, starttime;
+
+   // the two fields we want
+   //
+   unsigned long vsize;
+   long rss;
+
+   stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
+               >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
+               >> utime >> stime >> cutime >> cstime >> priority >> nice
+               >> O >> itrealvalue >> starttime >> vsize >> rss; // don't care about the rest
+
+   stat_stream.close();
+
+   long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024; // in case x86-64 is configured to use 2MB pages
+   vm_usage     = vsize / 1024.0;
+   resident_set = rss * page_size_kb;
 }

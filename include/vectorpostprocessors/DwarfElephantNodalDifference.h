@@ -28,7 +28,7 @@ public:
   virtual void threadJoin (const UserObject &/*uo*/) override {}
 
 protected:
-  Function & _func;
+  const Function & _func;
   NumericVector<Number> * _nodal_solution;
   VectorPostprocessorValue & _nodal_difference;
   std::string _system;

@@ -12,8 +12,8 @@ class DwarfElephantInitialConditionFileReader : public Function
 {
 public:
   DwarfElephantInitialConditionFileReader(const InputParameters & parameters);
-  virtual Real value(Real t, const Point & p) override;
-  virtual Real value(const Node & n);
+  virtual Real value(Real t, const Point & p) const override;
+  virtual Real value(const Node & n) const;
 
 protected:
   const std::string _file;

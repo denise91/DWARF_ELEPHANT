@@ -12,8 +12,7 @@ template<>
 InputParameters validParams<DwarfElephantRBDiffusionYX>() 
 {
   InputParameters params = validParams<DwarfElephantRBKernel>(); 
-  params.addClassDescription("Implements a Diffusion problem using \ 
-                             the RBKernel.");
+  params.addClassDescription("Implements a Diffusion problem using the RBKernel.");
   return params;
 }
 

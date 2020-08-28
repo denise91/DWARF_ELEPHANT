@@ -105,6 +105,7 @@
 #include "DwarfElephantAllElementalVariableValues.h"
 #include "DwarfElephantNodalDifference.h"
 
+
 template<>
 InputParameters validParams<DwarfElephantApp>()
 {
@@ -113,20 +114,15 @@ InputParameters validParams<DwarfElephantApp>()
                                    "--disallow-test-objects",
                                    false,
                                    "Don't register test objects and syntax");
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
   return params;
 }
 
 DwarfElephantApp::DwarfElephantApp(InputParameters parameters) :
     MooseApp(parameters)
 {
-  //bool use_test_objs = !getParam<bool>("disallow_test_objects");
-  Moose::registerObjects(_factory);
-  ModulesApp::registerObjects(_factory); // remove for use in OpenDA
+  ModulesApp::registerAll(_factory, _action_factory, _syntax);
   Moose::registerExecFlags(_factory);
-
-  Moose::associateSyntax(_syntax, _action_factory);
-  ModulesApp::associateSyntax(_syntax, _action_factory); // remove for use in OpenDA
-  DwarfElephantApp::associateSyntax(_syntax, _action_factory);
   DwarfElephantApp::registerObjects(_factory);
   DwarfElephantApp::registerExecFlags(_factory);
 }

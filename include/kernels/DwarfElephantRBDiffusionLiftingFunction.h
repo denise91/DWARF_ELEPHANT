@@ -41,7 +41,7 @@ protected:
   virtual Real computeQpResidual() override;
   virtual Real computeQpJacobian() override;
 
-  Function * _lifting_function;
+  const Function * _lifting_function;
 };
 
 ///-------------------------------------------------------------------------

@@ -21,7 +21,7 @@ DwarfElephantRFHeatsourceFunction::DwarfElephantRFHeatsourceFunction(const Input
 
 }
 
-Real DwarfElephantRFHeatsourceFunction::value(Real /*t*/, const Point & p)
+Real DwarfElephantRFHeatsourceFunction::value(Real /*t*/, const Point & p) const
 {
   RealVectorValue _X_bar(_needle_active_region_p1[0], _needle_active_region_p1[1], _needle_active_region_p1[2]);
   RealVectorValue _Y_bar(_needle_active_region_p2[0], _needle_active_region_p2[1], _needle_active_region_p2[2]);

@@ -23,6 +23,144 @@ DwarfElephantRBConstructionTransient::DwarfElephantRBConstructionTransient (Equa
   parameter_dependent_IC(false)
 {}
 
+std::string DwarfElephantRBConstructionTransient::execute_command(const char *    cmd)
+{
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
+void DwarfElephantRBConstructionTransient::print_matrix(SparseMatrix<Number> * mat_in, std::string filename)
+{
+  // for i = 0 to numprocs
+  //     mpi barrier
+  //     if i = process_rank
+  //       write matrix to file
+  //     end
+  //     mpi barrier
+  // end
+  std::ofstream outfile;
+  if (this->comm().rank() == 0)
+  {
+    std::ofstream outfile;
+    outfile.open(filename,std::ofstream::out);
+    outfile << "";
+    outfile.close();
+  }
+  for (unsigned int i = 0; i < this->comm().size(); i++)
+  {
+    this->comm().barrier();
+    if (i == this->comm().rank())
+    {
+      outfile.open(filename,std::ofstream::app);
+      for (unsigned int i = mat_in->row_start(); i < mat_in->row_stop(); i++)
+        for (unsigned int j = 0; j < mat_in->n(); j++)
+        {
+          if ((*mat_in)(i,j) != 0)
+            outfile << i << " " << j << " " <<  (*mat_in)(i,j) << endl;
+        }
+    }
+    this->comm().barrier();
+  }
+}
+
+void DwarfElephantRBConstructionTransient::print_vector(NumericVector<Number> * vec_in, std::string filename)
+{
+  std::ofstream outfile;
+  const MeshBase & mesh = this->get_mesh();
+
+  if (this->comm().rank() == 0)
+  {
+    outfile.open(filename,std::ofstream::out);
+    outfile << "";
+    outfile.close();
+  }
+  
+  for (unsigned int i = 0; i < this->comm().size(); i++)
+  {
+    this->comm().barrier();
+    if (i == this->comm().rank())
+    {
+      outfile.open(filename,std::ofstream::app);
+      unsigned int i = vec_in->first_local_index();
+      for (const auto & node_ptr : mesh.local_node_ptr_range())
+      //for (unsigned int i = vec_in->first_local_index(); i < vec_in->last_local_index(); i++)
+      {
+        if (i < vec_in->last_local_index())
+        {
+          outfile << node_ptr->id() << " " << (*vec_in)(i) << endl;
+          i++;
+        }
+      }
+    }
+    this->comm().barrier();
+  }
+/*
+  for (const auto & node_ptr : mesh.local_node_ptr_range())
+    {
+        const Node & node = *node_ptr;
+        double pnt[3] = {0,0,0};
+        outfile << node_ptr->id() << " ";
+        for (unsigned int i = 0; i < LIBMESH_DIM;  ++i)
+        {
+            pnt[i] = node(i);
+            outfile << pnt[i] << " ";
+        }
+        outfile << endl;
+    }*/
+}
+
+void DwarfElephantRBConstructionTransient::write_mesh_node_coords_and_elem_connectivities()
+{
+    this->comm().barrier();
+    if (this->comm().rank() == 0)
+        execute_command("rm /home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/*");
+    this->comm().barrier();
+
+    std::ofstream outfile;
+    const MeshBase & mesh = this->get_mesh();
+    
+    outfile.open("/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/mesh_node_coords"+std::to_string(this->comm().rank())+".txt",std::ofstream::out);
+    std::cout << endl << "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/mesh_node_coords"+std::to_string(this->comm().rank())+".txt" << endl;
+    libMesh::out << endl << std::to_string(this->comm().rank()) << endl;
+    const Node * node_begin = *(mesh.local_node_ptr_range().begin());
+    const Node * node_end = *(mesh.local_node_ptr_range().end());
+    //std::cout << endl << "Processor: " << this->comm().rank() << " mesh node range begin: " << node_begin->id() << endl;
+    for (const auto & node_ptr : mesh.local_node_ptr_range())
+    {
+        const Node & node = *node_ptr;
+        double pnt[3] = {0,0,0};
+        outfile << node_ptr->id() << " ";
+        for (unsigned int i = 0; i < LIBMESH_DIM;  ++i)
+        {
+            pnt[i] = node(i);
+            outfile << pnt[i] << " ";
+        }
+        outfile << endl;
+    }
+    outfile.close();
+
+    outfile.open("/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/mesh_node_connectivity"+std::to_string(this->comm().rank())+".txt",std::ofstream::out);
+    for (const auto & elem : mesh.active_local_element_ptr_range())
+    {
+        std::vector<dof_id_type> conn;
+        const Elem & curr_elem = *elem;
+        elem->connectivity(0,VTK,conn);
+        outfile << curr_elem.id() << " ";
+        for (unsigned int i = 0; i < 4; i++)
+            outfile << conn[i] << " ";
+        outfile << "\n";
+    }
+}
+
+
 void
 DwarfElephantRBConstructionTransient::clear()
 {
@@ -44,7 +182,206 @@ DwarfElephantRBConstructionTransient::clear()
 void
 DwarfElephantRBConstructionTransient::allocate_data_structures()
 {
-  Parent::allocate_data_structures();
+   //Parent::allocate_data_structures();
+    // Resize vectors for storing mesh-dependent data
+    
+  using std::cout;
+  using std::endl;
+  double vm_pre, rss_pre, vm_post, rss_post;/*
+  Aq_vector.resize(get_rb_theta_expansion().get_n_A_terms());
+  Fq_vector.resize(get_rb_theta_expansion().get_n_F_terms());
+
+  // Resize the Fq_representors and initialize each to nullptr.
+  // These are basis independent and hence stored here, whereas
+  // the Aq_representors are stored in RBEvaluation
+  Fq_representor.resize(get_rb_theta_expansion().get_n_F_terms());
+
+  // Initialize vectors for the inner products of the Fq representors
+  // These are basis independent and therefore stored here.
+  unsigned int Q_f_hat = get_rb_theta_expansion().get_n_F_terms()*(get_rb_theta_expansion().get_n_F_terms()+1)/2;
+  Fq_representor_innerprods.resize(Q_f_hat);
+
+  // Resize the output vectors
+  outputs_vector.resize(get_rb_theta_expansion().get_n_outputs());
+  for (unsigned int n=0; n<get_rb_theta_expansion().get_n_outputs(); n++)
+    outputs_vector[n].resize( get_rb_theta_expansion().get_n_output_terms(n) );
+
+  // Resize the output dual norm vectors
+  output_dual_innerprods.resize(get_rb_theta_expansion().get_n_outputs());
+  for (unsigned int n=0; n<get_rb_theta_expansion().get_n_outputs(); n++)
+    {
+      unsigned int Q_l_hat = get_rb_theta_expansion().get_n_output_terms(n)*(get_rb_theta_expansion().get_n_output_terms(n)+1)/2;
+      output_dual_innerprods[n].resize(Q_l_hat);
+    }
+
+  {
+    DofMap & dof_map = this->get_dof_map();
+
+    dof_map.attach_matrix(*inner_product_matrix);
+    inner_product_matrix->init();
+    inner_product_matrix->zero();
+
+    if(store_non_dirichlet_operators)
+      {
+        // We also need a non-Dirichlet inner-product matrix
+        non_dirichlet_inner_product_matrix = SparseMatrix<Number>::build(this->comm());
+        dof_map.attach_matrix(*non_dirichlet_inner_product_matrix);
+        non_dirichlet_inner_product_matrix->init();
+        non_dirichlet_inner_product_matrix->zero();
+      }
+    process_mem_usage(vm_pre, rss_pre);
+    
+    for (unsigned int q=0; q<get_rb_theta_expansion().get_n_A_terms(); q++)
+      {
+        // Initialize the memory for the matrices
+        Aq_vector[q] = SparseMatrix<Number>::build(this->comm());
+        dof_map.attach_matrix(*Aq_vector[q]);
+        Aq_vector[q]->init();
+        Aq_vector[q]->zero();
+      }
+    process_mem_usage(vm_post,rss_post);
+    cout << "Memory required to store Aq matrices VM: " << (vm_post - vm_pre) << "; RSS: " << (rss_post - rss_pre) << endl;
+    // We also need to initialize a second set of non-Dirichlet operators
+    if (store_non_dirichlet_operators)
+      {
+        non_dirichlet_Aq_vector.resize(get_rb_theta_expansion().get_n_A_terms());
+        for (unsigned int q=0; q<get_rb_theta_expansion().get_n_A_terms(); q++)
+          {
+            // Initialize the memory for the matrices
+            non_dirichlet_Aq_vector[q] = SparseMatrix<Number>::build(this->comm());
+            dof_map.attach_matrix(*non_dirichlet_Aq_vector[q]);
+            non_dirichlet_Aq_vector[q]->init();
+            non_dirichlet_Aq_vector[q]->zero();
+          }
+      }
+  }
+  
+  process_mem_usage(vm_pre,rss_pre);
+  // Initialize the vectors
+  for (unsigned int q=0; q<get_rb_theta_expansion().get_n_F_terms(); q++)
+    {
+      // Initialize the memory for the vectors
+      Fq_vector[q] = NumericVector<Number>::build(this->comm());
+      Fq_vector[q]->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+    }
+   process_mem_usage(vm_post,rss_post);
+    cout << "Memory required to store Fq vectors VM: " << (vm_post - vm_pre) << "; RSS: " << (rss_post - rss_pre) << endl;
+  // We also need to initialize a second set of non-Dirichlet operators
+  if (store_non_dirichlet_operators)
+    {
+      non_dirichlet_Fq_vector.resize(get_rb_theta_expansion().get_n_F_terms());
+      for (unsigned int q=0; q<get_rb_theta_expansion().get_n_F_terms(); q++)
+        {
+          // Initialize the memory for the vectors
+          non_dirichlet_Fq_vector[q] = NumericVector<Number>::build(this->comm());
+          non_dirichlet_Fq_vector[q]->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+        }
+    }
+
+  for (unsigned int n=0; n<get_rb_theta_expansion().get_n_outputs(); n++)
+    for (unsigned int q_l=0; q_l<get_rb_theta_expansion().get_n_output_terms(n); q_l++)
+      {
+        // Initialize the memory for the truth output vectors
+        outputs_vector[n][q_l] = NumericVector<Number>::build(this->comm());
+        outputs_vector[n][q_l]->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+      }
+
+  if (store_non_dirichlet_operators)
+    {
+      non_dirichlet_outputs_vector.resize(get_rb_theta_expansion().get_n_outputs());
+      for (unsigned int n=0; n<get_rb_theta_expansion().get_n_outputs(); n++)
+        {
+          non_dirichlet_outputs_vector[n].resize( get_rb_theta_expansion().get_n_output_terms(n) );
+          for (unsigned int q_l=0; q_l<get_rb_theta_expansion().get_n_output_terms(n); q_l++)
+            {
+              // Initialize the memory for the truth output vectors
+              non_dirichlet_outputs_vector[n][q_l] = NumericVector<Number>::build(this->comm());
+              non_dirichlet_outputs_vector[n][q_l]->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+            }
+        }
+    }
+
+  // Resize truth_outputs vector
+  truth_outputs.resize(this->get_rb_theta_expansion().get_n_outputs());
+
+  TransientRBThetaExpansion & trans_theta_expansion =
+    cast_ref<TransientRBThetaExpansion &>(get_rb_theta_expansion());
+  const unsigned int Q_m       = trans_theta_expansion.get_n_M_terms();
+  const unsigned int n_outputs = trans_theta_expansion.get_n_outputs();
+
+  // Resize and allocate vectors for storing mesh-dependent data
+  const unsigned int n_time_levels = get_n_time_steps()+1;
+  temporal_data.resize(n_time_levels);
+
+  // Resize vectors for storing mesh-dependent data but only
+  // initialize if initialize_mesh_dependent_data == true
+  M_q_vector.resize(Q_m);
+
+  // Only initialize the mass matrices if we
+  // are not in single-matrix mode
+  process_mem_usage(vm_pre,rss_pre);
+  {
+    DofMap & dof_map = this->get_dof_map();
+
+    dof_map.attach_matrix(*L2_matrix);
+    L2_matrix->init();
+    L2_matrix->zero();
+
+    for (unsigned int q=0; q<Q_m; q++)
+      {
+        // Initialize the memory for the matrices
+        M_q_vector[q] = SparseMatrix<Number>::build(this->comm());
+        dof_map.attach_matrix(*M_q_vector[q]);
+        M_q_vector[q]->init();
+        M_q_vector[q]->zero();
+      }
+
+    // We also need to initialize a second set of non-Dirichlet operators
+    if (store_non_dirichlet_operators)
+      {
+        dof_map.attach_matrix(*non_dirichlet_L2_matrix);
+        non_dirichlet_L2_matrix->init();
+        non_dirichlet_L2_matrix->zero();
+
+        non_dirichlet_M_q_vector.resize(Q_m);
+        for (unsigned int q=0; q<Q_m; q++)
+          {
+            // Initialize the memory for the matrices
+            non_dirichlet_M_q_vector[q] = SparseMatrix<Number>::build(this->comm());
+            dof_map.attach_matrix(*non_dirichlet_M_q_vector[q]);
+            non_dirichlet_M_q_vector[q]->init();
+            non_dirichlet_M_q_vector[q]->zero();
+          }
+      }
+  }
+  process_mem_usage(vm_post,rss_post);
+  cout << "Memory required to store Mq matrices VM: " << (vm_post - vm_pre) << "; RSS: " << (rss_post - rss_pre) << endl;
+  
+  process_mem_usage(vm_pre,rss_pre);
+  for (unsigned int i=0; i<n_time_levels; i++)
+    {
+      temporal_data[i] = NumericVector<Number>::build(this->comm());
+      temporal_data[i]->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
+    }
+  process_mem_usage(vm_post,rss_post);
+  cout << "Memory required to store temporal solution vecs VM: " << (vm_post - vm_pre) << "; RSS: " << (rss_post - rss_pre) << endl;
+  // and the truth output vectors
+  truth_outputs_all_k.resize(n_outputs);
+  for (unsigned int n=0; n<n_outputs; n++)
+    {
+      truth_outputs_all_k[n].resize(n_time_levels);
+    }
+
+  // This vector is for storing rhs entries for
+  // computing the projection of the initial condition
+  // into the RB space
+  RB_ic_proj_rhs_all_N.resize(Nmax); */
+
+    // Original code here (parameter dependent IC not required for RBRFA 
+   process_mem_usage(vm_pre,rss_pre);
+   Parent::allocate_data_structures();
+   process_mem_usage(vm_post,rss_post);
+   cout << "Memory required to store rb data structures VM: " << (vm_post - vm_pre) << "; RSS: " << (rss_post - rss_pre) << endl;
 /*
   if(parameter_dependent_IC)
   {
@@ -128,7 +465,7 @@ DwarfElephantRBConstructionTransient::init_data()
   {
     if (nonzero_initialization)
       {
-        const RBParameters & mu = get_parameters();
+        //const RBParameters & mu = get_parameters();
 /*
         DwarfElephantRBTransientThetaExpansion & dwarf_elephant_trans_theta_expansion =
           cast_ref<DwarfElephantRBTransientThetaExpansion &>(get_rb_theta_expansion()); */
@@ -373,7 +710,7 @@ DwarfElephantRBConstructionTransient::init_data()
   DwarfElephantRBConstructionTransient::update_RB_parameterized_initial_condition_all_N()
   {
 
-    TransientRBEvaluation & trans_rb_eval = cast_ref<TransientRBEvaluation &>(get_rb_evaluation());
+    //TransientRBEvaluation & trans_rb_eval = cast_ref<TransientRBEvaluation &>(get_rb_evaluation());
 /*
     DwarfElephantRBTransientThetaExpansion & dwarf_elephant_trans_theta_expansion =
       cast_ref<DwarfElephantRBTransientThetaExpansion &>(get_rb_theta_expansion()); 
@@ -1111,4 +1448,49 @@ DwarfElephantRBEvaluationTransient::legacy_read_offline_data_from_files(const st
         RB_IC_q_f_in.close();
       }*/
   }
+}
+
+void
+DwarfElephantRBConstructionTransient::process_mem_usage(double& vm_usage, double& resident_set)
+{
+   //////////////////////////////////////////////////////////////////////////////
+//
+// process_mem_usage(double &, double &) - takes two doubles by reference,
+// attempts to read the system-dependent data for a process' virtual memory
+// size and resident set size, and return the results in KB.
+//
+// On failure, returns 0.0, 0.0
+   using std::ios_base;
+   using std::ifstream;
+   using std::string;
+
+   vm_usage     = 0.0;
+   resident_set = 0.0;
+
+   // 'file' stat seems to give the most reliable results
+   //
+   ifstream stat_stream("/proc/self/stat",ios_base::in);
+
+   // dummy vars for leading entries in stat that we don't care about
+   //
+   string pid, comm, state, ppid, pgrp, session, tty_nr;
+   string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+   string utime, stime, cutime, cstime, priority, nice;
+   string O, itrealvalue, starttime;
+
+   // the two fields we want
+   //
+   unsigned long vsize;
+   long rss;
+
+   stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
+               >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
+               >> utime >> stime >> cutime >> cstime >> priority >> nice
+               >> O >> itrealvalue >> starttime >> vsize >> rss; // don't care about the rest
+
+   stat_stream.close();
+
+   long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024; // in case x86-64 is configured to use 2MB pages
+   vm_usage     = vsize / 1024.0;
+   resident_set = rss * page_size_kb;
 }

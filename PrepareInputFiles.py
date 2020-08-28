@@ -1,8 +1,9 @@
 from HelperModule import *
+from IPython.core.debugger import Tracer
 
 AqObjectsList = []
 
-BilinearForms = ['Diffusion', 'Perfusion', 'Convection']
+BilinearForms = ['TimeDerivative', 'Diffusion', 'Perfusion', 'Convection']
 
 #GeomSubdomains = [ # Edit according to the geometry under consideration (EDIT FOR 3D GEOM)
 #                 ['11', "max_z_line"], 
@@ -66,12 +67,14 @@ GeomSubdomains = [
                  ["44", "minX2_outersurface"]]
 
 
-SubdomainApplicability = {'Diffusion': [1,32], # (EDIT FOR 3D GEOM)
-                          'Perfusion': [45, 45],
+SubdomainApplicability = {'TimeDerivative': [1,32], # for compatibility
+                          'Diffusion': [1,32], # (EDIT FOR 3D GEOM)
+                          'Perfusion': [31, 31],
                           'Convection': [33,44]}# for convection BC
 
 TermsOfBilinearForm = {#'Diffusion':['XX','XY','XZ','YX','YY','YZ','ZX','ZY','ZZ'], #(EDIT FOR 3D GEOM)
-                       'Diffusion':['XX','YY','ZZ'],
+                       'TimeDerivative':['TimeDerivative'],
+                       'Diffusion':['XX','XY','XZ','YX','YY','YZ','ZX','ZY','ZZ'],
                        'Perfusion':['Perf'],
                        'Convection':['Conv']}
 
@@ -95,8 +98,18 @@ ThetaExpansionPrefix = "Geom3D" # EDIT FOR 3D GEOM
 DefaultThetaObjectExists = False # boolean flag required while writing RB theta expansion file. Used to make sure that the default RB theta object _rb_theta is declared only once.
 
 for bln_form in BilinearForms:
+  #Tracer()()
   for block_num in range(len(GeomSubdomains)):#subdomain in GeomSubdomains:
     if (SubdomainApplicability[bln_form][0] <= int(GeomSubdomains[block_num][0])) and (int(GeomSubdomains[block_num][0]) <= SubdomainApplicability[bln_form][1]):
+      if bln_form == 'TimeDerivative':
+        iMTheta = 0
+        with open("./3DRBModel_ThetaObjects/"+GeomSubdomains[block_num][1]+"_RBMThetas.txt") as RBMThetaTextFile:
+          MThetaDefinition = ReadRBMThetaTextFile(RBMThetaTextFile)
+        print MThetaDefinition
+
+        with open(RBThetaCFileName,"a") as RBThetaCFile:
+          WriteRBThetaCFile_M(RBThetaCFile, GeomSubdomains[block_num][0], MThetaDefinition[0]) 
+
       if bln_form == 'Diffusion':
         iATheta = 0       
         with open("./3DRBModel_ThetaObjects/"+GeomSubdomains[block_num][1]+"_RBAThetas_Diffusion.txt","r") as RBAThetaTextFile: # Read the definition of the ATheta object from the text files written by matlab
@@ -106,7 +119,7 @@ for bln_form in BilinearForms:
         for suffix in TermsOfBilinearForm[bln_form]: 
           print "bilin form: ", bln_form, "; subdomain name :", GeomSubdomains[block_num][1], "; suffix list: ", TermsOfBilinearForm[bln_form], "; suffix: ", suffix, "; A Theta: ", AThetaDefinition[get_iATheta(suffix)], "; AThetaPrefix: ", AThetaPrefix
           if AThetaDefinition[get_iATheta(suffix)].strip() != "0":
-            AppendToKernelList(KernelList, bln_form,suffix,GeomSubdomains,block_num,ID_Aq)
+            AppendToKernelList(KernelList, bln_form,suffix,GeomSubdomains,block_num,ID_Aq,"stiffness")
             AqObjectsList.append([ID_Aq,"Diffusion"+suffix+"_"+GeomSubdomains[block_num][1]])
             Aq_object_name = "Diffusion"+suffix+"_"+GeomSubdomains[block_num][1]
             with open(RBThetaCFileName,"a") as RBThetaCFile:
@@ -123,6 +136,17 @@ for bln_form in BilinearForms:
       #  with open(RBThetaCFileName,"a") as RBThetaCFile:
       #    WriteRBThetaCFile(RBThetaCFile, AThetaPrefix+Aq_object_name, AThetaDefinition) # write theta object definition to C file
       #  ID_Aq = ID_Aq + 1
+
+      if bln_form == 'Perfusion':
+        print "bilin form: ", bln_form, "; subdomain name :", GeomSubdomains[block_num][1], "; suffix list: ", TermsOfBilinearForm[bln_form], "; suffix: ", suffix, "; A Theta: ", AThetaDefinition, "; AThetaPrefix: ", AThetaPrefix
+        AThetaDefinition = "omega * pow(r_0,2)*l_0/(pow(r,2)*l)"
+        AppendToKernelList(KernelList, "Pennes"+bln_form,"",GeomSubdomains,block_num,ID_Aq,"stiffness")
+        AqObjectsList.append([ID_Aq,"Perfusion_"+GeomSubdomains[block_num][1]])
+        Aq_object_name = "Perfusion_"+GeomSubdomains[block_num][1]
+        with open(RBThetaCFileName,"a") as RBThetaCFile:
+          WriteRBThetaCFile_Perf(RBThetaCFile, AThetaPrefix+Aq_object_name, AThetaDefinition) # write theta object definition to C file
+        ID_Aq = ID_Aq + 1
+
       
       if bln_form == 'Convection': # theta object is 1 for this particular case. use default rb theta object _rb_theta
         BCList.append(' ' + GeomSubdomains[block_num][0])
@@ -176,7 +200,7 @@ with open(RBThetaExpansionCFileName,"w") as RBThetaExpansionCFile: # write RB th
   # add for loop to define subdomain jacobian rbthetas in the rbtheta expansion struct
   RBThetaExpansionCFile.write("public:\n")
   for subdomain in range(1,33):
-    RBThetaExpansionCFile.write("    subdomain_"+str(subdomain)+" rbtheta_subdomain_"+str(subdomain)+";\n")
+    RBThetaExpansionCFile.write("    jacobian_subdomain_"+str(subdomain)+" rbtheta_subdomain_"+str(subdomain)+";\n")
 
   RBThetaExpansionCFile.write("    std::vector<RBTheta *> subdomain_jac_rbthetas;\n")
   RBThetaExpansionCFile.write("    unsigned int num_subdomains;\n")

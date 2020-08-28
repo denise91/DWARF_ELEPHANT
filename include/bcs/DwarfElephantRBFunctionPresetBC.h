@@ -36,7 +36,7 @@ protected:
   virtual Real computeQpValue() override;
 
   /* Attributes */
-  Function & _func;
+  const Function & _func;
 };
 
 ///-------------------------------------------------------------------------

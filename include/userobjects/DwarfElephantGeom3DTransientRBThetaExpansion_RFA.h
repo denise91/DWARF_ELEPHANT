@@ -17,6 +17,7 @@
 #include "libmesh/rb_theta.h"
 #include "libmesh/rb_assembly_expansion.h"
 #include "libmesh/transient_rb_theta_expansion.h"
+#include "libmesh/transient_rb_assembly_expansion.h"
 
 #include "DwarfElephantGeom3DRBTheta_RFA.h"
 #include "DwarfElephantMeshSubdomainJacobians.h"
@@ -32,42 +33,91 @@ namespace libMesh
  *
  */
 
+struct MTheta_qM1 : RBTheta
+{
+  virtual Number evaluate (const RBParameters & _mu)
+  {
+    return 3.82e6;
+  }
+};
+
+struct MTheta_qM2 : RBTheta
+{
+  virtual Number evaluate (const RBParameters & _mu)
+  {
+    return 3.798e6;
+  }
+};
+
+struct ATheta_qA0 : RBTheta
+{
+  virtual Number evaluate (const RBParameters & _mu)
+  {
+    return 0.8;
+  }
+};
+
+struct ATheta_qA1 : RBTheta
+{
+  virtual Number evaluate (const RBParameters & _mu)
+  {
+    return 1.9e5;
+  }
+};
+
+struct ATheta_qA2 : RBTheta
+{
+  virtual Number evaluate (const RBParameters & _mu)
+  {
+    return 0.52;
+  }
+};
+
 struct Geom3DTransientRBThetaExpansion : TransientRBThetaExpansion
 {
   Geom3DTransientRBThetaExpansion()
   {
-  attach_M_theta(&subdomain_TimeDerivative_maxZ1_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxZ2_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxZ3_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxZ4_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxZ5_0);
-  attach_M_theta(&subdomain_TimeDerivative_minX1_0);
-  attach_M_theta(&subdomain_TimeDerivative_minX2_0);
-  attach_M_theta(&subdomain_TimeDerivative_minX3_0);
-  attach_M_theta(&subdomain_TimeDerivative_minX4_0);
-  attach_M_theta(&subdomain_TimeDerivative_minX5_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxY1_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxY2_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxY3_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxY4_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxY5_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxX1_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxX2_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxX3_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxX4_0);
-  attach_M_theta(&subdomain_TimeDerivative_maxX5_0);
-  attach_M_theta(&subdomain_TimeDerivative_minY1_0);
-  attach_M_theta(&subdomain_TimeDerivative_minY2_0);
-  attach_M_theta(&subdomain_TimeDerivative_minY3_0);
-  attach_M_theta(&subdomain_TimeDerivative_minY4_0);
-  attach_M_theta(&subdomain_TimeDerivative_minY5_0);
-  attach_M_theta(&subdomain_TimeDerivative_minZ1_0);
-  attach_M_theta(&subdomain_TimeDerivative_minZ2_0);
-  attach_M_theta(&subdomain_TimeDerivative_minZ3_0);
-  attach_M_theta(&subdomain_TimeDerivative_minZ4_0);
-  attach_M_theta(&subdomain_TimeDerivative_minZ5_0);
-  attach_M_theta(&subdomain_TimeDerivative_VesselCyl_0);
-  attach_M_theta(&subdomain_TimeDerivative_BoundingBox_0);
+    
+    attach_M_theta(&_m_theta_1);
+    attach_M_theta(&_m_theta_2);
+    attach_A_theta(&_a_theta_0);
+    attach_A_theta(&_a_theta_1);
+    attach_A_theta(&_a_theta_2);
+    attach_A_theta(&_rb_theta);
+    
+/*
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxZ1_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxZ2_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxZ3_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxZ4_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxZ5_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minX1_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minX2_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minX3_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minX4_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minX5_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxY1_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxY2_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxY3_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxY4_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxY5_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxX1_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxX2_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxX3_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxX4_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_maxX5_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minY1_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minY2_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minY3_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minY4_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minY5_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minZ1_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minZ2_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minZ3_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minZ4_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_minZ5_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_VesselCyl_0);
+  attach_M_theta(&MTheta_subdomain_TimeDerivative_BoundingBox_0);
   attach_A_theta(&Geom3DRB_ATheta_DiffusionXX_maxZ1_0);
   attach_A_theta(&Geom3DRB_ATheta_DiffusionXY_maxZ1_0);
   attach_A_theta(&Geom3DRB_ATheta_DiffusionXZ_maxZ1_0);
@@ -321,8 +371,42 @@ struct Geom3DTransientRBThetaExpansion : TransientRBThetaExpansion
   attach_A_theta(&Geom3DRB_ATheta_DiffusionYY_BoundingBox_0);
   attach_A_theta(&Geom3DRB_ATheta_DiffusionZZ_BoundingBox_0);
   attach_A_theta(&Geom3DRB_ATheta_Perfusion_VesselCyl_0);
-  attach_A_theta(&_rb_theta);
+  attach_A_theta(&_rb_theta); // Convection BC
+*/
+  attach_F_theta(&_rb_theta); // Convection BC
+  attach_F_theta(&_rb_theta); // RF Heat Source from here on
   attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  attach_F_theta(&_rb_theta);
+  
     subdomain_jac_rbthetas.push_back(&rbtheta_subdomain_1);
     subdomain_jac_rbthetas.push_back(&rbtheta_subdomain_2);
     subdomain_jac_rbthetas.push_back(&rbtheta_subdomain_3);
@@ -357,38 +441,45 @@ struct Geom3DTransientRBThetaExpansion : TransientRBThetaExpansion
     subdomain_jac_rbthetas.push_back(&rbtheta_subdomain_32);
     num_subdomains = 32;
 }
-  subdomain_1 subdomain_TimeDerivative_maxZ1_0;
-  subdomain_2 subdomain_TimeDerivative_maxZ2_0;
-  subdomain_3 subdomain_TimeDerivative_maxZ3_0;
-  subdomain_4 subdomain_TimeDerivative_maxZ4_0;
-  subdomain_5 subdomain_TimeDerivative_maxZ5_0;
-  subdomain_6 subdomain_TimeDerivative_minX1_0;
-  subdomain_7 subdomain_TimeDerivative_minX2_0;
-  subdomain_8 subdomain_TimeDerivative_minX3_0;
-  subdomain_9 subdomain_TimeDerivative_minX4_0;
-  subdomain_10 subdomain_TimeDerivative_minX5_0;
-  subdomain_11 subdomain_TimeDerivative_maxY1_0;
-  subdomain_12 subdomain_TimeDerivative_maxY2_0;
-  subdomain_13 subdomain_TimeDerivative_maxY3_0;
-  subdomain_14 subdomain_TimeDerivative_maxY4_0;
-  subdomain_15 subdomain_TimeDerivative_maxY5_0;
-  subdomain_16 subdomain_TimeDerivative_maxX1_0;
-  subdomain_17 subdomain_TimeDerivative_maxX2_0;
-  subdomain_18 subdomain_TimeDerivative_maxX3_0;
-  subdomain_19 subdomain_TimeDerivative_maxX4_0;
-  subdomain_20 subdomain_TimeDerivative_maxX5_0;
-  subdomain_21 subdomain_TimeDerivative_minY1_0;
-  subdomain_22 subdomain_TimeDerivative_minY2_0;
-  subdomain_23 subdomain_TimeDerivative_minY3_0;
-  subdomain_24 subdomain_TimeDerivative_minY4_0;
-  subdomain_25 subdomain_TimeDerivative_minY5_0;
-  subdomain_26 subdomain_TimeDerivative_minZ1_0;
-  subdomain_27 subdomain_TimeDerivative_minZ2_0;
-  subdomain_28 subdomain_TimeDerivative_minZ3_0;
-  subdomain_29 subdomain_TimeDerivative_minZ4_0;
-  subdomain_30 subdomain_TimeDerivative_minZ5_0;
-  subdomain_31 subdomain_TimeDerivative_VesselCyl_0;
-  subdomain_32 subdomain_TimeDerivative_BoundingBox_0;
+  MTheta_qM1 _m_theta_1;
+  MTheta_qM2 _m_theta_2;
+  ATheta_qA0 _a_theta_0;
+  ATheta_qA1 _a_theta_1;
+  ATheta_qA2 _a_theta_2;
+  
+
+  MTheta_subdomain_1 MTheta_subdomain_TimeDerivative_maxZ1_0;
+  MTheta_subdomain_2 MTheta_subdomain_TimeDerivative_maxZ2_0;
+  MTheta_subdomain_3 MTheta_subdomain_TimeDerivative_maxZ3_0;
+  MTheta_subdomain_4 MTheta_subdomain_TimeDerivative_maxZ4_0;
+  MTheta_subdomain_5 MTheta_subdomain_TimeDerivative_maxZ5_0;
+  MTheta_subdomain_6 MTheta_subdomain_TimeDerivative_minX1_0;
+  MTheta_subdomain_7 MTheta_subdomain_TimeDerivative_minX2_0;
+  MTheta_subdomain_8 MTheta_subdomain_TimeDerivative_minX3_0;
+  MTheta_subdomain_9 MTheta_subdomain_TimeDerivative_minX4_0;
+  MTheta_subdomain_10 MTheta_subdomain_TimeDerivative_minX5_0;
+  MTheta_subdomain_11 MTheta_subdomain_TimeDerivative_maxY1_0;
+  MTheta_subdomain_12 MTheta_subdomain_TimeDerivative_maxY2_0;
+  MTheta_subdomain_13 MTheta_subdomain_TimeDerivative_maxY3_0;
+  MTheta_subdomain_14 MTheta_subdomain_TimeDerivative_maxY4_0;
+  MTheta_subdomain_15 MTheta_subdomain_TimeDerivative_maxY5_0;
+  MTheta_subdomain_16 MTheta_subdomain_TimeDerivative_maxX1_0;
+  MTheta_subdomain_17 MTheta_subdomain_TimeDerivative_maxX2_0;
+  MTheta_subdomain_18 MTheta_subdomain_TimeDerivative_maxX3_0;
+  MTheta_subdomain_19 MTheta_subdomain_TimeDerivative_maxX4_0;
+  MTheta_subdomain_20 MTheta_subdomain_TimeDerivative_maxX5_0;
+  MTheta_subdomain_21 MTheta_subdomain_TimeDerivative_minY1_0;
+  MTheta_subdomain_22 MTheta_subdomain_TimeDerivative_minY2_0;
+  MTheta_subdomain_23 MTheta_subdomain_TimeDerivative_minY3_0;
+  MTheta_subdomain_24 MTheta_subdomain_TimeDerivative_minY4_0;
+  MTheta_subdomain_25 MTheta_subdomain_TimeDerivative_minY5_0;
+  MTheta_subdomain_26 MTheta_subdomain_TimeDerivative_minZ1_0;
+  MTheta_subdomain_27 MTheta_subdomain_TimeDerivative_minZ2_0;
+  MTheta_subdomain_28 MTheta_subdomain_TimeDerivative_minZ3_0;
+  MTheta_subdomain_29 MTheta_subdomain_TimeDerivative_minZ4_0;
+  MTheta_subdomain_30 MTheta_subdomain_TimeDerivative_minZ5_0;
+  MTheta_subdomain_31 MTheta_subdomain_TimeDerivative_VesselCyl_0;
+  MTheta_subdomain_32 MTheta_subdomain_TimeDerivative_BoundingBox_0;
   Geom3DRB_ATheta_DiffusionXX_maxZ1 Geom3DRB_ATheta_DiffusionXX_maxZ1_0;
   Geom3DRB_ATheta_DiffusionXY_maxZ1 Geom3DRB_ATheta_DiffusionXY_maxZ1_0;
   Geom3DRB_ATheta_DiffusionXZ_maxZ1 Geom3DRB_ATheta_DiffusionXZ_maxZ1_0;
@@ -644,41 +735,199 @@ struct Geom3DTransientRBThetaExpansion : TransientRBThetaExpansion
   Geom3DRB_ATheta_Perfusion_VesselCyl Geom3DRB_ATheta_Perfusion_VesselCyl_0;
   RBTheta _rb_theta;
 public:
-    subdomain_1 rbtheta_subdomain_1;
-    subdomain_2 rbtheta_subdomain_2;
-    subdomain_3 rbtheta_subdomain_3;
-    subdomain_4 rbtheta_subdomain_4;
-    subdomain_5 rbtheta_subdomain_5;
-    subdomain_6 rbtheta_subdomain_6;
-    subdomain_7 rbtheta_subdomain_7;
-    subdomain_8 rbtheta_subdomain_8;
-    subdomain_9 rbtheta_subdomain_9;
-    subdomain_10 rbtheta_subdomain_10;
-    subdomain_11 rbtheta_subdomain_11;
-    subdomain_12 rbtheta_subdomain_12;
-    subdomain_13 rbtheta_subdomain_13;
-    subdomain_14 rbtheta_subdomain_14;
-    subdomain_15 rbtheta_subdomain_15;
-    subdomain_16 rbtheta_subdomain_16;
-    subdomain_17 rbtheta_subdomain_17;
-    subdomain_18 rbtheta_subdomain_18;
-    subdomain_19 rbtheta_subdomain_19;
-    subdomain_20 rbtheta_subdomain_20;
-    subdomain_21 rbtheta_subdomain_21;
-    subdomain_22 rbtheta_subdomain_22;
-    subdomain_23 rbtheta_subdomain_23;
-    subdomain_24 rbtheta_subdomain_24;
-    subdomain_25 rbtheta_subdomain_25;
-    subdomain_26 rbtheta_subdomain_26;
-    subdomain_27 rbtheta_subdomain_27;
-    subdomain_28 rbtheta_subdomain_28;
-    subdomain_29 rbtheta_subdomain_29;
-    subdomain_30 rbtheta_subdomain_30;
-    subdomain_31 rbtheta_subdomain_31;
-    subdomain_32 rbtheta_subdomain_32;
+    jacobian_subdomain_1 rbtheta_subdomain_1;
+    jacobian_subdomain_2 rbtheta_subdomain_2;
+    jacobian_subdomain_3 rbtheta_subdomain_3;
+    jacobian_subdomain_4 rbtheta_subdomain_4;
+    jacobian_subdomain_5 rbtheta_subdomain_5;
+    jacobian_subdomain_6 rbtheta_subdomain_6;
+    jacobian_subdomain_7 rbtheta_subdomain_7;
+    jacobian_subdomain_8 rbtheta_subdomain_8;
+    jacobian_subdomain_9 rbtheta_subdomain_9;
+    jacobian_subdomain_10 rbtheta_subdomain_10;
+    jacobian_subdomain_11 rbtheta_subdomain_11;
+    jacobian_subdomain_12 rbtheta_subdomain_12;
+    jacobian_subdomain_13 rbtheta_subdomain_13;
+    jacobian_subdomain_14 rbtheta_subdomain_14;
+    jacobian_subdomain_15 rbtheta_subdomain_15;
+    jacobian_subdomain_16 rbtheta_subdomain_16;
+    jacobian_subdomain_17 rbtheta_subdomain_17;
+    jacobian_subdomain_18 rbtheta_subdomain_18;
+    jacobian_subdomain_19 rbtheta_subdomain_19;
+    jacobian_subdomain_20 rbtheta_subdomain_20;
+    jacobian_subdomain_21 rbtheta_subdomain_21;
+    jacobian_subdomain_22 rbtheta_subdomain_22;
+    jacobian_subdomain_23 rbtheta_subdomain_23;
+    jacobian_subdomain_24 rbtheta_subdomain_24;
+    jacobian_subdomain_25 rbtheta_subdomain_25;
+    jacobian_subdomain_26 rbtheta_subdomain_26;
+    jacobian_subdomain_27 rbtheta_subdomain_27;
+    jacobian_subdomain_28 rbtheta_subdomain_28;
+    jacobian_subdomain_29 rbtheta_subdomain_29;
+    jacobian_subdomain_30 rbtheta_subdomain_30;
+    jacobian_subdomain_31 rbtheta_subdomain_31;
+    jacobian_subdomain_32 rbtheta_subdomain_32;
     std::vector<RBTheta *> subdomain_jac_rbthetas;
     unsigned int num_subdomains;
 };
 
+struct DummyMAssembly : ElemAssembly
+{
+  virtual void interior_assembly(FEMContext & /*dummy*/)
+  { }
+};
+
+struct DwarfElephantRBCustomTransientAssemblyExpansion : TransientRBAssemblyExpansion
+{
+  DwarfElephantRBCustomTransientAssemblyExpansion()
+  {
+    attach_M_assembly(&M0);
+    attach_M_assembly(&M1);/*
+    attach_M_assembly(&M2);
+    attach_M_assembly(&M3);
+    attach_M_assembly(&M4);
+    attach_M_assembly(&M5);
+    attach_M_assembly(&M6);
+    attach_M_assembly(&M7);
+    attach_M_assembly(&M8);
+    attach_M_assembly(&M9);
+    attach_M_assembly(&M10);
+    attach_M_assembly(&M11);
+    attach_M_assembly(&M12);
+    attach_M_assembly(&M13);
+    attach_M_assembly(&M14);
+    attach_M_assembly(&M15);
+    attach_M_assembly(&M16);
+    attach_M_assembly(&M17);
+    attach_M_assembly(&M18);
+    attach_M_assembly(&M19);
+    attach_M_assembly(&M20);
+    attach_M_assembly(&M21);
+    attach_M_assembly(&M22);
+    attach_M_assembly(&M23);
+    attach_M_assembly(&M24);
+    attach_M_assembly(&M25);
+    attach_M_assembly(&M26);
+    attach_M_assembly(&M27);
+    attach_M_assembly(&M28);
+    attach_M_assembly(&M29);
+    attach_M_assembly(&M30);
+    attach_M_assembly(&M31);*/
+    
+    
+  }
+  DummyMAssembly M0;
+  DummyMAssembly M1;
+  DummyMAssembly M2;
+  DummyMAssembly M3;
+  DummyMAssembly M4;
+  DummyMAssembly M5;
+  DummyMAssembly M6;
+  DummyMAssembly M7;
+  DummyMAssembly M8;
+  DummyMAssembly M9;
+  DummyMAssembly M10;
+  DummyMAssembly M11;
+  DummyMAssembly M12;
+  DummyMAssembly M13;
+  DummyMAssembly M14;
+  DummyMAssembly M15;
+  DummyMAssembly M16;
+  DummyMAssembly M17;
+  DummyMAssembly M18;
+  DummyMAssembly M19;
+  DummyMAssembly M20;
+  DummyMAssembly M21;
+  DummyMAssembly M22;
+  DummyMAssembly M23;
+  DummyMAssembly M24;
+  DummyMAssembly M25;
+  DummyMAssembly M26;
+  DummyMAssembly M27;
+  DummyMAssembly M28;
+  DummyMAssembly M29;
+  DummyMAssembly M30;
+  DummyMAssembly M31;
+  
+};
+
+struct M_theta_10 : TransientRBThetaExpansion
+{
+  M_theta_10()
+  {
+    for (unsigned int i=0; i < 10; i++)
+      attach_M_theta(&_rb_theta);
+
+    for (unsigned int i=0; i < 32; i++)
+     subdomain_jac_rbthetas.push_back(&_rb_theta);
+    
+    num_subdomains = 32;
+}
+  RBTheta _rb_theta;
+public:
+    
+    std::vector<RBTheta *> subdomain_jac_rbthetas;
+    unsigned int num_subdomains;
+};
+
+struct QM_10 : TransientRBAssemblyExpansion
+{
+  QM_10()
+  {
+    for (unsigned int i = 0; i < 10; i++)
+      attach_M_assembly(&M0);    
+  }
+  DummyMAssembly M0;
+};
+
+struct A_theta_10 : TransientRBThetaExpansion
+{
+  A_theta_10()
+  {
+    for (unsigned int i=0; i < 10; i++)
+      attach_A_theta(&_rb_theta);
+    
+    attach_F_theta(&_rb_theta);
+
+    for (unsigned int i=0; i < 32; i++)
+     subdomain_jac_rbthetas.push_back(&_rb_theta);
+    
+    num_subdomains = 32;
+}
+  RBTheta _rb_theta;
+public:
+    
+    std::vector<RBTheta *> subdomain_jac_rbthetas;
+    unsigned int num_subdomains;
+};
+
+struct QM_0 : TransientRBAssemblyExpansion
+{
+  QM_0()
+  {  
+  }
+  DummyMAssembly M0;
+};
+
+struct BC_heat_source_thetas : TransientRBThetaExpansion
+{
+  BC_heat_source_thetas()
+  {
+    attach_A_theta(&_rb_theta);
+    attach_F_theta(&_rb_theta);
+    for (unsigned int i=0; i < 32; i++)
+      attach_F_theta(&_rb_theta);
+
+    for (unsigned int i=0; i < 32; i++)
+     subdomain_jac_rbthetas.push_back(&_rb_theta);
+    
+    num_subdomains = 32;
+}
+  RBTheta _rb_theta;
+public:
+    
+    std::vector<RBTheta *> subdomain_jac_rbthetas;
+    unsigned int num_subdomains;
+};
 //------------------------------
 #endif // DWARFELEPHANTGEOM3DTRANSIENTRBTHETAEXPANSION_RFA_H

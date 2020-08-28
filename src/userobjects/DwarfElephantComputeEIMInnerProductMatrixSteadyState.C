@@ -61,10 +61,10 @@ DwarfElephantComputeEIMInnerProductMatrixSteadyState::getValue()
 }
 
 void
-DwarfElephantComputeEIMInnerProductMatrixSteadyState::threadJoin(const UserObject & y)
+DwarfElephantComputeEIMInnerProductMatrixSteadyState::threadJoin(const UserObject & /*y*/)
 {
   // Is not executed in parallel runs
-  const DwarfElephantComputeEIMInnerProductMatrixSteadyState & pps = static_cast<const DwarfElephantComputeEIMInnerProductMatrixSteadyState &>(y);
+  //const DwarfElephantComputeEIMInnerProductMatrixSteadyState & pps = static_cast<const DwarfElephantComputeEIMInnerProductMatrixSteadyState &>(y);
   std::cout << "Executing threadJoin()" << std::endl;
   //_integral_value += pps._integral_value;
 }

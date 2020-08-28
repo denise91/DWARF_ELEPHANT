@@ -254,7 +254,7 @@ DwarfElephantRBIntegratedBC::computeJacobian()
       _diag_save_in[i]->sys().solution().add_vector(diag, _diag_save_in[i]->dofIndices());
   }
 }
-
+/*
 void
 DwarfElephantRBIntegratedBC::computeJacobianBlock(unsigned int jvar)
 {
@@ -270,7 +270,7 @@ DwarfElephantRBIntegratedBC::computeJacobianBlock(unsigned int jvar)
           ke(_i,_j) += _JxW[_qp]*_coord[_qp]*computeQpOffDiagJacobian(jvar);
       }
 }
-
+*/
 void
 DwarfElephantRBIntegratedBC::computeJacobianBlockScalar(unsigned int jvar)
 {
