@@ -9,9 +9,9 @@
     input = 'RBERTSteadyVaryingDirac.i'
     exodiff = 'RBERTSteadyVaryingDirac_out.e'
   [../]  
-  [./RBERTSteadyVectorPostProcessor]
-    type = 'Exodiff'
-    input = 'RBERTSteadyVectorPostProcessor.i'
-    exodiff = 'RBERTSteadyVectorPostProcessor_out.e'
-  [../]
+  #[./RBERTSteadyVectorPostProcessor]
+  #  type = 'Exodiff'
+  #  input = 'RBERTSteadyVectorPostProcessor.i'
+  #  exodiff = 'RBERTSteadyVectorPostProcessor_out.e'
+  #[../]
 []
