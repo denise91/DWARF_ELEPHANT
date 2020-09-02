@@ -1,9 +1,9 @@
 [Tests]
-  [./RBDarcyTransient]
-    type = 'Exodiff'
-    input = 'RBDarcyTransient.i'
-    exodiff = 'RBDarcyTransient_out.e'
-  [../]
+  #[./RBDarcyTransient]
+  #  type = 'Exodiff'
+  #  input = 'RBDarcyTransient.i'
+  #  exodiff = 'RBDarcyTransient_out.e'
+  #[../]
   [./RBDarcyTransientPenalty]
     type = 'Exodiff'
     input = 'RBDarcyTransientPenalty.i'

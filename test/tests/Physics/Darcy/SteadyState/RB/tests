@@ -1,9 +1,9 @@
 [Tests]
-  [./RBDarcySteady]
-    type = 'Exodiff'
-    input = 'RBDarcySteady.i'
-    exodiff = 'RBDarcySteady_out.e'
-  [../]
+  #[./RBDarcySteady]
+  #  type = 'Exodiff'
+  #  input = 'RBDarcySteady.i'
+  #  exodiff = 'RBDarcySteady_out.e'
+  #[../]
   [./RBDarcySteadyPenalty]
     type = 'Exodiff'
     input = 'RBDarcySteadyPenalty.i'
