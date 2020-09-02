@@ -1,5 +1,5 @@
 [Mesh]
-  file = /Users/denise/projects/DwarfElephant/RB_mesh_3layers.e
+  file = ../../../Meshes/RB_mesh_3layers.e
 []
 
 [Variables]
