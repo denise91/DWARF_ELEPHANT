@@ -28,7 +28,7 @@ RBParameters
 DwarfElephantRBStartEndTimeMuAction::calculateTimeDependency(const RBParameters mu)
 {
   RBParameters & mu_time = const_cast<RBParameters&>(mu);
-  _initialize_rb_system = &_problem->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_userobject_name);
+  _initialize_rb_system = &_problem->getUserObject<DwarfElephantInitializeRBSystemTransient>(_userobject_name);
   Real _dt = _initialize_rb_system->get_rb_con_ptr()->get_delta_t();
 
   Real pre_factor = 1.0;

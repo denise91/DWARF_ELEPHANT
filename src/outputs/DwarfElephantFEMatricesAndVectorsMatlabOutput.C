@@ -47,7 +47,7 @@ DwarfElephantFEMatriciesAndVectorsMatlabOutput::printAq(std::vector<unsigned int
   if(_simulation_type=="steady")
   {
     DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
     for(unsigned int q = 0; q<_id.size(); q++)
     {
       if(_id[q] >= _initialize_rb_system.getQa())
@@ -56,7 +56,7 @@ DwarfElephantFEMatriciesAndVectorsMatlabOutput::printAq(std::vector<unsigned int
     }
   }else{
     DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
     for(unsigned int q = 0; q<_id.size(); q++)
     {
       if(_id[q] >= _initialize_rb_system.getQa())
@@ -72,7 +72,7 @@ DwarfElephantFEMatriciesAndVectorsMatlabOutput::printFq(std::vector<unsigned int
   if(_simulation_type=="steady")
   {
     DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
     for(unsigned int q = 0; q<_id.size(); q++)
     {
       if(_id[q] >= _initialize_rb_system.getQf())
@@ -81,7 +81,7 @@ DwarfElephantFEMatriciesAndVectorsMatlabOutput::printFq(std::vector<unsigned int
     }
   }else{
     DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
     for(unsigned int q = 0; q<_id.size(); q++)
     {
       if(_id[q] >= _initialize_rb_system.getQf())
@@ -95,7 +95,7 @@ void
 DwarfElephantFEMatriciesAndVectorsMatlabOutput::printMq(std::vector<unsigned int> _id)
 {
     DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
     for(unsigned int q = 0; q<_id.size(); q++)
     {
       if(_id[q] >= _initialize_rb_system.getQm())
@@ -110,12 +110,12 @@ DwarfElephantFEMatriciesAndVectorsMatlabOutput::printInnerProductMatrix(std::str
   if(_simulation_type=="steady")
   {
     DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
 
     _initialize_rb_system.getInnerProductMatrix()->print_matlab("InnerProductMatrix");
   }else{
     DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
 
     _initialize_rb_system.getInnerProductMatrix()->print_matlab("InnerProductMatrix");
   }
@@ -125,7 +125,7 @@ void
 DwarfElephantFEMatriciesAndVectorsMatlabOutput::printL2Matrix()
 {
   DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
-    _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+    _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
 
   _initialize_rb_system.getL2Matrix()->print_matlab("L2Matrix");
 }

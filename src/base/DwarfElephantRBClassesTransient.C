@@ -1076,7 +1076,7 @@ DwarfElephantRBConstructionTransient::init_data()
     DwarfElephantRBProblem & problem = cast_ref<DwarfElephantRBProblem &>(fe_problem);
 
     DwarfElephantInitializeRBSystemTransient & initialize_rb_system =
-      problem.getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(problem._initial_rb_userobject);
+      problem.getUserObject<DwarfElephantInitializeRBSystemTransient>(problem._initial_rb_userobject);
 
 
     // Calculate the time dependency of the parameters

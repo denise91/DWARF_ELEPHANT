@@ -62,7 +62,7 @@ DwarfElephantDakotaOutput::output(const ExecFlagType & /*type*/)
     } else {
       if(_simulation_type == "steady")
       {
-        DwarfElephantOfflineOnlineStageSteadyState & _offline_online_rb_system = _problem_ptr->getUserObjectTempl<DwarfElephantOfflineOnlineStageSteadyState>(_offline_online_rb_system_name);
+        DwarfElephantOfflineOnlineStageSteadyState & _offline_online_rb_system = _problem_ptr->getUserObject<DwarfElephantOfflineOnlineStageSteadyState>(_offline_online_rb_system_name);
 
         if (_offline_online_rb_system._output_file)
          mooseError("This Output class using the RB method is specifically designed to work efficiently for repetitive forward simulations. Therefore the output of Exodus files is not desired and the combination of outputting Exodus files and DakotaOutputs is therefore not supported.");
@@ -76,7 +76,7 @@ DwarfElephantDakotaOutput::output(const ExecFlagType & /*type*/)
           // else
             dakota_file << _offline_online_rb_system._RB_outputs[i] << " " << _add_on << std::endl;
       } else{
-        DwarfElephantOfflineOnlineStageTransient & _offline_online_rb_system = _problem_ptr->getUserObjectTempl<DwarfElephantOfflineOnlineStageTransient>(_offline_online_rb_system_name);
+        DwarfElephantOfflineOnlineStageTransient & _offline_online_rb_system = _problem_ptr->getUserObject<DwarfElephantOfflineOnlineStageTransient>(_offline_online_rb_system_name);
 
         if (_offline_online_rb_system._output_file)
          mooseError("This Output class using the RB method is specifically designed to work efficiently for repetitive forward simulations. Therefore the output of Exodus files is not desired and the combination of outputting Exodus files and DakotaOutputs is therefore not supported.");

@@ -47,7 +47,7 @@ DwarfElephantFEMatriciesAndVectorsPythonOutput::printAq(std::vector<unsigned int
   if(_simulation_type=="steady")
   {
     DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
     for(unsigned int q = 0; q<_id.size(); q++)
     {
       if(_id[q] >= _initialize_rb_system.getQa())
@@ -61,7 +61,7 @@ DwarfElephantFEMatriciesAndVectorsPythonOutput::printAq(std::vector<unsigned int
     }
   }else{
     DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
     for(unsigned int q = 0; q<_id.size(); q++)
     {
       if(_id[q] >= _initialize_rb_system.getQa())
@@ -82,7 +82,7 @@ DwarfElephantFEMatriciesAndVectorsPythonOutput::printFq(std::vector<unsigned int
   if(_simulation_type=="steady")
   {
     DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
     for(unsigned int q = 0; q<_id.size(); q++)
     {
       if(_id[q] >= _initialize_rb_system.getQf())
@@ -94,7 +94,7 @@ DwarfElephantFEMatriciesAndVectorsPythonOutput::printFq(std::vector<unsigned int
     }
   }else{
     DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
     for(unsigned int q = 0; q<_id.size(); q++)
     {
       if(_id[q] >= _initialize_rb_system.getQf())
@@ -111,7 +111,7 @@ void
 DwarfElephantFEMatriciesAndVectorsPythonOutput::printMq(std::vector<unsigned int> _id)
 {
     DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
     for(unsigned int q = 0; q<_id.size(); q++)
     {
       if(_id[q] >= _initialize_rb_system.getQm())
@@ -131,7 +131,7 @@ DwarfElephantFEMatriciesAndVectorsPythonOutput::printInnerProductMatrix(std::str
   if(_simulation_type=="steady")
   {
     DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemSteadyState>(_initialize_rb_system_name);
 
     std::ofstream _python_out("InnerProductMatrix", std::ios::out);
     _python_out << "Number of Rows: "<< _initialize_rb_system.getInnerProductMatrix()->m() << std::endl;
@@ -141,7 +141,7 @@ DwarfElephantFEMatriciesAndVectorsPythonOutput::printInnerProductMatrix(std::str
 
   }else{
     DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
-      _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+      _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
 
     std::ofstream _python_out("InnerProductMatrix", std::ios::out);
     _python_out << "Number of Rows: "<< _initialize_rb_system.getInnerProductMatrix()->m() << std::endl;
@@ -155,7 +155,7 @@ void
 DwarfElephantFEMatriciesAndVectorsPythonOutput::printL2Matrix()
 {
   DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
-    _problem_ptr->getUserObjectTempl<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+    _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
 
   std::ofstream _python_out("L2Matrix", std::ios::out);
   _python_out << "Number of Rows: "<< _initialize_rb_system.getL2Matrix()->m() << std::endl;
