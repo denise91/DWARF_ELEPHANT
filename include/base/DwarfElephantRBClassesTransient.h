@@ -47,6 +47,7 @@
 #include "DwarfElephantRBStructuresT3A3F4O1M2Transient.h"
 #include "DwarfElephantRBStructuresT3A3F4O3M2Transient.h"
 #include "DwarfElephantRBStructuresT3A3F3O3M2IC1Transient.h"
+#include "DwarfElephantRBStructuresT4A2F2O1M2Transient.h"
 #include "DwarfElephantRBStructuresT4A3F1O1M1Transient.h"
 #include "DwarfElephantRBStructuresT4A5F5O1M1Transient.h"
 #include "DwarfElephantRBStructuresT4A3F1O1M1IC1Transient.h"
@@ -54,6 +55,7 @@
 #include "DwarfElephantRBStructuresT5A5F1O1M1Transient.h"
 #include "DwarfElephantRBStructuresT5A5F5O1M1Transient.h"
 #include "DwarfElephantRBStructuresT5A5F5O3M1Transient.h"
+#include "DwarfElephantRBStructuresT6A3F2O1M3Transient.h"
 #include "DwarfElephantRBStructuresT6A3F4O1M3Transient.h"
 #include "DwarfElephantRBStructuresT6A3F6O1M1Transient.h"
 #include "DwarfElephantRBStructuresT6A3F1O1M1IC3Transient.h"
@@ -219,8 +221,6 @@ public:
 
   std::vector<DenseVector<Number>> RB_moose_theta_object_q;
 
-  // DwarfElephantRBT6F4O1M3TransientExpansion _rb_theta_expansion;
-  DwarfElephantRBT3A3F1O1M1TransientExpansion _rb_theta_expansion;
-  // DwarfElephantRBT5F4O1M2TransientExpansion _rb_theta_expansion;
-  // DwarfElephantRBT6F6O1M1TransientExpansion _rb_theta_expansion;
+  DwarfElephantRBT6A3F2O1M3TransientExpansion _rb_theta_expansion;
+  // DwarfElephantRBT4A2F2O1M2TransientExpansion _rb_theta_expansion;
 };
