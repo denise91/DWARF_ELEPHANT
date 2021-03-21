@@ -31,6 +31,9 @@ InputParameters validParams<DwarfElephantOfflineOnlineStageSteadyState>()
     params.addRequiredParam<unsigned int>("online_N", "Defines the dimension of the online stage.");
     params.addParam<Real>("mu_bar", 1., "Value for mu-bar");
     params.addRequiredParam<std::vector<Real>>("online_mu", "Current values of the different layers for which the RB Method is solved.");
+    params.addRequiredParam<unsigned int>("mesh_num","The mesh refinement index starting at 0");
+    params.addRequiredParam<std::string>("param_str","param_min, param_ref or param_max");
+    params.addRequiredParam<std::string>("vec_file_location","Location to store F vectors");
     return params;
 }
 
@@ -55,7 +58,10 @@ DwarfElephantOfflineOnlineStageSteadyState::DwarfElephantOfflineOnlineStageStead
     _subdomain_ids(_mesh_ptr->meshSubdomains()),
     _mu_bar(getParam<Real>("mu_bar")),
     _online_mu_parameters(getParam<std::vector<Real>>("online_mu")),
-    _rb_problem(cast_ptr<DwarfElephantRBProblem *>(&_fe_problem))
+    _rb_problem(cast_ptr<DwarfElephantRBProblem *>(&_fe_problem)),
+    _mesh_num(getParam<unsigned int>("mesh_num")),
+    _param_str(getParam<std::string>("param_str")),
+    _vec_file_location(getParam<std::string>("vec_file_location"))
 {
 }
 
@@ -86,8 +92,8 @@ DwarfElephantOfflineOnlineStageSteadyState::transferAffineVectors()
     {
       
       //_rb_problem->rbAssembly(0).setCachedResidual(*_initialize_rb_system._residuals[_q]); // line added for compatibility with libMesh EIM example 
-      
       _initialize_rb_system._residuals[_q]->close();
+      _initialize_rb_system._residuals[_q]->print_matlab(_vec_file_location + "/mesh" + std::to_string(_mesh_num) + "/Fq_"+std::to_string(_q)+".m"); //CHECK TESTCASE OR ACTUAL CASE 
     }
 
     if(_compute_output)
@@ -115,10 +121,10 @@ DwarfElephantOfflineOnlineStageSteadyState::offlineStageEIM()
 
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile.open("RBGreedyOutputFile.csv");
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxErrorBound" << std::endl;
-    _initialize_rb_system._rb_con_ptr->train_reduced_basis();
+    //_initialize_rb_system._rb_con_ptr->train_reduced_basis();
     _initialize_rb_system._rb_con_ptr->GreedyOutputFile.close();
 
-    _initialize_rb_system._rb_eval_ptr ->set_parameters(_rb_online_mu);
+    //_initialize_rb_system._rb_eval_ptr ->set_parameters(_rb_online_mu);
     _initialize_rb_system._rb_con_ptr->do_RB_vs_FE_Error_analysis(_rb_online_mu, _es);
     #if defined(LIBMESH_HAVE_CAPNPROTO)
       RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
@@ -386,11 +392,13 @@ DwarfElephantOfflineOnlineStageSteadyState::execute()
        // Transfer the affine vectors to the RB system.
        if(_skip_vector_assembly_in_rb_system)
         transferAffineVectors(); // runs fine
-
+      
+       _initialize_rb_system._eim_con_ptr -> load_rb_solution();// temporary code for debugging
+       *_es.get_system("aux0").solution = *_es.get_system("EIMSystem_explicit_sys").solution;// temporary code for debugging
+       VTKIO(_mesh_ptr->getMesh()).write_equation_systems("EIMSoln.pvtu", _es);// temporary code for debugging
       // Transfer the affine matrices to the RB system.
       if(_skip_matrix_assembly_in_rb_system)
         setAffineMatrices(); // problem
-
       // Perform the offline stage.
       _console << std::endl;
       if (_initialize_rb_system._use_EIM) 

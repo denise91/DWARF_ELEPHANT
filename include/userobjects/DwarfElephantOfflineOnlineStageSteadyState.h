@@ -112,7 +112,9 @@ class DwarfElephantOfflineOnlineStageSteadyState :
     RBParameters _rb_online_mu;
 
     DwarfElephantRBProblem * _rb_problem;
-    
+    unsigned int _mesh_num;
+    std::string _param_str;
+    std::string _vec_file_location;
 
 
     friend class DwarfElephantDakotaOutput;

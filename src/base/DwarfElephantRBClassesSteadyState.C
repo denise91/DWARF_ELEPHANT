@@ -212,8 +212,8 @@ DwarfElephantRBEvaluationSteadyState::DwarfElephantRBEvaluationSteadyState(const
 {
   //set_rb_theta_expansion(_eim_test_rb_theta_expansion);
   //set_rb_theta_expansion(_goem_2D_rb_theta_expansion);
-  //set_rb_theta_expansion(RBExpansion);
-  set_rb_theta_expansion(_geom_3D_rb_theta_expansion);
+  set_rb_theta_expansion(RBExpansion);
+  //set_rb_theta_expansion(_geom_3D_rb_theta_expansion);
 }
 
 Real

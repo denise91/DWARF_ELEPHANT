@@ -32,7 +32,7 @@ namespace libMesh
  * type RBThetatExpansion.
  *
  */
-
+/*
 struct MTheta_qM1 : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
@@ -72,20 +72,20 @@ struct ATheta_qA2 : RBTheta
     return 0.52;
   }
 };
-
+*/
 struct Geom3DTransientRBThetaExpansion : TransientRBThetaExpansion
 {
   Geom3DTransientRBThetaExpansion()
   {
-    
+    /*
     attach_M_theta(&_m_theta_1);
     attach_M_theta(&_m_theta_2);
     attach_A_theta(&_a_theta_0);
     attach_A_theta(&_a_theta_1);
     attach_A_theta(&_a_theta_2);
     attach_A_theta(&_rb_theta);
-    
-/*
+    */
+
   attach_M_theta(&MTheta_subdomain_TimeDerivative_maxZ1_0);
   attach_M_theta(&MTheta_subdomain_TimeDerivative_maxZ2_0);
   attach_M_theta(&MTheta_subdomain_TimeDerivative_maxZ3_0);
@@ -372,7 +372,7 @@ struct Geom3DTransientRBThetaExpansion : TransientRBThetaExpansion
   attach_A_theta(&Geom3DRB_ATheta_DiffusionZZ_BoundingBox_0);
   attach_A_theta(&Geom3DRB_ATheta_Perfusion_VesselCyl_0);
   attach_A_theta(&_rb_theta); // Convection BC
-*/
+
   attach_F_theta(&_rb_theta); // Convection BC
   attach_F_theta(&_rb_theta); // RF Heat Source from here on
   attach_F_theta(&_rb_theta);
@@ -441,12 +441,13 @@ struct Geom3DTransientRBThetaExpansion : TransientRBThetaExpansion
     subdomain_jac_rbthetas.push_back(&rbtheta_subdomain_32);
     num_subdomains = 32;
 }
+  /*
   MTheta_qM1 _m_theta_1;
   MTheta_qM2 _m_theta_2;
   ATheta_qA0 _a_theta_0;
   ATheta_qA1 _a_theta_1;
   ATheta_qA2 _a_theta_2;
-  
+  */
 
   MTheta_subdomain_1 MTheta_subdomain_TimeDerivative_maxZ1_0;
   MTheta_subdomain_2 MTheta_subdomain_TimeDerivative_maxZ2_0;
@@ -782,7 +783,7 @@ struct DwarfElephantRBCustomTransientAssemblyExpansion : TransientRBAssemblyExpa
   DwarfElephantRBCustomTransientAssemblyExpansion()
   {
     attach_M_assembly(&M0);
-    attach_M_assembly(&M1);/*
+    attach_M_assembly(&M1);
     attach_M_assembly(&M2);
     attach_M_assembly(&M3);
     attach_M_assembly(&M4);
@@ -812,7 +813,7 @@ struct DwarfElephantRBCustomTransientAssemblyExpansion : TransientRBAssemblyExpa
     attach_M_assembly(&M28);
     attach_M_assembly(&M29);
     attach_M_assembly(&M30);
-    attach_M_assembly(&M31);*/
+    attach_M_assembly(&M31);
     
     
   }

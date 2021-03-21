@@ -1,6 +1,6 @@
 import subprocess
 
-def writeInputFile(filename,mesh_file_name,r_new,l_new,offset): #RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh0.msh
+def writeInputFile(filename,mesh_file_name,r_new,l_new,offset,mat_file_location,mesh_num): #RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh0.msh
   PreKernelText = """[Mesh]
   file = """ + mesh_file_name + """ 
 []
@@ -126,6 +126,9 @@ def writeInputFile(filename,mesh_file_name,r_new,l_new,offset): #RBGeom_r3e-3mm_
   mesh_index = 0
   Aq_mat_offset = 0
   Mq_mat_offset = """+str(offset)+"""
+  mesh_num = """ + str(mesh_num) + """
+  param_str = trash
+  mat_file_location = """ + mat_file_location + """
 [../]
 []
 """
@@ -137,16 +140,22 @@ def subprocess_cmd(command):
     proc_stdout = process.communicate()[0].strip()
     print proc_stdout
 
-mesh_file_names = ["RBGeom_Test.msh"]#["RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh0.msh","RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh1.msh","RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh2.msh","RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh3.msh","RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh4.msh"]
-r_l_new = [["00.003","00.04"]]#[["00.0004","00.0005"],["00.003","00.04"],["00.005","00.07"]] #[[r_new,l_new]]
+mat_file_location = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/transienttestcase/"
+mesh_file_names = ["RBGeom_test_mesh{mesh_num}.msh"]
+#mesh_file_names = ["RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh0_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh1_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh2_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh3_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh4_new.msh"] #["RBGeom_test_mesh0.msh","RBGeom_test_mesh1.msh","RBGeom_test_mesh2.msh","RBGeom_test_mesh3.msh","RBGeom_test_mesh4.msh"]
+#CHECK
+r_l_new = [["00.003","00.04"]]#variation not required since matrices are affine 
+mesh_num = 4 # CHECK
 for mesh_file_name in mesh_file_names:
   for geom_param in r_l_new: 
     for i in range(4):
       offset = i*10
-      writeInputFile("Obtain_Mq.i",mesh_file_name,geom_param[0],geom_param[1],offset)
+      writeInputFile("Obtain_Mq.i",mesh_file_name.format(mesh_num=mesh_num),geom_param[0],geom_param[1],offset,mat_file_location,mesh_num)
       subprocess_cmd("qsh; ./DwarfElephant-opt -i Obtain_Mq.i")
-for i in range(32,40):
-  subprocess.call("rm ./3DRBRFAMatrices/MeshConvMatrices/Mq_"+str(i)+".m",shell=True)
+  mesh_num = mesh_num + 1
+for j in range(4,mesh_num): #CHECK  
+  for i in range(32,40): #CHECK PATH GIVEN TO rm COMMAND
+    subprocess.call("rm " + mat_file_location + "mesh" + str(j) + "/Mq_"+str(i)+".m",shell=True)
 
 
 

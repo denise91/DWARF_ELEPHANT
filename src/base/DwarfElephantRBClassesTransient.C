@@ -117,18 +117,17 @@ void DwarfElephantRBConstructionTransient::print_vector(NumericVector<Number> * 
     }*/
 }
 
-void DwarfElephantRBConstructionTransient::write_mesh_node_coords_and_elem_connectivities()
+void DwarfElephantRBConstructionTransient::write_mesh_node_coords_and_elem_connectivities(std::string mesh_name)
 {
     this->comm().barrier();
     if (this->comm().rank() == 0)
-        execute_command("rm /home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/*");
+        //execute_command("rm /home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/*");
     this->comm().barrier();
 
     std::ofstream outfile;
     const MeshBase & mesh = this->get_mesh();
     
-    outfile.open("/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/mesh_node_coords"+std::to_string(this->comm().rank())+".txt",std::ofstream::out);
-    std::cout << endl << "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/mesh_node_coords"+std::to_string(this->comm().rank())+".txt" << endl;
+    outfile.open(mesh_name + "/mesh_node_coords"+std::to_string(this->comm().rank())+".txt",std::ofstream::out);
     libMesh::out << endl << std::to_string(this->comm().rank()) << endl;
     const Node * node_begin = *(mesh.local_node_ptr_range().begin());
     const Node * node_end = *(mesh.local_node_ptr_range().end());
@@ -147,7 +146,7 @@ void DwarfElephantRBConstructionTransient::write_mesh_node_coords_and_elem_conne
     }
     outfile.close();
 
-    outfile.open("/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/mesh_node_connectivity"+std::to_string(this->comm().rank())+".txt",std::ofstream::out);
+    outfile.open(mesh_name + "/mesh_node_connectivity"+std::to_string(this->comm().rank())+".txt",std::ofstream::out);
     for (const auto & elem : mesh.active_local_element_ptr_range())
     {
         std::vector<dof_id_type> conn;
@@ -156,6 +155,7 @@ void DwarfElephantRBConstructionTransient::write_mesh_node_coords_and_elem_conne
         outfile << curr_elem.id() << " ";
         for (unsigned int i = 0; i < 4; i++)
             outfile << conn[i] << " ";
+        outfile << elem->subdomain_id();
         outfile << "\n";
     }
 }

@@ -86,25 +86,28 @@ namespace libMesh
 //class DwarfElephantInitializeRBSystemSteadyState;
 
 
-/*
-struct CustomRBTheta : RBTheta
+
+struct TissueDiff_theta : RBTheta
 {
     virtual Number evaluate(const RBParameters &_mu)
     {
-        return _mu.get_value("mu_2");
+        return 0.8;
     }
 };
- */
-struct ShiftedGaussian : public RBParametrizedFunction
+
+struct BloodDiff_theta : RBTheta
 {
-    virtual Number evaluate(const RBParameters & mu,
-                          const Point & p,
-                          const Elem & /*elem*/)
+    virtual Number evaluate(const RBParameters &_mu)
     {
-        Real center_x = mu.get_value("mu_0");
-        Real center_y = mu.get_value("mu_1");
-        Real center_z = mu.get_value("mu_2");
-        return exp(1e0*(-pow(p(0) - center_x,2)-pow(p(1) - center_y,2)-pow(p(2) - center_z,2)));
+        return 0.52;
+    }
+};
+
+struct Perf_theta : RBTheta
+{
+    virtual Number evaluate(const RBParameters &_mu)
+    {
+        return 1.9e5;
     }
 };
 
@@ -115,13 +118,18 @@ struct CustomRBThetaExpansion : RBThetaExpansion
     // Setting up the RBThetaExpansion object
     
     attach_A_theta(&_rb_theta);
-    //attach_F_theta(&_rb_theta);
+    attach_A_theta(&_theta_a_1);
+    attach_A_theta(&_theta_a_2);
+    attach_A_theta(&_theta_a_3);
+    attach_F_theta(&_rb_theta);
 
     //attach_output_theta(&_rb_theta);
 
   }
   // Member Variables
-  //CustomRBTheta _theta_a_1;
+  TissueDiff_theta _theta_a_1;
+  BloodDiff_theta _theta_a_2;
+  Perf_theta _theta_a_3;
   RBTheta _rb_theta;         // Default RBTheta object, simply returns one.
 };
 
@@ -319,8 +327,8 @@ public:
   FEProblemBase & fe_problem;
   //DwarfElephantEIMTestRBThetaExpansion _eim_test_rb_theta_expansion;
   //Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
-  Geom3DRBThetaExpansion _geom_3D_rb_theta_expansion;
-  //CustomRBThetaExpansion RBExpansion;
+  //Geom3DRBThetaExpansion _geom_3D_rb_theta_expansion;
+  CustomRBThetaExpansion RBExpansion;
   //libMesh::RBSCMEvaluation * rb_scm_eval;
   bool _RB_RFA;
 };
@@ -352,6 +360,14 @@ public:
   virtual Real train_reduced_basis(const bool resize_rb_eval_data=true) override;
   
   //virtual void compute_Fq_representor_innerprods(bool compute_inner_products=true) override;
+
+  void write_num_subdomains()
+  {
+    
+    std::ofstream num_subdomains_file("EIM_num_subdomains.txt",std::ofstream::out);
+    num_subdomains_file << this->get_mesh().n_subdomains() << std::endl;
+    num_subdomains_file.close();
+  }
   
 NumericVector<Number> * get_nonAffineF() // To test against EIM example from Martin's publication
   {
@@ -410,11 +426,11 @@ void compute_error_X_norm_vs_N(NumericVector<Number>* _EIMFEsolution, RBParamete
     // compute full FE solution
       unsigned int  M = 0;
       if (dynamic_cast<DwarfElephantRBEvaluationSteadyState&>(get_rb_evaluation())._RB_RFA)
-          M = dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).get_n_F_terms()/dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
+          M = 32;//dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).get_n_F_terms()/dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
       std::unique_ptr<NumericVector<Number>> FullFEsolution;
       FullFEsolution = NumericVector<Number>::build(this->comm());
       FullFEsolution->init(this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
-
+      std::cout << "RB theta expasion typecast" << std::endl;
       FullFEsolution -> zero();
       FullFEsolution -> close();
 
@@ -432,7 +448,11 @@ void compute_error_X_norm_vs_N(NumericVector<Number>* _EIMFEsolution, RBParamete
       for (int i = 0; i < get_rb_theta_expansion().get_n_F_terms(); i++)
       {
         if (dynamic_cast<DwarfElephantRBEvaluationSteadyState&>(get_rb_evaluation())._RB_RFA)
-            rhs -> add(get_rb_theta_expansion().eval_F_theta((i%M),mu) * dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[i/M]->evaluate(mu),*get_Fq(i));//*_nonAffineF);
+        {
+            std::cout << "F_theta value = " << get_rb_theta_expansion().eval_F_theta((i%M),mu) << " " << i << std::endl;
+            rhs -> add(get_rb_theta_expansion().eval_F_theta((i%M),mu),*get_Fq(i));//*_nonAffineF);
+            //rhs -> add(get_rb_theta_expansion().eval_F_theta((i%M),mu) * dynamic_cast<Geom3DRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[i/M]->evaluate(mu),*get_Fq(i));//*_nonAffineF);
+        }
         else
             rhs -> add(get_rb_theta_expansion().eval_F_theta(i,mu),*get_Fq(i));
       }
@@ -501,7 +521,9 @@ this->get_equation_systems());
   this->matrix->close();
   this->rhs->close();
 }
-  
+ 
+ 
+
   std::unique_ptr<NumericVector<Number>> _nonAffineF; 
 
   unsigned int u_var;
@@ -515,9 +537,51 @@ public:
 
   DwarfElephantEIMEvaluationSteadyState(const libMesh::Parallel::Communicator & comm);
 
-  
-  virtual ~DwarfElephantEIMEvaluationSteadyState() {}
+  void write_EIM_data()
+  {
+    //std::ofstream int_mat_file("EIM_interpolation_matrix.txt",std::ofstream::out);
+    //for (unsigned int i = 0; i < this->interpolation_matrix.m(); i++)
+    //{
+    //  for (unsigned int j = 0; j < this->interpolation_matrix.n(); j++)
+    //  {
+    //    int_mat_file << std::scientific;
+    //    int_mat_file << this->interpolation_matrix.el(i,j);
+    //    if (j < this->interpolation_matrix.n()-1)
+    //      int_mat_file << " ";
+    //  }
+    //  if (i < this->interpolation_matrix.m()-1)
+    //    int_mat_file << std::endl;
+    //} 
+    //int_mat_file.close();
 
+    std::ofstream int_mat_file("EIM_interpolation_matrix.txt",std::ofstream::out);
+    this->interpolation_matrix.print_scientific(int_mat_file);
+    int_mat_file.close();
+
+
+        std::ofstream int_point_file("EIM_interpolation_points.txt",std::ofstream::out);
+    for (Point point : this->interpolation_points)
+    {
+      int_point_file << point(0) << ", " << point(1) << ", " << point(2) << std::endl;
+    }
+    int_point_file.close();
+ 
+
+    std::ofstream int_point_var_file("EIM_interpolation_points_var.txt",std::ofstream::out);
+    for (unsigned int i : this->interpolation_points_var)
+      int_point_var_file << i << std::endl;
+    int_point_var_file.close();
+ 
+
+    std::ofstream int_point_subdomain_file("EIM_interpolation_points_subdomain.txt",std::ofstream::out);
+    for (Elem * elem_ptr : this->interpolation_points_elem)
+      int_point_subdomain_file << elem_ptr->subdomain_id() << std::endl;
+    int_point_subdomain_file.close();
+    
+  }  
+
+  virtual ~DwarfElephantEIMEvaluationSteadyState() {}
+    
   ShiftedGaussian_3DRFA sg;
   //ShiftedGaussian sg;
   //AffineFunction sg;

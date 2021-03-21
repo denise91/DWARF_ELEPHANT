@@ -142,6 +142,7 @@ write_ThetaObj_txt(tetrahedronNames,diffusion_theta_objects,determinants);
 %write_TrafoCFile3D(allTransformationMatrices);
 %write_nonAffineFunc_hFile(allTransformationMatrices);
 %write_meshSubdomainJacobians_hFile(allTransformationMatrices);
+%write_geom_trafo_function(allTransformationMatrices);
 
 %To Do (write functions to do each of the following steps and then call those functions in this script):
 % Create transformation matrix for the inner bounding box and cylinder (done)

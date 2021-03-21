@@ -28,6 +28,8 @@ class DwarfElephantEIMFKernel : public Kernel
 	virtual Real computeQpJacobian() override;
 	
 	std::vector<Number> _eim_values;
+
+        unsigned int _EIM_offset;
 };
 
 #endif //DWARFELEPHANTEIMFKERNEL_H

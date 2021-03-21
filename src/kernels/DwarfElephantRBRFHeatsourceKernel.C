@@ -36,12 +36,12 @@ DwarfElephantRBRFHeatsourceKernel::DwarfElephantRBRFHeatsourceKernel(const Input
 }
 
 Real DwarfElephantRBRFHeatsourceKernel::computeQpResidual()
-{/*
-    Number x_new, y_new, z_new, t0;
+{
+    Number x_new, y_new, z_new, t0, subdomain_jac;
     double matrix[3][3]={0}, vec[3][1]={0}, L = 0.1;
-    double d = 3*r, h = 1.5*l;
+    double d = (8.0/3.0)*r, h = (4.0/3.0)*l;
 
-    const DwarfElephantInitializeRBSystemTransient & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemTransient>("initial_rb_userobject");
+    //const DwarfElephantInitializeRBSystemTransient & _initialize_rb_system = getUserObject<DwarfElephantInitializeRBSystemTransient>("initial_rb_userobject");
     
     if (_current_elem->subdomain_id() == 1)
  {
@@ -327,7 +327,7 @@ if (_current_elem->subdomain_id() == 32)
   matrix[2][2] = l_0/l;  vec[0][0] = 0; vec[1][0] = 0; vec[2][0] = 0;
   t0 = (fabs(l_0)*1.0/pow(fabs(r),2.0)*pow(fabs(r_0),2.0))/fabs(l);
 }
-
+/*
     for (int i = 0; i < 4; i++)
     {
         x_new = matrix[0][0]*(_current_elem->point(i))(0) + matrix[0][1]*(_current_elem->point(i))(1) + matrix[0][2]*(_current_elem->point(i))(2) + vec[0][0];
@@ -340,29 +340,27 @@ if (_current_elem->subdomain_id() == 32)
 	        _initialize_rb_system._temp_averaging_node_ids.push_back(_current_elem->node_id(i));
         }
     }
-
+*/
     
 x_new = matrix[0][0]*_q_point[_qp](0) + matrix[0][1]*_q_point[_qp](1) + matrix[0][2]*_q_point[_qp](2) + vec[0][0];
 y_new = matrix[1][0]*_q_point[_qp](0) + matrix[1][1]*_q_point[_qp](1) + matrix[1][2]*_q_point[_qp](2) + vec[1][0];
 z_new = matrix[2][0]*_q_point[_qp](0) + matrix[2][1]*_q_point[_qp](1) + matrix[2][2]*_q_point[_qp](2) + vec[2][0];
     Real _needle_power = 1.0;
   RealVectorValue _A_bar(x_new,y_new,z_new);
-
   RealVectorValue _Z_cap(std::sin(_needle_axis_theta)*std::cos(_needle_axis_phi),std::sin(_needle_axis_theta)*std::sin(_needle_axis_phi),std::cos(_needle_axis_theta));
-
   RealVectorValue _O_cap(_needle_center_x, _needle_center_y, _needle_center_z);
-
   RealVectorValue _temp_vec = _A_bar - _O_cap;
   RealVectorValue _r_A_bar = _temp_vec - _Z_cap * (_temp_vec * _Z_cap);
-
   Real _r_needle = _r_A_bar.norm();
   Real _z_needle = _temp_vec * _Z_cap; 
-
   Real Q_G = exp(-pow(_r_needle,2)/(2. * pow(2.201e-3,2)));
   Real _sigmoid_plus = 1./(1. + exp(-1.303e4*(_z_needle - 1.052e-2)));
   Real _sigmoid_minus = 1./(1. + exp(-1.303e4*(_z_needle + 1.052e-2)));
-  Real P = (_needle_power * 1.383e15 * pow(_z_needle,4) + 2.624e6)*(_sigmoid_minus *(1. - _sigmoid_plus));*/
-  return /*P*Q_G*/1.0* _test[_i][_qp];
+  Real P = (_needle_power * 1.383e15 * pow(_z_needle,4) + 2.624e6)*(_sigmoid_minus *(1. - _sigmoid_plus));
+  subdomain_jac = fabs( matrix[0][0] * (matrix[1][1]*matrix[2][2] - matrix[2][1]*matrix[1][2])
+                     - matrix[0][1] * (matrix[1][0]*matrix[2][2] - matrix[2][0]*matrix[1][2])
+                     + matrix[0][2] * (matrix[1][0]*matrix[1][1] - matrix[1][1]*matrix[2][0]));
+  return P*Q_G* _test[_i][_qp]*t0;//1.0*t0*_test[_i][_qp];//
     //return _function.value(_t,_q_point[_qp]) * _test[_i][_qp];
 }
 

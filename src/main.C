@@ -63,13 +63,13 @@ int main(int argc, char *argv[])
 
   std::ofstream outfile;
 
-  outfile.open("Memory_usage_trace_ignore_zero_entries.csv",std::ofstream::app);
-  outfile << "#Virtual Memory (kB), RSS (kB); mesh_File: " << argv[argc-1] << endl;
+  //outfile.open("Memory_usage_trace_ignore_zero_entries.csv",std::ofstream::app);
+  //outfile << "#Virtual Memory (kB), RSS (kB); mesh_File: " << argv[argc-1] << endl;
  
   process_mem_usage(vm, rss);
   cout << "Begin program VM: " << vm << "; RSS: " << rss << endl;
-  outfile << vm << ", " << rss << endl;
-  outfile.close();
+  //outfile << vm << ", " << rss << endl;
+  //outfile.close();
   // Initialize MPI, solvers and MOOSE
   MooseInit init(argc, argv);
 
@@ -86,9 +86,9 @@ int main(int argc, char *argv[])
   process_mem_usage(vm, rss);
   cout << "App run about to start VM: " << vm << "; RSS: " << rss << endl;
 
-  outfile.open("Memory_usage_trace_ignore_zero_entries.csv",std::ofstream::app);
-  outfile << vm << ", " << rss << endl;
-  outfile.close();
+  //outfile.open("Memory_usage_trace_ignore_zero_entries.csv",std::ofstream::app);
+  //outfile << vm << ", " << rss << endl;
+  //outfile.close();
 
   // Execute the application
   app->run();
@@ -96,9 +96,9 @@ int main(int argc, char *argv[])
   process_mem_usage(vm, rss);
   cout << "App Run complete VM: " << vm << "; RSS: " << rss << endl;
 
-  outfile.open("Memory_usage_trace_ignore_zero_entries.csv",std::ofstream::app);
-  outfile << vm << ", " << rss << endl;
-  outfile.close();
+  //outfile.open("Memory_usage_trace_ignore_zero_entries.csv",std::ofstream::app);
+  //outfile << vm << ", " << rss << endl;
+  //outfile.close();
   // In case our are using a MOOSE version older than Jan 24, 2018
   // use the following line
   // delete app;

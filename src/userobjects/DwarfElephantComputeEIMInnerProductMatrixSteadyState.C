@@ -38,10 +38,7 @@ DwarfElephantComputeEIMInnerProductMatrixSteadyState::initialize()
 void
 DwarfElephantComputeEIMInnerProductMatrixSteadyState::execute()
 {
-  DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
-  _local_ke.resize(ke.m(), ke.n());
-  _local_ke.zero();
-
+  _local_ke.resize(_test.size(), _test.size());
   for (_i = 0; _i < _test.size(); _i++)
     for (_j = 0; _j < _test.size(); _j++)
       _local_ke(_i, _j) += computeIntegral(_i, _j);
@@ -135,6 +132,9 @@ void DwarfElephantComputeEIMInnerProductMatrixSteadyState::finalize()
             #else
                 _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().legacy_write_offline_data_to_files("eim_data");
             #endif
+            _initialize_rb_system._eim_eval_ptr->write_EIM_data();
+            _initialize_rb_system._rb_con_ptr->write_num_subdomains();
+
             _initialize_rb_system.processRBParameters();
             _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();
             for (_i = 0 ; _i < _fe_problem.mesh().meshSubdomains().size() ; _i++) // add conditional statement later to handle multiple cases

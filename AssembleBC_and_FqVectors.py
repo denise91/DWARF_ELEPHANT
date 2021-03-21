@@ -1,6 +1,6 @@
 import subprocess
 
-def writeInputFile(filename,mesh_file_name,r_new,l_new): #RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh0.msh
+def writeInputFile(filename,mesh_file_name,r_new,l_new,mesh_num,param_str,vec_file_location): #RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh0.msh
   PreKernelText="""[Mesh]
   file = """ + mesh_file_name + """
 []
@@ -39,10 +39,10 @@ def writeInputFile(filename,mesh_file_name,r_new,l_new): #RBGeom_r3e-3mm_l4e-2mm
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 0.003
-  l0 = 0.04
-  r = 0.003
-  l = 0.04
+  r0 = """ + str(r_new) + """
+  l0 = """ + str(l_new) + """
+  r = 0.001414
+  l = 0.01871
 [../]
 """
   
@@ -142,6 +142,10 @@ ID_Aq = 0
   mesh_index = 0
   Aq_mat_offset = 253
   Mq_mat_offset = 0
+  mesh_num = """ + str(mesh_num) + """
+  param_str = """ + param_str + """
+  vec_file_location = """ + vec_file_location + """
+  mat_file_location = """ + vec_file_location + """
 [../]
 []"""
   with open(filename,"w") as input_file:
@@ -153,11 +157,17 @@ def subprocess_cmd(command):
     print proc_stdout
 
 
-mesh_file_names = ["RBGeom_Test.msh"]#["RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh0.msh","RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh1.msh","RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh2.msh","RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh3.msh","RBGeom_r3e-3mm_l4e-2mm_d_3r_h_3by2l_mesh4.msh"]
-r_l_new = [["00.003","00.04"]]#[["00.0004","00.0005"],["00.003","00.04"],["00.005","00.07"]] #
+vec_file_location = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/transienttestcase/"
+param_str = ["param_min","param_ref","param_max"]
+mesh_file_names = ["RBGeom_test_mesh{mesh_num}.msh"]
+#mesh_file_names = ["RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh1_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh2_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh3_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh4_new.msh"]#,"RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh0_new.msh"] #["RBGeom_test_mesh0.msh","RBGeom_test_mesh1.msh","RBGeom_test_mesh2.msh","RBGeom_test_mesh3.msh","RBGeom_test_mesh4.msh"]#CHECK
+r_l_new = [["00.0004","00.005"],["0.001414","0.01871"],["00.005","00.07"]] #
+mesh_num = 4 #CHECK
 for mesh_file_name in mesh_file_names:
+  param_num = 0
   for geom_param in r_l_new:
-    writeInputFile("Obtain_BCMat_FqVec.i",mesh_file_name,geom_param[0],geom_param[1])
+    writeInputFile("Obtain_BCMat_FqVec.i",mesh_file_name.format(mesh_num=mesh_num),geom_param[0],geom_param[1],mesh_num,param_str[param_num],vec_file_location)
     subprocess_cmd("qsh; ./DwarfElephant-opt -i Obtain_BCMat_FqVec.i")
-
-
+    param_num = param_num + 1
+  break
+  mesh_num = mesh_num + 1

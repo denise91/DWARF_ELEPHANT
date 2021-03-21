@@ -15,7 +15,7 @@ InputParameters validParams<DwarfElephantRBIntegratedBC>()
   params.addParam<bool>("use_displaced", false, "Enable/disable the use of the displaced mesh for the data retrieving.");
   params.addRequiredParam<UserObjectName>("initial_rb_userobject", "Name of the UserObject for initializing the RB system");
   params.addParam<std::string>("simulation_type", "steady", "Determines whether the simulation is steady state or transient.");
-  params.addParam<unsigned int>("ID_Aq", 0, "ID of the current stiffness matrix.");
+  params.addParam<unsigned int>("ID_Aq",0, "ID of the current stiffness matrix.");
   params.addParam<unsigned int>("ID_Aq_split", 0, "ID of the current stiffness matrix.");
   params.addParam<std::vector<unsigned int>>("subdomain_split", "ID of the current stiffness matrix.");
   params.addParam<unsigned int>("ID_Mq", 0, "ID of the current mass matrix.");
@@ -230,8 +230,8 @@ DwarfElephantRBIntegratedBC::computeJacobian()
     if (_ID_Aq >= _initialize_rb_system._qa)
       mooseError("The number of stiffness matrices you defined here is not matching the number of stiffness matrices you specified in the RBClasses Class.");
 
-    if (_ID_Mq >= _initialize_rb_system._qm)
-      mooseError("The number of mass matrices you defined here is not matching the number of mass matrices you specified in the RBClasses Class.");
+    //if (_ID_Mq >= _initialize_rb_system._qm)
+      //mooseError("The number of mass matrices you defined here is not matching the number of mass matrices you specified in the RBClasses Class.");
 
     if(_initialize_rb_system._offline_stage)
     // Add the calculated matrices to the Aq matrices from the RB system.

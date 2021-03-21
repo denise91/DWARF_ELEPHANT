@@ -110,17 +110,11 @@ struct DwarfElephantRBCustomTransientThetaExpansion : TransientRBThetaExpansion
   DwarfElephantRBCustomTransientThetaExpansion()
   {
     // Setting up the RBThetaExpansion object
-    attach_M_theta(&_rb_theta);
-    attach_A_theta(&_rb_theta);
-    attach_A_theta(&_rb_theta);
-    attach_A_theta(&_rb_theta);
     attach_A_theta(&_rb_theta);
     //attach_A_theta(&adv_x);
-    
+    attach_F_theta(&_rb_theta);
    // attach_A_theta(&adv_y);
 
-    attach_F_theta(&_rb_theta);
-    attach_F_theta(&_rb_theta);
 
     //attach_output_theta(&_rb_theta);
 
@@ -588,10 +582,11 @@ public:
 
   //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
   
-  Geom3DTransientRBThetaExpansion _rb_theta_expansion;
-//  M_theta_10 _rb_theta_expansion;
- //A_theta_10 _rb_theta_expansion;
-  //BC_heat_source_thetas _rb_theta_expansion;
+  //Geom3DTransientRBThetaExpansion _rb_theta_expansion;
+  //M_theta_10 _rb_theta_expansion;
+  //A_theta_10 _rb_theta_expansion;
+  BC_heat_source_thetas _rb_theta_expansion;
+  //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
   //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
 
   std::vector<DenseVector<Number>> RB_IC_q_vector;
@@ -621,7 +616,7 @@ public:
 
   std::string execute_command(const char *     cmd);
   
-  void write_mesh_node_coords_and_elem_connectivities();
+  void write_mesh_node_coords_and_elem_connectivities(std::string mesh_name);
 
   void print_matrix(SparseMatrix<Number> * mat_in, std::string filename);
 
@@ -673,6 +668,7 @@ public:
           M = get_rb_theta_expansion().get_n_F_terms()/dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).num_subdomains;
       const unsigned int n_time_steps = get_n_time_steps();
       const Real euler_theta = get_euler_theta();
+      std::ofstream file_theta_objects;
       TransientRBThetaExpansion & trans_theta_expansion =
       cast_ref<TransientRBThetaExpansion &>(get_rb_theta_expansion());
       Real A_freq_factor = 3.1e98;
@@ -751,7 +747,11 @@ public:
             {
       // We assume that the truth assembly has been attached to the system
                 
-
+                if (time_level==1)
+                {
+                   file_theta_objects.open("M_theta_A_theta_param_min.m");
+                   file_theta_objects << "thetas_param_min = [" << std::endl;
+                }
                 for (unsigned int q=0; q<Q_m; q++)
                   matrix->add(1./dt * trans_theta_expansion.eval_M_theta(q,mu), *get_M_q(q));
             //add_scaled_mass_matrix(1./dt,matrix);
@@ -762,6 +762,8 @@ public:
                 {
                     get_M_q(q)->vector_mult(*temp_vec2, *current_local_solution);
                     rhs->add(1./dt * trans_theta_expansion.eval_M_theta(q,mu), *temp_vec2);
+                    if (time_level==1)
+                      file_theta_objects << trans_theta_expansion.eval_M_theta(q,mu) << std::endl;
                     if (time_level == 1)
                         M_mu->add(trans_theta_expansion.eval_M_theta(q,mu),*get_M_q(q));
                     //if (trans_theta_expansion.eval_M_theta(q,mu) != 1.0)
@@ -775,7 +777,8 @@ public:
             for (unsigned int q_a=0; q_a<Q_a; q_a++)
             {
               matrix->add(euler_theta*get_rb_theta_expansion().eval_A_theta(q_a,mu), *get_Aq(q_a));
-
+              if (time_level==1)
+                file_theta_objects << get_rb_theta_expansion().eval_A_theta(q_a,mu) << std::endl;
               get_Aq(q_a)->vector_mult(*temp_vec, *current_local_solution);
               temp_vec->scale( -(1.-euler_theta)*get_rb_theta_expansion().eval_A_theta(q_a,mu) );
               
@@ -785,6 +788,12 @@ public:
               //if (get_rb_theta_expansion().eval_A_theta(q_a,mu) != 1.0)
                 //        libMesh::out << "q_a = " << q_a << " A_theta diff = "<< get_rb_theta_expansion().eval_A_theta(q_a,mu)- 1.0 << std::endl;
             }
+            if (time_level==1)
+            {
+              file_theta_objects << "];";
+              file_theta_objects.close();
+            }
+            if (time_level==1) matrix->print_matlab("matrix_mu_debug_2020_09_21.m");
 
             for (unsigned int q_f=0; q_f<Q_f; q_f++)
             {
@@ -795,9 +804,10 @@ public:
                       temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(q_f, mu));
                   else // To use EIM approximation of the heat source
                       {
-                        temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
-                        Real F_theta_value = get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu);
-                        int test = 0;
+                        //temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
+                        temp_vec->scale( get_control(get_time_step()));
+                        //Real F_theta_value = get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu);
+                        //int test = 0;
                       }
                   //else if (q_f == 1)
                   //{   
@@ -818,6 +828,7 @@ public:
               //if (get_rb_theta_expansion().eval_F_theta(q_f,mu) != 1.0)
                 //        libMesh::out << "q_f = " << q_f << " F_theta diff = "<< get_rb_theta_expansion().eval_F_theta(q_f,mu) - 1.0 << std::endl;
             }
+            if (time_level==1) rhs->print_matlab("rhs_mu_debug_2020_09_21.m");
 
             }
             this->matrix->close();
@@ -1217,9 +1228,9 @@ public:
   
   std::vector<Number> error_norm_sum_v_N;
   std::vector<Real> online_error_bound_v_N;
-  DwarfElephantRBCustomTransientAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
+  //DwarfElephantRBCustomTransientAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
   //QM_10 Dummy_TransientRBAssemblyExpansion;
-  //QM_0 Dummy_TransientRBAssemblyExpansion;
+  QM_0 Dummy_TransientRBAssemblyExpansion;
   //debugAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
   std::unique_ptr<NumericVector<Number>> _nonAffineF;
   std::vector<std::unique_ptr<NumericVector<Number>>> _temperature_soln;

@@ -120,6 +120,11 @@ class DwarfElephantOfflineOnlineStageTransient :
     std::vector<std::vector<Real>> _online_mu_vec;
     unsigned int _Aq_mat_offset;
     unsigned int _Mq_mat_offset;
+    unsigned int _mesh_num;
+    std::string _param_str;
+    std::string _mesh_file_location;
+    std::string _mat_file_location;
+    std::string _vec_file_location;
     
     
     friend class DwarfElephantRBEvaluationTransient;

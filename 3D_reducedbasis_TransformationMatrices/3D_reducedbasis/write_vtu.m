@@ -1,5 +1,4 @@
-function write_vtu ( output_unit, node_num, element_num, ...
-  element_order, xyz, element_node, p, data_name )
+function write_vtu ( output_unit, node_num, element_num, element_order, xyz, element_node, subdomain_id, p, data_name )
 
 %*****************************************************************************80
 %
@@ -45,8 +44,12 @@ function write_vtu ( output_unit, node_num, element_num, ...
 %    Input, integer ELEMENT_NODE(ELEMENT_ORDER,ELEMENT_NUM), the
 %    nodes that make up each element.  The node indices are zero based.
 %
+%    Input, integer subdomain_id(element_num)
+%
 %    Input, real P(1,NODE_NUM), the solution at each node.
 %
+%    Input, string data_name, name of the data array p
+
   if ( element_order == 10 )
     fprintf ( 1, '\n' );
     fprintf ( 1, 'VTU_PUVW_WRITE - Note:\n' );
@@ -65,16 +68,31 @@ function write_vtu ( output_unit, node_num, element_num, ...
   fprintf ( output_unit, '        <DataArray type="Float64" Name="' + data_name + '" Format="ascii">\n' );
   for node = 1 : node_num
     fprintf ( output_unit, '%e ', p(node ) );
-    p(node)
+    if (mod(node,6)==0)
+        fprintf ( output_unit, '\n' );
+    end
   end
-  fprintf ( output_unit, '        \n</DataArray>\n' );
+  fprintf ( output_unit, '        </DataArray>\n' );
   fprintf ( output_unit, '      </PointData>\n' );
+  fprintf ( output_unit, '      <CellData>\n' );
+  fprintf ( output_unit, '        <DataArray type="Int32" Name="subdomain_id" format="ascii" RangeMin="1" RangeMax="32">\n' );
+  for element = 1 : element_num
+      fprintf ( output_unit, '%d ',subdomain_id(element) );
+      if (mod(element,6)==0)
+        fprintf ( output_unit, '\n' );
+      end
+  end
+  fprintf ( output_unit, '        </DataArray>\n' );
+  fprintf ( output_unit, '      </CellData>\n' );
   fprintf ( output_unit, '      <Points>\n' );
-  fprintf ( output_unit, '        <DataArray type="Float64" NumberOfComponents="3" Format="ascii">\n' );
+  fprintf ( output_unit, '        <DataArray type="Float64" Name="Points" NumberOfComponents="3" Format="ascii">\n' );
   for node = 1 : node_num
     fprintf ( output_unit, '%f  %f  %f ', xyz(1:3,node) );
+    if (mod(node,2)==0)
+        fprintf ( output_unit, '\n' );
+    end
   end
-  fprintf ( output_unit, '        \n</DataArray>\n' );
+  fprintf ( output_unit, '        </DataArray>\n' );
   fprintf ( output_unit, '      </Points>\n' );
   fprintf ( output_unit, '      <Cells>\n' );
 
@@ -85,31 +103,40 @@ function write_vtu ( output_unit, node_num, element_num, ...
     end
     fprintf ( output_unit, '\n' );
   end
-  fprintf ( output_unit, '        \n</DataArray>\n' );
+  fprintf ( output_unit, '        </DataArray>\n' );
 
   fprintf ( output_unit, '        <DataArray type="Int32" Name="offsets" Format="ascii">\n' );
   offset = 0;
   for element = 1 : element_num
     offset = offset + element_order;
     fprintf ( output_unit, '%d ', offset );
+    if (mod(element,6)==0)
+        fprintf ( output_unit, '\n' );
+    end
   end
-  fprintf ( output_unit, '        \n</DataArray>\n' );
+  fprintf ( output_unit, '        </DataArray>\n' );
   fprintf ( output_unit, '        <DataArray type="Int32" Name="types" Format="ascii">\n' );
   if ( element_order == 4 )
     for element = 1 : element_num
       fprintf ( output_unit, '10 ' );
+      if (mod(element,6)==0)
+        fprintf ( output_unit, '\n' );
+      end
     end
   elseif ( element_order == 10 )
     for element = 1 : element_num
       fprintf ( output_unit, '24 ' );
+      if (mod(element,6)==0)
+        fprintf ( output_unit, '\n' );
+      end
     end
   end
-  fprintf ( output_unit, '        \n</DataArray>\n' );
+  fprintf ( output_unit, '        </DataArray>\n' );
 
   fprintf ( output_unit, '      </Cells>\n' );
   fprintf ( output_unit, '    </Piece>\n' );
   fprintf ( output_unit, '  </UnstructuredGrid>\n' );
-  fprintf ( output_unit, '</VTKFile>\n' );
+  fprintf ( output_unit, '</VTKFile>' );
 
   return
 end

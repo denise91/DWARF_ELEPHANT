@@ -12,11 +12,13 @@ InputParameters validParams<DwarfElephantEIMFKernel> ()
 	InputParameters params  = validParams<Kernel>();
 	params.addClassDescription("Implements a non-affine source term for which an affine decomposition will be found using the empirical interpolation method");
         params.addRequiredParam<UserObjectName>("initial_rb_userobject", "Name of the UserObject for  initializing the RB system");
+        params.addRequiredParam<unsigned int> ("EIM_offset","The index from which EIM F vectors start.");
 	return params;
 }
 
 DwarfElephantEIMFKernel::DwarfElephantEIMFKernel(const InputParameters & parameters) :
-    Kernel(parameters)
+    Kernel(parameters),
+    _EIM_offset(getParam<unsigned int>("EIM_offset"))
     
 {
 }
@@ -63,7 +65,7 @@ void DwarfElephantEIMFKernel::computeResidual()
 		}
 	    re += _local_re;
 	    if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())		
-	        _initialize_rb_system._residuals[(_i_subdomain - _ID_first_block)*_initialize_rb_system._eim_con_ptr -> get_rb_evaluation().get_n_basis_functions() + _i_eim_basis_function] -> add_vector(_local_re, _var.dofIndices());
+	        _initialize_rb_system._residuals[_EIM_offset + (_i_subdomain - _ID_first_block)*_initialize_rb_system._eim_con_ptr -> get_rb_evaluation().get_n_basis_functions() + _i_eim_basis_function] -> add_vector(_local_re, _var.dofIndices());
 	}
     }
 }

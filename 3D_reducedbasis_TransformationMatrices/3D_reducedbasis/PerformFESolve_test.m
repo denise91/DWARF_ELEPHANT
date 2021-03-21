@@ -1,10 +1,10 @@
 
-%clear all
+clear all
 %mesh_file_name = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/RBGeom_Test.msh";
 output_file_name = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/paramRef/mesh0_paramRef";
 
-node_coords_file_base = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/mesh_node_coords";
-node_connect_file_base = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/mesh_node_connectivity";
+node_coords_file_base = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data_test/mesh_node_coords";
+node_connect_file_base = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data_test/mesh_node_connectivity";
 
 mesh_dim = 3;
 nodes_per_elem = 4;
@@ -14,7 +14,7 @@ disp("Read gmsh file")
 cd '/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3D_reducedbasis_TransformationMatrices/3D_reducedbasis';
 
 %[ node_x, element_node ] = read_gmsh_file(mesh_file_name,mesh_dim,nodes_per_elem);
-[node_x, element_node, node_num, element_num, Permute_nodes] = read_libmesh_mesh_data("/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/mesh_node_coords","/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/mesh_node_connectivity");
+[node_x, element_node, node_num, element_num, Permute_nodes] = read_libmesh_mesh_data(node_coords_file_base,node_connect_file_base);
 %node_num = length(node_x(1,:));
 %element_num = length(element_node(1,:));
 
@@ -42,6 +42,8 @@ cd '/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3D_reducedbas
  M_mu = sparse(N_FE,N_FE);
  F_mu = zeros(N_FE,1);
  
+ Qa = 3;%253;
+ Qf = 32;
  
 cd '/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/steadytestcase/';
  
@@ -55,12 +57,13 @@ cd '/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatric
 
 % load Aq matrices
 Aq_mat_cell = cell(1,1);
-for q_a = 0:3
+for q_a = 0:Qa%0:3
     eval([strcat('Aq_',int2str(q_a))]);
     Aq_mat_cell{q_a+1} = eval([strcat('Aq_',int2str(q_a),'_sp')]);
 end
 
 cd '/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/steadytestcase/F_vectors';
+
 
 % load Fq vectors
 Fq_vec_cell = cell(1,1);
@@ -82,7 +85,15 @@ disp("Assembling Stiffness Matrix and Load Vector")
 %end
 
 % Assemble A matrix
-A_mu = Aq_mat_cell{1}*k_t + Aq_mat_cell{3}*k_b + Aq_mat_cell{4} + Aq_mat_cell{2}*1.9e5;% 
+%A_mu = Aq_mat_cell{1}*k_t + Aq_mat_cell{3}*k_b + Aq_mat_cell{4} + Aq_mat_cell{2}*1.9e5;% 
+for q_a = 0:Qa
+    if (q_a >= 246) && (q_a <= 248)
+        A_mu = A_mu + feval(strcat('RBTheta_',int2str(q_a)),L,r,r_0,l,l_0,3*r,1.5*l,k_b) * Aq_mat_cell{q_a+1};
+    else
+        A_mu = A_mu + feval(strcat('RBTheta_',int2str(q_a)),L,r,r_0,l,l_0,3*r,1.5*l,k_t) * Aq_mat_cell{q_a+1};
+    end
+end
+
 %A_mu = A_mu(Permute_nodes,:);
 %A_mu = A_mu(:,Permute_nodes);
 condest(A_mu)

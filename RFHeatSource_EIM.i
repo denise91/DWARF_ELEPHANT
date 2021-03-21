@@ -13,14 +13,14 @@
 [Variables]
   [./temperature]
     order = FIRST
-    TYPE = LAGRANGE
+    family = LAGRANGE
   [../]
 []
 
 [AuxVariables]
   [./HeatSource_EIM]
     order = FIRST
-    type = LAGRANGE
+    family = LAGRANGE
   [../]
 []
 
@@ -95,6 +95,7 @@
 [UserObjects]
 [./initializeRBSystem]
   type = DwarfElephantInitializeRBSystemSteadyState
+  RB_RFA = true
   use_EIM = true
   use_hp_EIM = false#true
   #hp_EIM_testing = true #only use during the online phase
@@ -123,6 +124,7 @@
 [./jEIMInnerProductMatrixComputation]
   type = DwarfElephantComputeEIMInnerProductMatrixSteadyState
   execute_on = "EIM"
+  variable = temperature
   initialize_rb_userobject = initializeRBSystem
 [../]
 
@@ -133,6 +135,9 @@
   online_N = 20
   #offline_stage = false
   execute_on = 'timestep_end'
+  mesh_num = 0
+  vec_file_location = ""
+  param_str = ''
 [../]
 []
 
