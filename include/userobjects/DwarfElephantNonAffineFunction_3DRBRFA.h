@@ -52,21 +52,21 @@ struct ShiftedGaussian_3DRFA : public RBParametrizedFunction
   {
 
 
-    Real r_0 = 0.001414;//mu.get_value("mu_0");//
-    Real l_0 = 0.01871;//mu.get_value("mu_1");//
+    Real r_0 = mu.get_value("mu_0");//
+    Real l_0 = mu.get_value("mu_1");//
 
     Number x_new, y_new, z_new, t0;
-    double matrix[3][3]={0}, vec[3][1]={0}, L = 0.1, r = 0.001414;//mu.get_value("mu_9"); 
-	double l = 0.01871;//mu.get_value("mu_10");
+    double matrix[3][3]={0}, vec[3][1]={0}, L = 0.1, r = mu.get_value("mu_9"); 
+	double l = mu.get_value("mu_10");
     double d = (8./3.)*r, h = (4./3.)*l;
     
-    Real _needle_center_x = 0.01;// mu.get_value("mu_2");
-    Real _needle_center_y = 0.01;// mu.get_value("mu_3");
-    Real _needle_center_z = 0.01;// mu.get_value("mu_4");
-    Real _needle_axis_theta = 0;// mu.get_value("mu_5");
-    Real _needle_axis_phi = 0;//mu.get_value("mu_6");
+    Real _needle_center_x = mu.get_value("mu_2");//0.01;// 
+    Real _needle_center_y = mu.get_value("mu_3");//0.01;// 
+    Real _needle_center_z = mu.get_value("mu_4");//0.01;// 
+    Real _needle_axis_theta =  mu.get_value("mu_5");
+    Real _needle_axis_phi = mu.get_value("mu_6");
     
-    Real _needle_power = 1.0;//mu.get_value("mu_7");
+    Real _needle_power = mu.get_value("mu_7");
 
 if (elem.subdomain_id() == 1)
  {
@@ -368,8 +368,8 @@ VectorValue<Real> _A_bar(x_new,y_new,z_new);
   Real _sigmoid_minus = 1./(1. + exp(-1.303e4*(_z_needle + 1.052e-2)));
   Real z4_scaling = 1.383e15;
   Real power_constant = 2.624e6;
-  Real P = power_constant*(/*_needle_power **/z4_scaling/power_constant  * pow(_z_needle,4) + 1.0)*(_sigmoid_minus *(1. - _sigmoid_plus));//
-  return P*Q_G;//1e7*exp(-p.norm()*2);//(_sigmoid_minus *(1. - _sigmoid_plus));//1e7*exp(-1e1*pow(vector_debug.norm(),2));//1e6;////pow(p(0)-_needle_center_x,2.0);//*t0;
+  Real P = _needle_power *(/**/z4_scaling*pow(_z_needle,4) + power_constant)*(_sigmoid_minus *(1. - _sigmoid_plus));//
+  return P*Q_G;//1e7*exp(-1e3*(pow((x_new-0.01),2) + pow((y_new-0.01),2) + pow((z_new-0.01),2)));//*t0;
  } 
  }; 
 

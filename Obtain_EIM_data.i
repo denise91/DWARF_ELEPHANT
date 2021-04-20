@@ -1,5 +1,5 @@
 [Mesh]
-  file = RBGeom_test_mesh4.msh
+  file = RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh0_new.msh#RBGeom_test_mesh4.msh#
 []
 
 [Variables]
@@ -285,13 +285,13 @@ matrix_seperation_according_to_subdomains = false
   use_EIM = true
   use_hp_EIM = false
   #hp_EIM_testing = true # Testing of hp EIM implementation possbile only during the online phase
-  N_max_EIM = 50#30
-  n_training_samples_EIM = 100
-  rel_training_tolerance_EIM = 1e-2
+  N_max_EIM = 5#30
+  n_training_samples_EIM = 10#25#00
+  rel_training_tolerance_EIM = 1e-3
   abs_training_tolerance_EIM = 1e-40
   parameter_names_EIM = 'mu_0 mu_1 mu_2 mu_3 mu_4 mu_5 mu_6 mu_7 mu_8 mu_9 mu_10 mu_11 mu_12'# mu_2'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_EIM = '0.001413 0.01870 0.01 0.01 0.01 0 0 1.0 1.9e5 0.001414 0.01871 0.8 3.82e6'# r_0 l_0 min 0.001 0.015
-  parameter_max_values_EIM = '0.001415 0.01872 0.01 0.01 0.01 0. 0. 1.0 1.9e5 0.001414 0.01871 0.8 3.82e6'# r_0 l_0 needle center coords max vals 0.002 0.02 0.01 0.01 0.01 0.1 0.1
+  parameter_min_values_EIM = '0.0013 0.0186 0.01 0.01 0.01 0 0 1.0 1.9e5 0.001414 0.01871 0.8 3.82e6'# r_0 l_0 min 0.001 0.015
+  parameter_max_values_EIM = '0.0015 0.0188 0.011 0.011 0.011 0.01 0.01 1.0 1.9e5 0.001414 0.01871 0.8 3.82e6'# r_0 l_0 needle center coords max vals 0.002 0.02 0.01 0.01 0.01 0.1 0.1
   deterministic_training_EIM = false
   best_fit_type_EIM = projection
   execute_on = 'initial'
@@ -321,7 +321,7 @@ matrix_seperation_according_to_subdomains = false
   online_N = 5
   #offline_stage = false
   execute_on = 'timestep_end'
-  mesh_num = 4
+  mesh_num = 0
   param_str = none
   vec_file_location = '/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/transienttestcase/F_vectors/'
 [../]

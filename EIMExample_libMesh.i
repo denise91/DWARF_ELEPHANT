@@ -2,12 +2,13 @@
  #file = libMesh_EIM_example_mesh2.msh
  type = GeneratedMesh
  dim = 2
- xmin = 0
+ xmin = -1
  xmax = 1
- ymin = 0
+ ymin = -1
  ymax = 1
- nx = 100
- ny = 100
+ nx = 25
+ ny = 25
+ #elem_type = TRI3
 []
 
 [Variables]
@@ -28,6 +29,7 @@
   
   [./EIMF]
     type = DwarfElephantEIMFKernel
+    EIM_offset = 0
   [../]
 
   #[./EIMA] # For EIM example in Martin's publication
@@ -64,14 +66,15 @@
 [UserObjects]
 [./initializeRBSystem]
   type = DwarfElephantInitializeRBSystemSteadyState
+  RB_RFA = false 
   use_EIM = true
   execute_on = 'initial'
-  N_max_EIM = 10
+  N_max_EIM = 20
   n_training_samples_EIM = 25
-  rel_training_tolerance_EIM = 1e-8
+  rel_training_tolerance_EIM = 1e-3
   parameter_names_EIM = 'mu_0 mu_1'    #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
   parameter_min_values_EIM = '-1 -1'
-  parameter_max_values_EIM = '-0.01 -0.01'
+  parameter_max_values_EIM = '1 1'
   deterministic_training_EIM = true
   best_fit_type_EIM = projection
   n_training_samples_RB = 25
@@ -79,7 +82,7 @@
   rel_training_tolerance_RB = 1e-8
   parameter_names_RB = 'mu_0 mu_1'
   parameter_min_values_RB = '-1.0 -1.0'
-  parameter_max_values_RB = '-0.01 -0.01'
+  parameter_max_values_RB = '1 1'
   deterministic_training_RB = true
   #offline_stage = false
 [../]
@@ -94,9 +97,12 @@
   type = DwarfElephantOfflineOnlineStageSteadyState
   #online_stage = true
   online_N = 1
-  online_mu = '-0.043241 -0.063241'
+  online_mu = '-0.6 0.7'#'-0.043241 -0.063241'
   execute_on = 'timestep_end'
   #offline_stage = false
+  mesh_num = 0
+  param_str = ""
+  vec_file_location = ""
 [../]
 []
 

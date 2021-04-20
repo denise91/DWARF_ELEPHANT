@@ -584,8 +584,8 @@ public:
   
   //Geom3DTransientRBThetaExpansion _rb_theta_expansion;
   //M_theta_10 _rb_theta_expansion;
-  //A_theta_10 _rb_theta_expansion;
-  BC_heat_source_thetas _rb_theta_expansion;
+  A_theta_10 _rb_theta_expansion;
+  //BC_heat_source_thetas _rb_theta_expansion;
   //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
   //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
 
@@ -753,7 +753,9 @@ public:
                    file_theta_objects << "thetas_param_min = [" << std::endl;
                 }
                 for (unsigned int q=0; q<Q_m; q++)
-                  matrix->add(1./dt * trans_theta_expansion.eval_M_theta(q,mu), *get_M_q(q));
+                {
+                        matrix->add(1./dt * trans_theta_expansion.eval_M_theta(q,mu), *get_M_q(q));
+                }
             //add_scaled_mass_matrix(1./dt,matrix);
                 std::unique_ptr<NumericVector<Number>> temp_vec2 = NumericVector<Number>::build(this->comm());
                 temp_vec2->init (this->n_dofs(), this->n_local_dofs(), false, PARALLEL);
@@ -777,6 +779,7 @@ public:
             for (unsigned int q_a=0; q_a<Q_a; q_a++)
             {
               matrix->add(euler_theta*get_rb_theta_expansion().eval_A_theta(q_a,mu), *get_Aq(q_a));
+                
               if (time_level==1)
                 file_theta_objects << get_rb_theta_expansion().eval_A_theta(q_a,mu) << std::endl;
               get_Aq(q_a)->vector_mult(*temp_vec, *current_local_solution);
@@ -804,8 +807,8 @@ public:
                       temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(q_f, mu));
                   else // To use EIM approximation of the heat source
                       {
-                        //temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
-                        temp_vec->scale( get_control(get_time_step()));
+                        temp_vec->scale( get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu) * dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu));
+                        //temp_vec->scale( get_control(get_time_step()));
                         //Real F_theta_value = get_control(get_time_step())*get_rb_theta_expansion().eval_F_theta(((q_f-1)%M+1), mu)*dynamic_cast<Geom3DTransientRBThetaExpansion&>(get_rb_theta_expansion()).subdomain_jac_rbthetas[(q_f-1)/M]->evaluate(mu);
                         //int test = 0;
                       }
@@ -828,12 +831,10 @@ public:
               //if (get_rb_theta_expansion().eval_F_theta(q_f,mu) != 1.0)
                 //        libMesh::out << "q_f = " << q_f << " F_theta diff = "<< get_rb_theta_expansion().eval_F_theta(q_f,mu) - 1.0 << std::endl;
             }
-            if (time_level==1) rhs->print_matlab("rhs_mu_debug_2020_09_21.m");
 
             }
             this->matrix->close();
             this->rhs->close();
-            this->matrix->print_matlab("transient_stiffness_matrix.m");
       // truth_assembly assembles into matrix and rhs, so use those for the solve
             solve_for_matrix_and_rhs(*get_linear_solver(), *matrix, *rhs);
       // The matrix doesn't change at each timestep, so we
@@ -856,13 +857,13 @@ public:
 
                 std::ostringstream file_name;
 
-                file_name << "temp_r0_" << mu.get_value("mu_0") << "_l0_"<< mu.get_value("mu_1") << "_mesh_" << mesh_index << "_";
-                file_name << std::setw(3)
-                    << std::setprecision(0)
-                    << std::setfill('0')
-                    << std::right
-                    << time_level << ".e";
- 
+                //file_name << "temp_r0_" << mu.get_value("mu_0") << "_l0_"<< mu.get_value("mu_1") << "_mesh_" << mesh_index << "_";
+                //file_name << std::setw(3)
+                //    << std::setprecision(0)
+                //    << std::setfill('0')
+                //    << std::right
+                //    << time_level << ".e";
+                file_name << "FullFEtruth.e"; 
                 #ifdef LIBMESH_HAVE_EXODUS_API
                 ExodusII_IO(get_mesh()).write_equation_systems (file_name.str(),
                                                           this->get_equation_systems());
@@ -911,16 +912,16 @@ public:
       *(this->get_equation_systems().get_system("aux0").solution) = *_tissue_damage;
       std::ostringstream tissue_dmg_file_name;
       tissue_dmg_file_name  << "tissue_damage_r0_" << mu.get_value("mu_0") << "_l0_" << mu.get_value("mu_1") << "_mesh_" << mesh_index << ".vtu"; 
-      VTKIO(get_mesh()).write_equation_systems(tissue_dmg_file_name.str(), this->get_equation_systems());
-      if (this->processor_id() == 0)
-      {
-        std::ostringstream outfilename;
-        outfilename << "Temperature_L2_norm_time_integral_r0_" << mu.get_value("mu_0") << "_l0_" << mu.get_value("mu_1") << "_mesh_" << mesh_index << ".txt"; 
-        std::ofstream outfile;
-        outfile.open(outfilename.str());
-        outfile << temperature_L2_norm_time_integral;
-        outfile.close();
-      }
+      //VTKIO(get_mesh()).write_equation_systems(tissue_dmg_file_name.str(), this->get_equation_systems());
+      //if (this->processor_id() == 0)
+      //{
+      //  std::ostringstream outfilename;
+      //  outfilename << "Temperature_L2_norm_time_integral_r0_" << mu.get_value("mu_0") << "_l0_" << mu.get_value("mu_1") << "_mesh_" << mesh_index << ".txt"; 
+      //  std::ofstream outfile;
+      //  outfile.open(outfilename.str());
+      //  outfile << temperature_L2_norm_time_integral;
+      //  outfile.close();
+      //}
       
       for (unsigned int avg_node_id = 0; avg_node_id < _temp_averaging_node_ids.size(); avg_node_id++)
       {
@@ -930,15 +931,15 @@ public:
       inner_product_matrix->vector_mult(*temp_vec_L2_norm,*_needle_neighbourhood_temp);
       temperature_L2_norm_sq = temp_vec_L2_norm->dot(*_needle_neighbourhood_temp);
       temperature_L2_norm_time_integral = sqrt(temperature_L2_norm_sq);
-      if (this->processor_id() == 0)
-      {
-        std::ostringstream outfilename;
-        outfilename << "Temperature_RMS_aroundNeedle_r0_" << mu.get_value("mu_0") << "_l0_" << mu.get_value("mu_1") << "_mesh_" << mesh_index << ".txt"; 
-        std::ofstream outfile;
-        outfile.open(outfilename.str());
-        outfile << temperature_L2_norm_time_integral;
-        outfile.close();
-      }
+      //if (this->processor_id() == 0)
+      //{
+      //  std::ostringstream outfilename;
+      //  outfilename << "Temperature_RMS_aroundNeedle_r0_" << mu.get_value("mu_0") << "_l0_" << mu.get_value("mu_1") << "_mesh_" << mesh_index << ".txt"; 
+      //  std::ofstream outfile;
+      //  outfile.open(outfilename.str());
+      //  outfile << temperature_L2_norm_time_integral;
+      //  outfile.close();
+      //}
       // Compute RB solution and RB_v_FE error in energy norm here
       // Create sparse matrices to hold assembled mass matrix and A matrix
       /*
@@ -1187,6 +1188,13 @@ public:
 
   // Initialize data structure
   virtual void init_data() override;
+  void write_num_subdomains()
+  {
+    
+    std::ofstream num_subdomains_file("EIM_num_subdomains.txt",std::ofstream::out);
+    num_subdomains_file << this->get_mesh().n_subdomains() << std::endl;
+    num_subdomains_file.close();
+  }
 
   virtual void print_info() override;
 
@@ -1228,9 +1236,9 @@ public:
   
   std::vector<Number> error_norm_sum_v_N;
   std::vector<Real> online_error_bound_v_N;
-  //DwarfElephantRBCustomTransientAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
+  DwarfElephantRBCustomTransientAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
   //QM_10 Dummy_TransientRBAssemblyExpansion;
-  QM_0 Dummy_TransientRBAssemblyExpansion;
+  //QM_0 Dummy_TransientRBAssemblyExpansion;
   //debugAssemblyExpansion Dummy_TransientRBAssemblyExpansion;
   std::unique_ptr<NumericVector<Number>> _nonAffineF;
   std::vector<std::unique_ptr<NumericVector<Number>>> _temperature_soln;

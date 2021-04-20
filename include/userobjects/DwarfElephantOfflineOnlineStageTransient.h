@@ -116,7 +116,6 @@ class DwarfElephantOfflineOnlineStageTransient :
     RBParameters _mu_ref;
 
     unsigned int _num_online_solves;
-    unsigned int _mesh_index;
     std::vector<std::vector<Real>> _online_mu_vec;
     unsigned int _Aq_mat_offset;
     unsigned int _Mq_mat_offset;

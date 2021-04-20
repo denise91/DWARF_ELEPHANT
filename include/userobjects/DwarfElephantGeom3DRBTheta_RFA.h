@@ -371,7 +371,7 @@ struct MTheta_subdomain_31: RBTheta
   {
     Real r = _mu.get_value("mu_9");
   Real  l = _mu.get_value("mu_10");
-   Real rho_C = _mu.get_value("mu_12");
+   Real rho_C = _mu.get_value("mu_14");
     return rho_C * (fabs(_mu.get_value("mu_1"))*1.0/pow(fabs(r),2.0)*pow(fabs(_mu.get_value("mu_0")),2.0))/fabs(l);
   }
 };

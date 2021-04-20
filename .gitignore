@@ -1,4 +1,18 @@
 .libs
+*.CC
+*.hh
+*.convergence
+*.case
+*.cgns
+*.stl
+*.step
+*.[oe]*
+*.backtrace
+*log
+*.msh
+*.vtu
+*.vtk
+*.pvtu
 *.la
 *.lo
 *.d
@@ -10,6 +24,7 @@
 *-prof
 *-devel
 *.e
+*.exo
 *.nav
 *.log
 *.aux

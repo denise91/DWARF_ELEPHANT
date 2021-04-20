@@ -1,18 +1,18 @@
 [Mesh]
- file = 3D_TestMesh_fine.msh#ReducedBasisGeom3D_7_fullylabeled_veryFine.msh#RBRFAGeom3D_r3e-3_l5e-2_L1e-1_d3r_h15e-1l_fine_new.msh#RBRFAGeom3D_r3e-3_l5e-2_L1e-1_d3r_h15e-1l_Test_coarse.msh#ReducedBasisGeom3D_7_fullylabeled_debug.msh
+ file = RBGeom_test_mesh4.msh#3D_TestMesh_fine.msh#ReducedBasisGeom3D_7_fullylabeled_veryFine.msh#RBRFAGeom3D_r3e-3_l5e-2_L1e-1_d3r_h15e-1l_fine_new.msh#RBRFAGeom3D_r3e-3_l5e-2_L1e-1_d3r_h15e-1l_Test_coarse.msh#ReducedBasisGeom3D_7_fullylabeled_debug.msh
 []
 
 [Variables]
   [./temperature]
     order = FIRST
-    TYPE = LAGRANGE
+    family = LAGRANGE
   [../]
 []
 
 [AuxVariables]
   [./HeatSourceVis]
     order = FIRST
-    type = LAGRANGE
+    family = LAGRANGE
   [../]
 []
 
@@ -2016,19 +2016,203 @@ matrix_seperation_according_to_subdomains = false
   block = 31
 matrix_seperation_according_to_subdomains = false
 [../]
-
-[./HeatSource]
-  type = DwarfElephantRBRFHeatsourceKernel
-  ID_Fq = 1
-  simulation_type = transient
-  needle_center_x = -0.01
-  needle_center_y = -0.01
-  needle_center_z = 0
-[../]
    
-#[./RB_inner_product_matrix]
-#  type = RBInnerProductMatrixTransient
-#[../]
+  [./EIM_1]
+    type = DwarfElephantEIMFKernel
+    block = 1
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_2]
+    type = DwarfElephantEIMFKernel
+    block = 2
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_3]
+    type = DwarfElephantEIMFKernel
+    block = 3
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_4]
+    type = DwarfElephantEIMFKernel
+    block = 4
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_5]
+    type = DwarfElephantEIMFKernel
+    block = 5
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_6]
+    type = DwarfElephantEIMFKernel
+    block = 6
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_7]
+    type = DwarfElephantEIMFKernel
+    block = 7
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_8]
+    type = DwarfElephantEIMFKernel
+    block = 8
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_9]
+    type = DwarfElephantEIMFKernel
+    block = 9
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_10]
+    type = DwarfElephantEIMFKernel
+    block = 10
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_11]
+    type = DwarfElephantEIMFKernel
+    block = 11
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_12]
+    type = DwarfElephantEIMFKernel
+    block = 12
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_13]
+    type = DwarfElephantEIMFKernel
+    block = 13
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_14]
+    type = DwarfElephantEIMFKernel
+    block = 14
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_15]
+    type = DwarfElephantEIMFKernel
+    block = 15
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_16]
+    type = DwarfElephantEIMFKernel
+    block = 16
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_17]
+    type = DwarfElephantEIMFKernel
+    block = 17
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_18]
+    type = DwarfElephantEIMFKernel
+    block = 18
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_19]
+    type = DwarfElephantEIMFKernel
+    block = 19
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_20]
+    type = DwarfElephantEIMFKernel
+    block = 20
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_21]
+    type = DwarfElephantEIMFKernel
+    block = 21
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_22]
+    type = DwarfElephantEIMFKernel
+    block = 22
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_23]
+    type = DwarfElephantEIMFKernel
+    block = 23
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_24]
+    type = DwarfElephantEIMFKernel
+    block = 24
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_25]
+    type = DwarfElephantEIMFKernel
+    block = 25
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_26]
+    type = DwarfElephantEIMFKernel
+    block = 26
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_27]
+    type = DwarfElephantEIMFKernel
+    block = 27
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_28]
+    type = DwarfElephantEIMFKernel
+    block = 28
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_29]
+    type = DwarfElephantEIMFKernel
+    block = 29
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_30]
+    type = DwarfElephantEIMFKernel
+    block = 30
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_31]
+    type = DwarfElephantEIMFKernel
+    block = 31
+    EIM_offset = 1
+  [../]
+   
+  [./EIM_32]
+    type = DwarfElephantEIMFKernel
+    block = 32
+    EIM_offset = 1
+  [../]
+   
+[./RB_inner_product_matrix]
+  type = RBInnerProductMatrix
+[../]
+
 []
 
 [AuxKernels]
@@ -2052,7 +2236,7 @@ matrix_seperation_according_to_subdomains = false
   boundary = ' 33 34 35 36 37 38 39 40 41 42 43 44'
 ID_Aq = 253
   value = 0.0
-  penalty = 9.0
+  penalty = 6.0
   variable = temperature
   matrix_seperation_according_to_subdomains = false
   simulation_type = transient
@@ -2067,7 +2251,7 @@ ID_Aq = 253
 [Executioner]
   type = DwarfElephantRBExecutioner
   simulation_type = 'transient'
-  solve_type = 'Newton'
+  solve_type = 'PJFNK'
   l_tol = 1e-8#1.0e-8
   nl_rel_tol = 1e-8#1.0e-8
   offline_stage = false
@@ -2076,51 +2260,55 @@ ID_Aq = 253
 [UserObjects]
 [./initializeRBSystem]
   type = DwarfElephantInitializeRBSystemTransient
-  use_EIM = false#true#
-  N_max_EIM = 0#5#50#50#
-  n_training_samples_EIM = 0#50#300#
-  rel_training_tolerance_EIM = 1e-8
-  #abs_training_tolerance_EIM = 1e-4
-  parameter_names_EIM = 'mu_0 mu_1 mu_2 mu_3 mu_4'# mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_EIM = '3e-3 5e-2 -0.01 -0.01 -0.01'#'0.001 0.002 -0.02 -0.02 -0.02'
-  parameter_max_values_EIM = '3e-3 5e-2 -0.01 -0.01 -0.01'#'0.005 0.006 0.02 0.02 0.02'
+  RB_RFA = true
+  use_EIM = true
+  use_hp_EIM = false
+  #hp_EIM_testing = true # Testing of hp EIM implementation possbile only during the online phase
+  N_max_EIM = 5#30
+  delta_t_RB = 0.5
+  n_time_steps_RB = 1
+  n_training_samples_EIM = 10#25#00
+  rel_training_tolerance_EIM = 1e-3
+  abs_training_tolerance_EIM = 1e-40
+  parameter_names_EIM = 'mu_0 mu_1 mu_2 mu_3 mu_4 mu_5 mu_6 mu_7 mu_8 mu_9 mu_10 mu_11 mu_12 mu_13 mu_14'# mu_2'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
+  parameter_min_values_EIM = '0.0013 0.0186 0.01 0.01 0.01 0 0 1.0 1.9e5 0.001414 0.01871 0.8 3.82e6 0.52 3.798e6'# r_0 l_0 min 0.001 0.015
+  parameter_max_values_EIM = '0.0015 0.0188 0.011 0.011 0.011 0.01 0.01 1.0 1.9e5 0.001414 0.01871 0.8 3.82e6 0.52 3.798e6'# r_0 l_0 needle center coords max vals 0.002 0.02 0.01 0.01 0.01 0.1 0.1
   deterministic_training_EIM = false
   best_fit_type_EIM = projection
-  euler_theta_RB = 1 #backward euler
   execute_on = 'initial'
-  N_max_RB = 1
-  n_time_steps_RB = 600#500
-  delta_N_RB = 1
-  delta_t_RB = 0.5
-  POD_tol = -1e-6 #should be negative for the transient case
-  max_truth_solves_RB = 500
-  offline_stage_RB = false
-  n_training_samples_RB = 1#50
+  N_max_RB = 12
+  #offline_stage = false
+  n_training_samples_RB = 40
   rel_training_tolerance_RB = 1.e-3
-  parameter_names_RB = 'mu_0 mu_1 mu_2 mu_3 mu_4' # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_RB = '3e-3 5e-2 -0.01 -0.01 -0.01'#'0.001 0.002 -0.02 -0.02 -0.02'
-  parameter_max_values_RB = '3e-3 5e-2 -0.01 -0.01 -0.01'#'0.005 0.006 0.02 0.02 0.02'
-  normalize_rb_bound_in_greedy = true
-  RB_RFA = false#true#
-  
+  #abs_training_tolerance_RB = 1e-3
+  parameter_names_RB = 'mu_0 mu_1 mu_2 mu_3 mu_4 mu_5 mu_6 mu_7 mu_8 mu_9 mu_10 mu_11 mu_12 mu_13 mu_14' # r0 l0 x_n y_n z_n theta_n phi_n P_n omega_p r l k_t rhoC_t k_b rhoC_b #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
+  parameter_min_values_RB = '0.001414 0.01871 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6 0.52 3.798e6'
+  parameter_max_values_RB = '0.001414 0.01871 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6 0.52 3.798e6'
+  deterministic_training_RB = false
+  normalize_rb_bound_in_greedy = false
 [../]
-#[./EIMInnerProductMatrixComputation]
-#  type = DwarfElephantComputeEIMInnerProductMatrixTransient
-#  execute_on = "EIM"
-#  initialize_rb_userobject = initializeRBSystem
-#[../]
+
+[./jEIMInnerProductMatrixComputation]
+  type = DwarfElephantComputeEIMInnerProductMatrixTransient
+  variable = temperature
+  execute_on = "EIM"
+  initialize_rb_userobject = initializeRBSystem
+[../]
+
 [./performRBSystem ]
   type = DwarfElephantOfflineOnlineStageTransient
-  offline_stage = false
-  #online_stage = false
-  online_mu = '3e-3 5e-2 -0.01 -0.01 -0.01'#'2e-03 4e-2 0.01 0.01 0.01'#'0.003 0.05 0 0 0'
-  mu_ref = '3e-3 5e-2 -0.01 -0.01 -0.01'#'2e-03 4e-2 0.01 0.01 0.01'
-  online_N = 0
+  #online_stage = true
+  online_mu = '0.001414 0.01871 0.01 0.01 0.01 0 0 1.0 1.9e5 0.001414 0.01871 0.8 3.82e6 0.52 3.798e6'
+  online_N = 5
+  #offline_stage = false
   execute_on = 'timestep_end'
-  num_online_solves = 1#3
-  online_mu_0= '3e-3 5e-2 -0.01 -0.01 -0.01' 
-  #online_mu_1= '2.2e-3 3e-2 -0.1 -0.1 -0.1 ' 
-  #online_mu_2= '3.4e-3 5e-3 -0.1 -0.1 -0.1 ' 
+  mesh_num = 4
+  param_str = ''
+  vec_file_location = '/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/transienttestcase/'
+  Aq_mat_offset = 0
+  Mq_mat_offset = 0
+  mu_ref = '0.001414 0.01871 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6 0.52 3.798e6'
+  num_online_solves = 1 
 [../]
 []
 
