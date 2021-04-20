@@ -85,7 +85,6 @@ InputParameters validParams<DwarfElephantOfflineOnlineStageTransient>()
     params.addParam<std::vector<Real>>("online_mu_47",_zero_vect,"Online param value 47");
     params.addParam<std::vector<Real>>("online_mu_48",_zero_vect,"Online param value 48");
     params.addParam<std::vector<Real>>("online_mu_49",_zero_vect,"Online param value 49");
-    params.addParam<unsigned int>("mesh_index","The number of the mesh being used in the convergence analysis.");
     params.addRequiredParam<unsigned int>("Aq_mat_offset","Starting index of the Aq matrices to be assembled in this run.");
     params.addRequiredParam<unsigned int>("Mq_mat_offset","Starting index of the Mq matrices to be assembled in this run.");
     params.addRequiredParam<unsigned int>("mesh_num","The mesh refinement index starting at 0");
@@ -125,7 +124,6 @@ DwarfElephantOfflineOnlineStageTransient::DwarfElephantOfflineOnlineStageTransie
     _rb_problem(cast_ptr<DwarfElephantRBProblem *>(&_fe_problem)),
     _ref_mu_parameters(getParam<std::vector<Real>>("mu_ref")),
     _num_online_solves(getParam<unsigned int>("num_online_solves")),
-    _mesh_index(getParam<unsigned int>("mesh_index")),
     _Aq_mat_offset(getParam<unsigned int>("Aq_mat_offset")),
     _Mq_mat_offset(getParam<unsigned int>("Mq_mat_offset")),
     _mesh_num(getParam<unsigned int>("mesh_num")),
@@ -151,7 +149,7 @@ DwarfElephantOfflineOnlineStageTransient::setAffineMatrices()
     {
       //_rb_problem->rbAssembly(_q).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // For testing against EIM example in Martin's publication
       _initialize_rb_system._jacobian_subdomain[_q] ->close();
-      _initialize_rb_system._jacobian_subdomain[_q]->print_matlab(_mat_file_location + "mesh" + std::to_string(_mesh_num) + "/Aq_"+std::to_string(_q+_Aq_mat_offset)+".m"); //CHECK IF TESTCASE
+      //_initialize_rb_system._jacobian_subdomain[_q]->print_matlab(_mat_file_location + "mesh" + std::to_string(_mesh_num) + "/Aq_"+std::to_string(_q+_Aq_mat_offset)+".m"); //CHECK IF TESTCASE
 
       //_initialize_rb_system._inner_product_matrix->add(_initialize_rb_system._rb_eval_ptr->get_rb_theta_expansion().eval_A_theta(_q,_mu_ref), *_initialize_rb_system._jacobian_subdomain[_q]);
       //_initialize_rb_system._inner_product_matrix -> print_matlab("./3DRBRFAMatrices/RBRFA3DPerf_InnerProdMat.m");
@@ -179,7 +177,7 @@ DwarfElephantOfflineOnlineStageTransient::transferAffineVectors()
   {
     //_rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system._residuals[_q]);
     _initialize_rb_system._residuals[_q]->close();
-    //_initialize_rb_system._residuals[_q]->print_matlab(_vec_file_location + "F_vectors/" + _param_str + "/mesh" + std::to_string(_mesh_num) + "/Fq_"+std::to_string(_q)+".m"); //CHECK TESTCASE OR ACTUAL CASE
+    _initialize_rb_system._residuals[_q]->print_matlab(_vec_file_location + "F_vectors/" + _param_str + "/mesh" + std::to_string(_mesh_num) + "/Fq_"+std::to_string(_q)+".m"); //CHECK TESTCASE OR ACTUAL CASE
   }
 
   // The RB code runs into problems for non-homogeneous boundary conditions
@@ -235,8 +233,9 @@ void DwarfElephantOfflineOnlineStageTransient::offlineStageEIM()
     _initialize_rb_system._eim_con_ptr -> load_rb_solution();
     *_es.get_system("aux0").solution = *_es.get_system("EIMSystem_explicit_sys").solution;
     VTKIO(_mesh_ptr->getMesh()).write_equation_systems("EIMSoln.pvtu", _es);
-    //_initialize_rb_system._rb_con_ptr->FE_solve_debug(_rb_online_mu, 1);
-    _initialize_rb_system._rb_con_ptr->train_reduced_basis();
+    std::vector<unsigned int> _temp_avg_node_ids = {2};
+    _initialize_rb_system._rb_con_ptr->FE_solve_debug(_rb_online_mu, 1, 1, _mesh_num, _temp_avg_node_ids);
+    //_initialize_rb_system._rb_con_ptr->train_reduced_basis();
     /*
     std::cout << "After RB training" << std::endl;
     std::srand( static_cast<unsigned>( std::time(0)));

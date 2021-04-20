@@ -37,8 +37,8 @@ DwarfElephantComputeEIMInnerProductMatrixTransient::initialize()
 void
 DwarfElephantComputeEIMInnerProductMatrixTransient::execute()
 {
-  DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
-  _local_ke.resize(ke.m(), ke.n());
+  //DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
+  _local_ke.resize(_test.size(), _test.size());//ke.m(), ke.n());
   _local_ke.zero();
 
   for (_i = 0; _i < _test.size(); _i++)
@@ -91,6 +91,7 @@ void DwarfElephantComputeEIMInnerProductMatrixTransient::finalize()
                 _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().legacy_write_offline_data_to_files("eim_data");
             #endif
             _initialize_rb_system._eim_eval_ptr->write_EIM_data();
+            _initialize_rb_system._rb_con_ptr->write_num_subdomains();
 
             _initialize_rb_system.processParameters();
             _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();

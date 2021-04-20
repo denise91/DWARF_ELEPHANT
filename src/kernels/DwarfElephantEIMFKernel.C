@@ -65,7 +65,9 @@ void DwarfElephantEIMFKernel::computeResidual()
 		}
 	    re += _local_re;
 	    if (_fe_problem.getNonlinearSystemBase().computingInitialResidual())		
-	        _initialize_rb_system._residuals[_EIM_offset + (_i_subdomain - _ID_first_block)*_initialize_rb_system._eim_con_ptr -> get_rb_evaluation().get_n_basis_functions() + _i_eim_basis_function] -> add_vector(_local_re, _var.dofIndices());
+        {
+            _initialize_rb_system._residuals[_EIM_offset + (_i_subdomain - _ID_first_block)*_initialize_rb_system._eim_con_ptr -> get_rb_evaluation().get_n_basis_functions() + _i_eim_basis_function] -> add_vector(_local_re, _var.dofIndices());
+        }
 	}
     }
 }

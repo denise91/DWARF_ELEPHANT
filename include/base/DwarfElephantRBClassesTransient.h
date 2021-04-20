@@ -582,9 +582,9 @@ public:
 
   //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
   
-  //Geom3DTransientRBThetaExpansion _rb_theta_expansion;
+  Geom3DTransientRBThetaExpansion _rb_theta_expansion;
   //M_theta_10 _rb_theta_expansion;
-  A_theta_10 _rb_theta_expansion;
+  //A_theta_10 _rb_theta_expansion;
   //BC_heat_source_thetas _rb_theta_expansion;
   //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
   //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
