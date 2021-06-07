@@ -18,7 +18,7 @@ validParams<DwarfElephantBoundaryConditionFileReader>()
   params.addParam<Real>("tolerance", 0.1,"Tolerance for the search procedure.");
   params.addParam<bool>("interpolate_space", false, "If true than the data will be interpolated in space.");
   params.addParam<bool>("interpolate_time", false, "If true than the data will be interpolated in time.");
-  params.addParam<std::vector<Real>>("time_frames", "Time frames for the boundary condition.");
+  params.addParam<std::vector<Real>>("time_frames",std::vector<Real> {0}, "Time frames for the boundary condition.");
   // params.addParam<bool>("access_multiple_times", false, "Whether the data needs to be accessed multiple times.");
   // params.addParam<bool>("gradients", false, "Whether the gradients have to be read.");
   return params;
