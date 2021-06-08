@@ -58,7 +58,7 @@ DwarfElephantDakotaOutput::output(const ExecFlagType & /*type*/)
         // if(i < _postprocessor_name.size()-1)
         //   dakota_file << _problem_ptr->getPostprocessorValue(_postprocessor_name[i]) << " " << _add_on << _delimiter;
         // else
-          dakota_file << _problem_ptr->getPostprocessorValue(_postprocessor_name[i]) << " " << _add_on << std::endl;
+          dakota_file << _problem_ptr->getPostprocessorValueByName(_postprocessor_name[i]) << " " << _add_on << std::endl;
     } else {
       if(_simulation_type == "steady")
       {

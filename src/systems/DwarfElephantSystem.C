@@ -34,12 +34,15 @@ DwarfElephantSystem::solve()
 
     // In case your are using a MOOSE version older than April 19th 2018 uncomment the following line
     // _fe_problem.computeResidual(_transient_sys, *_current_solution, *_transient_sys.rhs);
-    _fe_problem.computeResidualSys(_transient_sys, *_current_rb_solution, *_transient_sys.rhs);
+    _fe_problem.computeResidualSys(_nl_implicit_sys, *_current_rb_solution, *_nl_implicit_sys.rhs);
+    // _fe_problem.computeResidualSys(_transient_sys, *_current_rb_solution, *_transient_sys.rhs);
 
     _computing_initial_residual = false;
-    _transient_sys.rhs->close();
+    // _transient_sys.rhs->close();
+    _nl_implicit_sys.rhs->close();
 
-    _initial_residual_before_preset_bcs = _transient_sys.rhs->l2_norm();
+    // _initial_residual_before_preset_bcs = _transient_sys.rhs->l2_norm();
+    _initial_residual_before_preset_bcs = _nl_implicit_sys.rhs->l2_norm();
     if (_compute_initial_residual_before_preset_bcs)
       _console << "Initial residual before setting preset BCs: "
                << _initial_residual_before_preset_bcs << '\n';
@@ -64,7 +67,8 @@ DwarfElephantSystem::solve()
 // calculate the stiffness matrices
 // In case your are using a MOOSE version older than April 19th 2018 uncomment the following line
 // _fe_problem.computeJacobian(_transient_sys, *_current_solution, *_transient_sys.matrix);
-  _fe_problem.computeJacobianSys(_transient_sys, *_current_rb_solution, *_transient_sys.matrix);
+  // _fe_problem.computeJacobianSys(_transient_sys, *_current_rb_solution, *_transient_sys.matrix);
+  _fe_problem.computeJacobianSys(_nl_implicit_sys, *_current_rb_solution, *_nl_implicit_sys.matrix);
 
 //  DwarfElephantRBProblem & _rb_problem = cast_ref<DwarfElephantRBProblem &>(_fe_problem);
 
