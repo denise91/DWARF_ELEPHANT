@@ -1,5 +1,5 @@
 [Mesh]
-  file = RBGeom_test_mesh4.msh
+  file = RBGeom_test_r0.00306mm_l0.02602mm_d_8by3r_h_4by3l_mesh2.msh
 []
 
 [Variables]
@@ -127,8 +127,8 @@
   mesh_index = 0
   Aq_mat_offset = 250
   Mq_mat_offset = 0
-  mesh_num = 4
+  mesh_num = 2
   param_str = trash
-  mat_file_location = /home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/transienttestcase/
+  mat_file_location = /home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/final_test/
 [../]
 []

@@ -312,6 +312,7 @@ matrix_seperation_according_to_subdomains = false
   variable = temperature
   execute_on = "EIM"
   initialize_rb_userobject = initializeRBSystem
+  param_str = 'max_max'
 [../]
 
 [./performRBSystem ]
@@ -321,9 +322,9 @@ matrix_seperation_according_to_subdomains = false
   online_N = 5
   #offline_stage = false
   execute_on = 'timestep_end'
-  mesh_num = 0
-  param_str = none
-  vec_file_location = '/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/transienttestcase/F_vectors/'
+  mesh_num = 2
+  param_str = 'max_max'
+  vec_file_location = '/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/PDSplit/'#check if testcase
 [../]
 []
 

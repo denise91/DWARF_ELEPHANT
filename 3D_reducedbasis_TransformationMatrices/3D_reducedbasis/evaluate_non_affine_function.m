@@ -17,7 +17,7 @@ function [non_affine_function_values] = evaluate_non_affine_function(mu,EIM_data
   needle_center_z = mu('needle_z');
   needle_axis_theta = mu('needle_theta');
   needle_axis_phi = mu('needle_phi');
-  needle_power = 1.0;%mu.needle_power;
+  needle_power = mu('needle_power');
   non_affine_function_values = interpolation_point_subdomains;
   
   matrix_cell_array = cell(32,1);
@@ -194,11 +194,11 @@ function [non_affine_function_values] = evaluate_non_affine_function(mu,EIM_data
     r_A_bar = temp_vec - Z_cap * dot(temp_vec,Z_cap);
     vector_debug = temp_vec - Z_cap* (temp_vec'*Z_cap);
     r_needle = norm(r_A_bar);
-    z_needle = x_new(3);%dot(temp_vec,Z_cap);
+    z_needle = dot(temp_vec,Z_cap);
     Q_G = exp(-r_needle^2/(2.*2.201e-3^2));
     sigmoid_plus = 1./(1. + exp(-1.303e4*(z_needle - 1.052e-2)));
     sigmoid_minus = 1./(1. + exp(-1.303e4*(z_needle + 1.052e-2)));
     P = (1.383e15 * z_needle^4 + 2.624e6)*(sigmoid_minus *(1. - sigmoid_plus));%
-    non_affine_function_values(p) = 1e7*exp(-2e1*(r_needle)^2);%(sigmoid_minus *(1. - sigmoid_plus));%P* Q_G;%1e3*exp(1e1*(-(x_new(1)-needle_center_x)^2-(x_new(2)-needle_center_y)^2-(x_new(3)-needle_center_z)^2));%1e6;%r_needle^2;%(x_new(1) - 0.01)^2;% * jacobian;%1e5* jacobian;%
+    non_affine_function_values(p) = needle_power*P* Q_G;
   end
 end

@@ -15,6 +15,6 @@ r_0 = mu("r_0");
 l = mu("l");
 r = mu("r");
 L = mu("L");
-omega_p = mu("omega_p");
+omega_p = omega_of_r_final(r_0);
 
-perf_theta = (l_0.*1.0./r.^2.*r_0.^2.*omega_p)./l;
+perf_theta = (l_0.*1.0./r.^2.*r_0.^2.*omega_p*rho_C_b)./l;%use the function omega_of_r_reg1em8(r_0) insteady of omega_p

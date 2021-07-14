@@ -214,7 +214,7 @@ DwarfElephantInitializeRBSystemTransient::processEIMParameters()
   _eim_con_ptr->set_Nmax(_N_max_EIM);
 
   _eim_con_ptr->set_rel_training_tolerance(_rel_training_tolerance_EIM);
-  //_eim_con_ptr->set_abs_training_tolerance(_abs_training_tolerance);
+  _eim_con_ptr->set_abs_training_tolerance(_abs_training_tolerance_EIM);
 
   _eim_con_ptr->set_normalize_rb_bound_in_greedy(_normalize_EIM_bound_in_greedy);
 

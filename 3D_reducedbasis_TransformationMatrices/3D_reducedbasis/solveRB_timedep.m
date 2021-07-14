@@ -40,6 +40,6 @@ end
 
 sol_time = toc;
 time_RB_solve = toc(time_RB_solve_begin);
-fprintf(1,'Time for RB solve: %f minutes\n',time_RB_solve/60.0);
+%fprintf(1,'Time for RB solve: %f minutes\n',time_RB_solve/60.0);
 end
 

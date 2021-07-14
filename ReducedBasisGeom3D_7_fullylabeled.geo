@@ -7,16 +7,16 @@ Mesh.MshFileVersion = 2.2;
 
 // L is the length/width of the outer cube
 L = DefineNumber[ 0.1, Name "Parameters/L" ];
-l = DefineNumber[ 0.01871 , Name "Parameters/l" ];
-r = DefineNumber[ 0.001414 , Name "Parameters/r" ];
-d = DefineNumber[ 0.00377066666667 , Name "Parameters/d" ];
-h = DefineNumber[ 0.0249466666667 , Name "Parameters/h" ];
+l = DefineNumber[ 0.02602 , Name "Parameters/l" ];
+r = DefineNumber[ 0.00306 , Name "Parameters/r" ];
+d = DefineNumber[ 0.008159999999999999 , Name "Parameters/d" ];
+h = DefineNumber[ 0.03469333333333333 , Name "Parameters/h" ];
 
-cube_meshsize = DefineNumber[ 0.05 , Name "Parameters/cube_meshsize" ];
+cube_meshsize = DefineNumber[ 0.0021249999999999997 , Name "Parameters/cube_meshsize" ];
 
-bounding_box_mesh_size = DefineNumber[ 0.0025 , Name "Parameters/bounding_box_mesh_size" ];
+bounding_box_mesh_size = DefineNumber[ 0.0009999999999999998 , Name "Parameters/bounding_box_mesh_size" ];
 
-cylinder_mesh_size = DefineNumber[ 0.0025 , Name "Parameters/cylinder_mesh_size" ];
+cylinder_mesh_size = DefineNumber[ 0.0004999999999999999 , Name "Parameters/cylinder_mesh_size" ];
 
 
 // Creating points for the outer cube

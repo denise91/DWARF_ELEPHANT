@@ -41,6 +41,7 @@ protected:
 
   /*Attributes*/
   bool _lumping;
+  Real _heat_capacity;
 };
 
 ///-------------------------------------------------------------------------

@@ -1,11 +1,11 @@
-function [mesh_node_coords_new] = deform_mesh_RB(mesh_node_coords_old, subdomain_ids, element_node, mu)%r_ref, l_ref, r_new, l_new)
+function [mesh_node_coords_new,tissue_damage_out] = deform_mesh_RB(mesh_node_coords_old, subdomain_ids, element_node, mu, tissue_damage)%r_ref, l_ref, r_new, l_new)
 % returns deformed mesh node coordinates
 % Input:
 % mesh_node_coords_old: old mesh node coordinates (3,num_nodes)
 % subdomain_ids: array containing subdomains ids for the elements (num_elements)
 % element_node: array containing nodes which are part of each element (nodes_per_elem,num_elems)
 
-
+tissue_damage_out = tissue_damage;
 %load('allTransformationMatrices.mat');
 num_nodes = length(mesh_node_coords_old(1,:));
 num_elems = length(element_node(1,:));
@@ -197,6 +197,12 @@ h = mu('h');
      trafo_mat = trafo_mat_cell{subd_id};
      trafo_vec = trafo_vec_cell{subd_id};
      mesh_node_coords_new(:,node_id) = trafo_mat*mesh_node_coords_old(:,node_id) + trafo_vec;
+     if (node_subdomain(node_id) == 31)
+        tissue_damage_out(node_id) = 0;
+     end
+     if (node_subdomain(node_id) == 32)
+        tissue_damage_out(node_id) = tissue_damage(node_id);
+     end
    end
  end
 end

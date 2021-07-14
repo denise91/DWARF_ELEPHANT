@@ -93,7 +93,7 @@ DwarfElephantOfflineOnlineStageSteadyState::transferAffineVectors()
       
       //_rb_problem->rbAssembly(0).setCachedResidual(*_initialize_rb_system._residuals[_q]); // line added for compatibility with libMesh EIM example 
       _initialize_rb_system._residuals[_q]->close();
-      //_initialize_rb_system._residuals[_q]->print_matlab(_vec_file_location + "/mesh" + std::to_string(_mesh_num) + "/Fq_"+std::to_string(_q)+".m"); //CHECK TESTCASE OR ACTUAL CASE 
+      //_initialize_rb_system._residuals[_q]->print_matlab(_vec_file_location + _param_str+ "/F_vectors/mesh" + std::to_string(_mesh_num) + "/Fq_"+std::to_string(_q)+".m"); //CHECK TESTCASE OR ACTUAL CASE 
     }
 
     if(_compute_output)
@@ -121,27 +121,27 @@ DwarfElephantOfflineOnlineStageSteadyState::offlineStageEIM()
 
     //_initialize_rb_system._rb_con_ptr->GreedyOutputFile.open("RBGreedyOutputFile.csv");
     //_initialize_rb_system._rb_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxErrorBound" << std::endl;
-    //_initialize_rb_system._rb_con_ptr->train_reduced_basis();
+    _initialize_rb_system._rb_con_ptr->train_reduced_basis();
     //_initialize_rb_system._rb_con_ptr->GreedyOutputFile.close();
 
-    _initialize_rb_system._eim_eval_ptr ->set_parameters(_rb_online_mu);
-    _initialize_rb_system._eim_eval_ptr->rb_solve(_initialize_rb_system._eim_eval_ptr->get_n_basis_functions());
-    _initialize_rb_system._eim_con_ptr->load_rb_solution();
-    _initialize_rb_system._rb_con_ptr->do_RB_vs_FE_Error_analysis(_rb_online_mu, _es);
-    #if defined(LIBMESH_HAVE_CAPNPROTO)
-      RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
-      _rb_eval_writer.write_to_file("rb_eval.bin");
-    #else
-      // Write the offline data to file (xdr format).
-      _initialize_rb_system._rb_con_ptr->get_rb_evaluation().legacy_write_offline_data_to_files("offline_data");
-    #endif
+    //_initialize_rb_system._eim_eval_ptr ->set_parameters(_rb_online_mu);
+    //_initialize_rb_system._eim_eval_ptr->rb_solve(_initialize_rb_system._eim_eval_ptr->get_n_basis_functions());
+    //_initialize_rb_system._eim_con_ptr->load_rb_solution();
+    //_initialize_rb_system._rb_con_ptr->do_RB_vs_FE_Error_analysis(_rb_online_mu, _es);
+    //#if defined(LIBMESH_HAVE_CAPNPROTO)
+    //  RBDataSerialization::RBEvaluationSerialization _rb_eval_writer(_initialize_rb_system._rb_con_ptr->get_rb_evaluation());
+    //  _rb_eval_writer.write_to_file("rb_eval.bin");
+    //#else
+    //  // Write the offline data to file (xdr format).
+    //  _initialize_rb_system._rb_con_ptr->get_rb_evaluation().legacy_write_offline_data_to_files("offline_data");
+    //#endif
 
-    // If desired, store the basis functions (xdr format).
-    if (_store_basis_functions)
-    {
-      _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().write_out_basis_functions(_initialize_rb_system._eim_con_ptr->get_explicit_system(),"eim_data");  
-      _initialize_rb_system._rb_con_ptr->get_rb_evaluation().write_out_basis_functions(*_initialize_rb_system._rb_con_ptr,"offline_data");
-    }
+    //// If desired, store the basis functions (xdr format).
+    //if (_store_basis_functions)
+    //{
+    //  _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().write_out_basis_functions(_initialize_rb_system._eim_con_ptr->get_explicit_system(),"eim_data");  
+    //  _initialize_rb_system._rb_con_ptr->get_rb_evaluation().write_out_basis_functions(*_initialize_rb_system._rb_con_ptr,"offline_data");
+    //}
 
 //    _initialize_rbeim_system._rb_con_ptr->print_basis_function_orthogonality();
 }

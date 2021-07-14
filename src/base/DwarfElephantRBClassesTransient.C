@@ -672,8 +672,8 @@ DwarfElephantRBConstructionTransient::init_data()
     DenseVector<Number> RB_rhs_N;
     for (unsigned int N=(RB_size-delta_N); N<RB_size; N++)
       {
-        // We have to index here by N+1 since the loop index is zero-based.
-        trans_rb_eval.RB_L2_matrix.get_principal_submatrix(N+1, RB_L2_matrix_N);
+                // We have to index here by N+1 since the loop index is zero-based.
+                trans_rb_eval.RB_L2_matrix.get_principal_submatrix(N+1, RB_L2_matrix_N);
 
         RB_ic_proj_rhs_all_N.get_principal_subvector(N+1, RB_rhs_N);
 
@@ -798,17 +798,17 @@ DwarfElephantRBConstructionTransient::init_data()
       } */
   }
 
-  Real
-  DwarfElephantRBConstructionTransient::train_reduced_basis(const bool resize_rb_eval_data)
-  {
-    compute_truth_projection_error = true;
+  //Real
+  //DwarfElephantRBConstructionTransient::train_reduced_basis(const bool resize_rb_eval_data)
+  //{
+  //  compute_truth_projection_error = true;
 
-    Real value = train_reduced_basis_steady(resize_rb_eval_data);
+  //  Real value = train_reduced_basis_steady(resize_rb_eval_data);
 
-    compute_truth_projection_error = false;
+  //  compute_truth_projection_error = false;
 
-    return value;
-  }
+  //  return value;
+  //}
 
   Real
   DwarfElephantRBConstructionTransient::train_reduced_basis_steady(const bool resize_rb_eval_data)

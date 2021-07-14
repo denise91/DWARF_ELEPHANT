@@ -91,9 +91,9 @@ struct libmesh_EIM_ex_func : public RBParametrizedFunction
                           const Point & p,
                           const Elem &)
   {
-    Real center_x = mu.get_value("mu_0");
-    Real center_y = mu.get_value("mu_1");
-    return exp(-2.*(pow(center_x-p(0),2.) + pow(center_y-p(1),2.)));
+    Real center_x = mu.get_value("mu_1");
+    Real center_y = mu.get_value("mu_2");
+    return 10.0*exp(-2.0*(pow(center_x-p(0),2.) + pow(center_y-p(1),2.)));
   }
 };
 
@@ -105,7 +105,28 @@ struct libmesh_EIM_ex_A_Theta : RBTheta
     }
 };
 
+struct steady_ATheta_0 :RBTheta
+{
+  virtual Number evaluate (const RBParameters & _mu)
+  {
+    return _mu.get_value("mu_0");
+  }
+};
 
+struct DwarfElephantRBCustomThetaExpansion : RBThetaExpansion
+{
+  DwarfElephantRBCustomThetaExpansion()
+  {
+    // Setting up the RBThetaExpansion object
+    attach_A_theta(&a_theta);
+    attach_A_theta(&_rb_theta);
+
+
+  }
+  // Member Variables
+  steady_ATheta_0 a_theta;
+  RBTheta _rb_theta;         // Default RBTheta object, simply returns one.
+};
 
 
 ///------------------------DWARFELEPHANTRBEVALUATION------------------------
@@ -302,7 +323,8 @@ public:
   //DwarfElephantEIMTestRBThetaExpansion _eim_test_rb_theta_expansion;
   //Geom2DRBThetaExpansion _goem_2D_rb_theta_expansion;
   //Geom3DRBThetaExpansion _geom_3D_rb_theta_expansion;
-  Geom3DSteadyRBThetaExpansion RBExpansion;
+  //Geom3DSteadyRBThetaExpansion RBExpansion;
+  DwarfElephantRBCustomThetaExpansion RBExpansion;
   //libMesh::RBSCMEvaluation * rb_scm_eval;
   bool _RB_RFA;
 };
@@ -497,7 +519,78 @@ this->get_equation_systems());
   this->rhs->close();
 }
  
- 
+ Real compute_max_error_bound() override
+{
+  LOG_SCOPE("compute_max_error_bound()", "RBConstruction");
+
+  // Treat the case with no parameters in a special way
+  if (get_n_params() == 0)
+    {
+      Real max_val;
+      if (std::numeric_limits<Real>::has_infinity)
+        {
+          max_val = std::numeric_limits<Real>::infinity();
+        }
+      else
+        {
+          max_val = std::numeric_limits<Real>::max();
+        }
+
+      // Make sure we do at least one solve, but otherwise return a zero error bound
+      // when we have no parameters
+      return (get_rb_evaluation().get_n_basis_functions() == 0) ? max_val : 0.;
+    }
+
+  training_error_bounds.resize(this->get_local_n_training_samples());
+
+  // keep track of the maximum error
+  unsigned int max_err_index = 0;
+  Real max_err = 0.;
+
+  numeric_index_type first_index = get_first_local_training_index();
+  for (unsigned int i=0; i<get_local_n_training_samples(); i++)
+    {
+      // Load training parameter i, this is only loaded
+      // locally since the RB solves are local.
+      set_params_from_training_set( first_index+i );
+
+      training_error_bounds[i] = get_RB_error_bound();
+      std::cout << "param index = " << i << " error bound = " << training_error_bounds[i] << std::endl;
+
+      if (training_error_bounds[i] > max_err)
+        {
+          max_err_index = i;
+          max_err = training_error_bounds[i];
+        }
+    }
+  std::cout << "max error param index = " << max_err_index << std::endl;
+
+  std::pair<numeric_index_type, Real> error_pair(first_index+max_err_index, max_err);
+  get_global_max_error_pair(this->comm(),error_pair);
+
+  // If we have a serial training set (i.e. a training set that is the same on all processors)
+  // just set the parameters on all processors
+  if (serial_training_set)
+    {
+      set_params_from_training_set( error_pair.first );
+    }
+  // otherwise, broadcast the parameter that produced the maximum error
+  else
+    {
+      unsigned int root_id=0;
+      if ((get_first_local_training_index() <= error_pair.first) &&
+          (error_pair.first < get_last_local_training_index()))
+        {
+          set_params_from_training_set( error_pair.first );
+          root_id = this->processor_id();
+        }
+
+      this->comm().sum(root_id); // root_id is only non-zero on one processor
+      broadcast_parameters(root_id);
+    }
+
+  return error_pair.second;
+}
 
   std::unique_ptr<NumericVector<Number>> _nonAffineF; 
 
@@ -512,7 +605,7 @@ public:
 
   DwarfElephantEIMEvaluationSteadyState(const libMesh::Parallel::Communicator & comm);
 
-  void write_EIM_data()
+  void write_EIM_data(std::string param_subd_suffix)
   {
     //std::ofstream int_mat_file("EIM_interpolation_matrix.txt",std::ofstream::out);
     //for (unsigned int i = 0; i < this->interpolation_matrix.m(); i++)
@@ -529,12 +622,12 @@ public:
     //} 
     //int_mat_file.close();
 
-    std::ofstream int_mat_file("EIM_interpolation_matrix.txt",std::ofstream::out);
+    std::ofstream int_mat_file("EIM_interpolation_matrix_"+param_subd_suffix+".txt",std::ofstream::out);
     this->interpolation_matrix.print_scientific(int_mat_file);
     int_mat_file.close();
 
 
-        std::ofstream int_point_file("EIM_interpolation_points.txt",std::ofstream::out);
+        std::ofstream int_point_file("EIM_interpolation_points_"+param_subd_suffix+".txt",std::ofstream::out);
     for (Point point : this->interpolation_points)
     {
       int_point_file << point(0) << ", " << point(1) << ", " << point(2) << std::endl;
@@ -542,13 +635,13 @@ public:
     int_point_file.close();
  
 
-    std::ofstream int_point_var_file("EIM_interpolation_points_var.txt",std::ofstream::out);
+    std::ofstream int_point_var_file("EIM_interpolation_points_var_"+param_subd_suffix+".txt",std::ofstream::out);
     for (unsigned int i : this->interpolation_points_var)
       int_point_var_file << i << std::endl;
     int_point_var_file.close();
  
 
-    std::ofstream int_point_subdomain_file("EIM_interpolation_points_subdomain.txt",std::ofstream::out);
+    std::ofstream int_point_subdomain_file("EIM_interpolation_points_subdomain_"+param_subd_suffix+".txt",std::ofstream::out);
     for (Elem * elem_ptr : this->interpolation_points_elem)
       int_point_subdomain_file << elem_ptr->subdomain_id() << std::endl;
     int_point_subdomain_file.close();
@@ -587,7 +680,92 @@ public:
   virtual std::unique_ptr<ElemAssembly> build_eim_assembly(unsigned int index);
   
   virtual void init_data();
-  
+
+  Real get_RB_error_bound() override
+  {
+    truth_solve(-1);
+    Real nonaffine_func_linfty_norm = get_explicit_system().solution->linfty_norm();
+    Real best_fit_error = compute_best_fit_error();
+    return best_fit_error/nonaffine_func_linfty_norm;
+  }
+
+Real compute_max_error_bound() override
+{
+  LOG_SCOPE("compute_max_error_bound()", "RBConstruction");
+
+  // Treat the case with no parameters in a special way
+  if (get_n_params() == 0)
+    {
+      Real max_val;
+      if (std::numeric_limits<Real>::has_infinity)
+        {
+          max_val = std::numeric_limits<Real>::infinity();
+        }
+      else
+        {
+          max_val = std::numeric_limits<Real>::max();
+        }
+
+      // Make sure we do at least one solve, but otherwise return a zero error bound
+      // when we have no parameters
+      return (get_rb_evaluation().get_n_basis_functions() == 0) ? max_val : 0.;
+    }
+
+  training_error_bounds.resize(this->get_local_n_training_samples());
+
+  // keep track of the maximum error
+  unsigned int max_err_index = 0;
+  Real max_err = 0.;
+  min_err = 1e100;
+  avg_err = 0.;
+  numeric_index_type first_index = get_first_local_training_index();
+  for (unsigned int i=0; i<get_local_n_training_samples(); i++)
+    {
+      // Load training parameter i, this is only loaded
+      // locally since the RB solves are local.
+      set_params_from_training_set( first_index+i );
+
+      training_error_bounds[i] = get_RB_error_bound();
+
+      if (training_error_bounds[i] > max_err)
+        {
+          max_err_index = i;
+          max_err = training_error_bounds[i];
+        }
+      avg_err += training_error_bounds[i]/get_n_training_samples();
+      if (training_error_bounds[i] < min_err)
+        {
+          min_err = training_error_bounds[i];
+        }
+    }
+
+  std::pair<numeric_index_type, Real> error_pair(first_index+max_err_index, max_err);
+  get_global_max_error_pair(this->comm(),error_pair);
+
+  // If we have a serial training set (i.e. a training set that is the same on all processors)
+  // just set the parameters on all processors
+  if (serial_training_set)
+    {
+      set_params_from_training_set( error_pair.first );
+    }
+  // otherwise, broadcast the parameter that produced the maximum error
+  else
+    {
+      unsigned int root_id=0;
+      if ((get_first_local_training_index() <= error_pair.first) &&
+          (error_pair.first < get_last_local_training_index()))
+        {
+          set_params_from_training_set( error_pair.first );
+          root_id = this->processor_id();
+        }
+
+      this->comm().sum(root_id); // root_id is only non-zero on one processor
+      broadcast_parameters(root_id);
+    }
+
+  return error_pair.second;
+}
+
   Real get_error_bound_normalization()
   {
       return _error_bound_normalization;
@@ -662,6 +840,8 @@ public:
           
           
           libMesh::out << "Maximum error bound is " << training_greedy_error << std::endl << std::endl;
+          libMesh::out << "Minimum error bound is " << min_err << std::endl;
+          libMesh::out << "Average error bound is " << avg_err << std::endl;
 
           // record the initial error
           if (!initial_greedy_error_initialized)
@@ -716,6 +896,9 @@ public:
   std::ofstream GreedyOutputFile;
   
   Real _error_bound_normalization;
+  Real avg_err = 0.;
+  Real min_err = 1e100;
+
 };
 
 struct EIM_input_data{

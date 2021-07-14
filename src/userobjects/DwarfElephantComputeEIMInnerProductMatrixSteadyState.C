@@ -14,6 +14,7 @@ validParams<DwarfElephantComputeEIMInnerProductMatrixSteadyState>()
   ExecFlagEnum & exec = params.set<ExecFlagEnum>("execute_on");
   exec.addAvailableFlags(EXEC_EIM);
   params.setDocString("execute_on", exec.getDocString());
+  params.addRequiredParam<std::string>("param_str","Indicates the parameter subdomain: max_max/min_min/max_min/min_max");
 
   return params;
 }
@@ -23,7 +24,8 @@ DwarfElephantComputeEIMInnerProductMatrixSteadyState::DwarfElephantComputeEIMInn
   MooseVariableInterface<Real>(this, false, "variable"),
   _var(*mooseVariable()),
   _test(_var.phi()),
-  _initialize_rb_system(getUserObject<DwarfElephantInitializeRBSystemSteadyState>("initialize_rb_userobject"))
+  _initialize_rb_system(getUserObject<DwarfElephantInitializeRBSystemSteadyState>("initialize_rb_userobject")),
+  _param_str(getParam<std::string>("param_str"))
 {
   std::cout << "DwarfElephantComputeEIMInnerProductMatrixSteadyState object created" << std::endl;
 }
@@ -123,6 +125,7 @@ void DwarfElephantComputeEIMInnerProductMatrixSteadyState::finalize()
             _initialize_rb_system._inner_product_matrix_eim -> print_matlab("eim_inner_product_matrix_check.m");
             _initialize_rb_system._eim_con_ptr->GreedyOutputFile.open("EIMGreedyOutputFile.csv");
             _initialize_rb_system._eim_con_ptr->GreedyOutputFile << "mu_0, mu_1, MaxGreedyError" << std::endl;
+            std::cout << "Staring eim greedy" << std::endl;
             _initialize_rb_system._eim_con_ptr->train_reduced_basis();
 
             _initialize_rb_system._eim_con_ptr->GreedyOutputFile.close();
@@ -132,8 +135,8 @@ void DwarfElephantComputeEIMInnerProductMatrixSteadyState::finalize()
             #else
                 _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().legacy_write_offline_data_to_files("eim_data");
             #endif
-            _initialize_rb_system._eim_eval_ptr->write_EIM_data();
-            _initialize_rb_system._rb_con_ptr->write_num_subdomains();
+            //_initialize_rb_system._eim_eval_ptr->write_EIM_data(_param_str);
+            //_initialize_rb_system._rb_con_ptr->write_num_subdomains();
 
             _initialize_rb_system.processRBParameters();
             _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();

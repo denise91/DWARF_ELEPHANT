@@ -180,5 +180,5 @@ function [RB_Eval] = compute_EIM_theta_objects(mu,RB_Eval,EIM_data)
     end
   end
   time_compute_EIM_thetas = toc(time_compute_EIM_thetas_begin);
-  fprintf(1,'Time to compute EIM thetas: %f minutes\n',time_compute_EIM_thetas/60.0);
+  %fprintf(1,'Time to compute EIM thetas: %f minutes\n',time_compute_EIM_thetas/60.0);
 end

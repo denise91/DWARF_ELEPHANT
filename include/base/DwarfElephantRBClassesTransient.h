@@ -89,6 +89,14 @@ struct DwarfElephantCustomTransientTheta : RBTheta
   }
 };
 
+struct ATheta_0 :RBTheta
+{
+  virtual Number evaluate (const RBParameters & _mu)
+  {
+    return _mu.get_value("mu_0");
+  }
+};
+
 struct AdvX : RBTheta
 {
   virtual Number evaluate (const RBParameters & _mu)
@@ -110,9 +118,11 @@ struct DwarfElephantRBCustomTransientThetaExpansion : TransientRBThetaExpansion
   DwarfElephantRBCustomTransientThetaExpansion()
   {
     // Setting up the RBThetaExpansion object
+    attach_M_theta(&_rb_theta);
+    attach_A_theta(&a_theta);
     attach_A_theta(&_rb_theta);
     //attach_A_theta(&adv_x);
-    attach_F_theta(&_rb_theta);
+    //attach_F_theta(&_rb_theta);
    // attach_A_theta(&adv_y);
 
 
@@ -123,6 +133,7 @@ struct DwarfElephantRBCustomTransientThetaExpansion : TransientRBThetaExpansion
   DwarfElephantCustomTransientTheta _theta_a_0;
   AdvX adv_x;
   AdvY adv_y;
+  ATheta_0 a_theta;
   RBTheta _rb_theta;         // Default RBTheta object, simply returns one.
 };
 
@@ -580,9 +591,9 @@ public:
 
   bool parameter_dependent_IC;
 
-  //DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
+  DwarfElephantRBCustomTransientThetaExpansion _rb_theta_expansion;
   
-  Geom3DTransientRBThetaExpansion _rb_theta_expansion;
+  //Geom3DTransientRBThetaExpansion _rb_theta_expansion;
   //M_theta_10 _rb_theta_expansion;
   //A_theta_10 _rb_theta_expansion;
   //BC_heat_source_thetas _rb_theta_expansion;
@@ -1220,7 +1231,7 @@ public:
 
   virtual void update_system() override;
 
-  virtual Real train_reduced_basis(const bool resize_rb_eval_data=true) override;
+  //virtual Real train_reduced_basis(const bool resize_rb_eval_data=true) override;
 
   virtual Real train_reduced_basis_steady(const bool resize_rb_eval_data=true);
 
@@ -1233,6 +1244,79 @@ public:
   unsigned int u_var;
 
   bool parameter_dependent_IC;
+
+Real compute_max_error_bound() override
+{
+  LOG_SCOPE("compute_max_error_bound()", "RBConstruction");
+
+  // Treat the case with no parameters in a special way
+  if (get_n_params() == 0)
+    {
+      Real max_val;
+      if (std::numeric_limits<Real>::has_infinity)
+        {
+          max_val = std::numeric_limits<Real>::infinity();
+        }
+      else
+        {
+          max_val = std::numeric_limits<Real>::max();
+        }
+
+      // Make sure we do at least one solve, but otherwise return a zero error bound
+      // when we have no parameters
+      return (get_rb_evaluation().get_n_basis_functions() == 0) ? max_val : 0.;
+    }
+
+  training_error_bounds.resize(this->get_local_n_training_samples());
+
+  // keep track of the maximum error
+  unsigned int max_err_index = 0;
+  Real max_err = 0.;
+
+  numeric_index_type first_index = get_first_local_training_index();
+  for (unsigned int i=0; i<get_local_n_training_samples(); i++)
+    {
+      // Load training parameter i, this is only loaded
+      // locally since the RB solves are local.
+      set_params_from_training_set( first_index+i );
+
+      training_error_bounds[i] = get_RB_error_bound();
+      //std::cout << "param index = " << i << " error bound = " << training_error_bounds[i] << std::endl;
+
+      if (training_error_bounds[i] > max_err)
+        {
+          max_err_index = i;
+          max_err = training_error_bounds[i];
+        }
+    }
+  //std::cout << "max error param index = " << max_err_index << std::endl;
+
+  std::pair<numeric_index_type, Real> error_pair(first_index+max_err_index, max_err);
+  get_global_max_error_pair(this->comm(),error_pair);
+
+  // If we have a serial training set (i.e. a training set that is the same on all processors)
+  // just set the parameters on all processors
+  if (serial_training_set)
+    {
+      set_params_from_training_set( error_pair.first );
+    }
+  // otherwise, broadcast the parameter that produced the maximum error
+  else
+    {
+      unsigned int root_id=0;
+      if ((get_first_local_training_index() <= error_pair.first) &&
+          (error_pair.first < get_last_local_training_index()))
+        {
+          set_params_from_training_set( error_pair.first );
+          root_id = this->processor_id();
+        }
+
+      this->comm().sum(root_id); // root_id is only non-zero on one processor
+      broadcast_parameters(root_id);
+    }
+
+  return error_pair.second;
+}
   
   std::vector<Number> error_norm_sum_v_N;
   std::vector<Real> online_error_bound_v_N;

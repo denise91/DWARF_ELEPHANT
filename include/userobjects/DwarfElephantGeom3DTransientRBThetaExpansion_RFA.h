@@ -374,38 +374,38 @@ struct Geom3DTransientRBThetaExpansion : TransientRBThetaExpansion
   attach_A_theta(&_rb_theta); // Convection BC
 
   attach_F_theta(&_rb_theta); // Convection BC
-  attach_F_theta(&_rb_theta); // RF Heat Source from here on
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
-  attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta); // RF Heat Source from here on
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
+  //attach_F_theta(&_rb_theta);
   
     subdomain_jac_rbthetas.push_back(&rbtheta_subdomain_1);
     subdomain_jac_rbthetas.push_back(&rbtheta_subdomain_2);

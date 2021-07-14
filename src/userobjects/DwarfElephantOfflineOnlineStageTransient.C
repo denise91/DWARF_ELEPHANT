@@ -149,9 +149,9 @@ DwarfElephantOfflineOnlineStageTransient::setAffineMatrices()
     {
       //_rb_problem->rbAssembly(_q).setCachedJacobianContributions(*_initialize_rb_system._jacobian_subdomain[_q]); // For testing against EIM example in Martin's publication
       _initialize_rb_system._jacobian_subdomain[_q] ->close();
-      //_initialize_rb_system._jacobian_subdomain[_q]->print_matlab(_mat_file_location + "mesh" + std::to_string(_mesh_num) + "/Aq_"+std::to_string(_q+_Aq_mat_offset)+".m"); //CHECK IF TESTCASE
+      _initialize_rb_system._jacobian_subdomain[_q]->print_matlab(_mat_file_location + "mesh" + std::to_string(_mesh_num) + "/Aq_"+std::to_string(_q+_Aq_mat_offset)+".m"); //CHECK IF TESTCASE
 
-      //_initialize_rb_system._inner_product_matrix->add(_initialize_rb_system._rb_eval_ptr->get_rb_theta_expansion().eval_A_theta(_q,_mu_ref), *_initialize_rb_system._jacobian_subdomain[_q]);
+      _initialize_rb_system._inner_product_matrix->add(_initialize_rb_system._rb_eval_ptr->get_rb_theta_expansion().eval_A_theta(_q,_mu_ref), *_initialize_rb_system._jacobian_subdomain[_q]);
       //_initialize_rb_system._inner_product_matrix -> print_matlab("./3DRBRFAMatrices/RBRFA3DPerf_InnerProdMat.m");
     }
    //_initialize_rb_system._inner_product_matrix->add(1., *_initialize_rb_system._jacobian_subdomain[0]); // for debugging
@@ -163,8 +163,8 @@ DwarfElephantOfflineOnlineStageTransient::setAffineMatrices()
       // _initialize_rb_system._L2_matrix->add(_mu_bar, *_initialize_rb_system._mass_matrix_subdomain[_q]);
      // _rb_problem->rbAssembly(_q).setCachedMassMatrixContributions(*_initialize_rb_system._mass_matrix_subdomain[_q]);
       _initialize_rb_system._mass_matrix_subdomain[_q] ->close();
-      //_initialize_rb_system._L2_matrix->add(dynamic_cast<TransientRBThetaExpansion&>(_initialize_rb_system._rb_eval_ptr->get_rb_theta_expansion()).eval_M_theta(_q,_mu_ref), *_initialize_rb_system._mass_matrix_subdomain[_q]);
-      //_initialize_rb_system._mass_matrix_subdomain[_q]->print_matlab(_mat_file_location + "mesh" + std::to_string(_mesh_num) + "/Mq_"+std::to_string(_q+_Mq_mat_offset)+".m"); //CHECK IF TESTCASE
+      _initialize_rb_system._L2_matrix->add(dynamic_cast<TransientRBThetaExpansion&>(_initialize_rb_system._rb_eval_ptr->get_rb_theta_expansion()).eval_M_theta(_q,_mu_ref), *_initialize_rb_system._mass_matrix_subdomain[_q]);
+      _initialize_rb_system._mass_matrix_subdomain[_q]->print_matlab(_mat_file_location + "mesh" + std::to_string(_mesh_num) + "/Mq_"+std::to_string(_q+_Mq_mat_offset)+".m"); //CHECK IF TESTCASE
     }
 }
 
@@ -177,7 +177,7 @@ DwarfElephantOfflineOnlineStageTransient::transferAffineVectors()
   {
     //_rb_problem->rbAssembly(_q).setCachedResidual(*_initialize_rb_system._residuals[_q]);
     _initialize_rb_system._residuals[_q]->close();
-    _initialize_rb_system._residuals[_q]->print_matlab(_vec_file_location + "F_vectors/" + _param_str + "/mesh" + std::to_string(_mesh_num) + "/Fq_"+std::to_string(_q)+".m"); //CHECK TESTCASE OR ACTUAL CASE
+    //_initialize_rb_system._residuals[_q]->print_matlab(_vec_file_location + "F_vectors/" + _param_str + "/mesh" + std::to_string(_mesh_num) + "/Fq_"+std::to_string(_q)+".m"); //CHECK TESTCASE OR ACTUAL CASE
   }
 
   // The RB code runs into problems for non-homogeneous boundary conditions
@@ -205,7 +205,7 @@ DwarfElephantOfflineOnlineStageTransient::offlineStage()
     
     //_initialize_rb_system._rb_con_ptr->FE_solve_debug(_rb_online_mu, 1/*write_interval*/,1/*num_param_values*/, _mesh_index, _initialize_rb_system._temp_averaging_node_ids);
 //    _initialize_rb_system._rb_con_ptr->FE_solve_steady(_rb_online_mu);
-   //_initialize_rb_system._rb_con_ptr->write_mesh_node_coords_and_elem_connectivities(_mesh_file_location + "mesh_"+std::to_string(_mesh_num)); //CHECK TEST SUFFIX: _test (argument 2)
+   _initialize_rb_system._rb_con_ptr->write_mesh_node_coords_and_elem_connectivities(_mesh_file_location + "mesh_"+std::to_string(_mesh_num)); //CHECK TEST SUFFIX: _test (argument 2)
 /*    std::cout << endl << "this is a processor" << endl;
 
     _initialize_rb_system._rb_con_ptr->train_reduced_basis();
@@ -234,8 +234,8 @@ void DwarfElephantOfflineOnlineStageTransient::offlineStageEIM()
     *_es.get_system("aux0").solution = *_es.get_system("EIMSystem_explicit_sys").solution;
     VTKIO(_mesh_ptr->getMesh()).write_equation_systems("EIMSoln.pvtu", _es);
     std::vector<unsigned int> _temp_avg_node_ids = {2};
-    _initialize_rb_system._rb_con_ptr->FE_solve_debug(_rb_online_mu, 1, 1, _mesh_num, _temp_avg_node_ids);
-    //_initialize_rb_system._rb_con_ptr->train_reduced_basis();
+    //_initialize_rb_system._rb_con_ptr->FE_solve_debug(_rb_online_mu, 1, 1, _mesh_num, _temp_avg_node_ids);
+    _initialize_rb_system._rb_con_ptr->train_reduced_basis();
     /*
     std::cout << "After RB training" << std::endl;
     std::srand( static_cast<unsigned>( std::time(0)));

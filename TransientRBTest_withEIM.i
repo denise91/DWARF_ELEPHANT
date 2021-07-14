@@ -140,32 +140,32 @@
 [UserObjects]
 [./initializeRBSystem]
   type = DwarfElephantInitializeRBSystemTransient
-  RB_RFA = true
+  RB_RFA = false
   use_EIM = true
   N_max_EIM = 30
-  n_training_samples_EIM = 100
+  n_training_samples_EIM = 60
   rel_training_tolerance_EIM = 1e-6
   #abs_training_tolerance_EIM = 1e-4
   parameter_names_EIM = 'mu_0 mu_1 mu_2'# mu_2'    # mu_0 is r_0; mu_1 is l_0; mu_2 is x_prime; mu_3 is y_prime #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_EIM = '0.1 0 0'# 0.01'
-  parameter_max_values_EIM = '100 1 1'# 1.0'
+  parameter_min_values_EIM = '1 0 0'# 0.01'
+  parameter_max_values_EIM = '1 1 1'# 1.0'
   deterministic_training_EIM = false
   best_fit_type_EIM = projection
   euler_theta_RB = 1
   execute_on = 'initial'
-  N_max_RB = 50
-  n_time_steps_RB = 100
-  delta_N_RB = 1
+  N_max_RB = 4#0
+  n_time_steps_RB = 4#100
+  #delta_N_RB = 1
   delta_t_RB = 0.1
   POD_tol = -1e-6 #should be negative for the transient case
   max_truth_solves_RB = 500
   #offline_stage_RB = false
-  n_training_samples_RB = 100
+  n_training_samples_RB = 8#0
   rel_training_tolerance_RB = 1.e-6
   parameter_names_RB = 'mu_0 mu_1 mu_2'    # mu_0 is the perfusion coefficient for the large vessel which we wish to determine using the optimization routine; #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_RB = '0.1 0 0'
-  parameter_max_values_RB = '100 1 1'
-  normalize_rb_bound_in_greedy = true
+  parameter_min_values_RB = '1 0 0'
+  parameter_max_values_RB = '1 1 1'
+  normalize_rb_bound_in_greedy = false#true
 [../]
 [./EIMInnerProductMatrixComputation]
   type = DwarfElephantComputeEIMInnerProductMatrixTransient
@@ -176,7 +176,7 @@
   type = DwarfElephantOfflineOnlineStageTransient
   #offline_stage = false
   online_stage = false
-  online_mu = '8.516689e+01 1.267719e-01 9.636189e-01'
+  online_mu = '1 1.267719e-01 9.636189e-01'
   online_N = 50
   execute_on = 'timestep_end'
   mesh_num = 0
@@ -184,7 +184,7 @@
   param_str = ''
   Aq_mat_offset = 0
   Mq_mat_offset = 0
-  mu_ref = '0 0 0'
+  mu_ref = '1.0 0 0'
   num_online_solves = 0
 [../]
 []

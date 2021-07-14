@@ -13,11 +13,12 @@ validParams<DwarfElephantRBTimeDerivative>()
 {
   InputParameters params = validParams<DwarfElephantRBTimeKernel>();
   params.addParam<bool>("lumping", false, "True for mass matrix lumping, false otherwise");
+  params.addParam<Real>("heat_capacity",1.0,"Heat capacity");
   return params;
 }
 
 DwarfElephantRBTimeDerivative::DwarfElephantRBTimeDerivative(const InputParameters & parameters)
-  : DwarfElephantRBTimeKernel(parameters), _lumping(getParam<bool>("lumping"))
+  : DwarfElephantRBTimeKernel(parameters), _lumping(getParam<bool>("lumping")), _heat_capacity(getParam<Real>("heat_capacity"))
 {
 }
 
@@ -30,7 +31,7 @@ DwarfElephantRBTimeDerivative::computeQpResidual()
 Real
 DwarfElephantRBTimeDerivative::computeQpJacobian()
 {
-  return _test[_i][_qp] * _phi[_j][_qp];
+  return _heat_capacity * _test[_i][_qp] * _phi[_j][_qp];
 }
 
 void

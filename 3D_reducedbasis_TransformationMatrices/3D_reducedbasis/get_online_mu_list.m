@@ -1,4 +1,5 @@
 function [online_mu_cell_arr] = get_online_mu_list(filename)
+  get_online_mu_list_begin = tic;
   mu_file = fopen(filename);
   keys_line = fgetl(mu_file);
   keys_arr = split(strtrim(keys_line));
@@ -14,7 +15,7 @@ function [online_mu_cell_arr] = get_online_mu_list(filename)
     if (max(size(keys_arr)) ~= max(size(vals_arr)))
       error('Number of param vals and params keys does not match. Check online param list file.\n');
     end
-    if (max(size(keys_arr)) ~= 15)
+    if (max(size(keys_arr)) ~= 14)
       error('Not enough parameters. Check online param list file.\n'); 
     end
     online_mu_cell_arr{i} = containers.Map;
@@ -25,9 +26,11 @@ function [online_mu_cell_arr] = get_online_mu_list(filename)
       online_mu_cell_arr{i}(key{1}) = str2double(val{1});
     end
     online_mu_cell_arr{i}('L') = 0.1;
-    online_mu_cell_arr{i}('r') = 0.001414;                     
-    online_mu_cell_arr{i}('l') = 0.01871;                      
+    %online_mu_cell_arr{i}('r') = 0.001414;                     
+    %online_mu_cell_arr{i}('l') = 0.01871;                      
     online_mu_cell_arr{i}('d') = (8.0/3.0)*online_mu_cell_arr{i}('r');
     online_mu_cell_arr{i}('h') = (4.0/3.0)*online_mu_cell_arr{i}('l');
   end
+  time_get_online_mu_list = toc(get_online_mu_list_begin);
+  fprintf(1,'Time to read list of online parameters = %f minutes\n', time_get_online_mu_list/60.0);
 end

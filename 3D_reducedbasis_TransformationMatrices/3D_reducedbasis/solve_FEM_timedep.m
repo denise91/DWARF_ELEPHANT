@@ -32,6 +32,7 @@ for k = 1:Qa
     A = A + A_Theta_handle(mu)*RB_Con.Aq_mat_map(mat_qa_min - 1 + k);
 end
 
+
 F = zeros(RB_Con.N_FE,1);
 
 for qf = 1:Qf
@@ -39,7 +40,7 @@ for qf = 1:Qf
   F = F + F_Theta_handle(mu)*RB_Con.Fq_vec_map(mat_qf_min - 1 + qf);
 end
 
-sysmat = A;%dt*A + M;
+sysmat = dt*A + M;
 
 R = ichol(sysmat);
 
@@ -48,7 +49,7 @@ u = zeros(RB_Con.N_FE,k_max);
 % Actual time integration
 tic;
 [u(:,1),flag] = pcg(sysmat,M*RB_Con.u_init + dt*F*g(1),RB_Con.l_rel_tol,RB_Con.l_max_its,R,R');
-[u(:,1),flag] = pcg(sysmat,F,RB_Con.l_rel_tol,RB_Con.l_max_its,R,R'); % debug line
+%[u(:,1),flag] = pcg(sysmat,F,RB_Con.l_rel_tol,RB_Con.l_max_its,R,R'); % debug line
 for k = 2:k_max
     [u(:,k),flag] = pcg(sysmat,(M*u(:,k-1) + dt*F*g(k)),RB_Con.l_rel_tol,RB_Con.l_max_its,R,R');
 end

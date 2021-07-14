@@ -122,7 +122,6 @@ function [RB_Con,RB_Eval] = ResNormPara_Offline( RB_Con, RB_Eval)
          RB_Eval.CpT_X_Cq(pf,qf) = RB_Con.Fq_vec_map(qf_min - 1 + pf)'*RB_Con.Fq_representors(:,qf);
        end
      end
-     fprintf(1,'Computed CpT_X_Cq\n');
    end
    
    for qa = 1:Qa

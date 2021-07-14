@@ -121,16 +121,17 @@ def writeInputFile(filename,mesh_data_location,mesh_file_name,mesh_num): #RBGeom
 def subprocess_cmd(command):
     process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
     proc_stdout = process.communicate()[0].strip()
-    print proc_stdout
+    print(proc_stdout)
 
-r_arr = [4e-4,7.521e-4,1.414e-3,2.659e-3,5e-3]
-l_arr = [5e-3,9.672e-3,1.871e-2,3.619e-2,7e-2]
-r_l_new = [[r_arr[3],l_arr[1],"max_min"],[r_arr[3],l_arr[3],"max_max"],[r_arr[1],l_arr[3],"min_max"],[r_arr[1],l_arr[1],"min_min"]]
-mesh_data_location = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data_test/"
-mesh_file_base = "RBGeom_test_mesh{mesh_num}.msh"#"RBGeom_r{r:.3e}mm_l{l:.3e}mm_d_8by3r_h_4by3l_mesh2_RBPDSPL_test.msh"
-mesh_num = 4 # CHECK
+r_arr = [0.00306]#[4e-4,7.521e-4,1.414e-3,2.659e-3,5e-3]
+l_arr = [0.02602]#[5e-3,9.672e-3,1.871e-2,3.619e-2,7e-2]
+r_l_new = [[r_arr[0],l_arr[0],"final"]]#[[r_arr[3],l_arr[1],"max_min"],[r_arr[3],l_arr[3],"max_max"],[r_arr[1],l_arr[3],"min_max"],[r_arr[1],l_arr[1],"min_min"]]
+mesh_data_location = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data/final_test/"
+#"/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/libmesh_mesh_data_test/"
+mesh_file_base = "RBGeom_test_r0.00306mm_l0.02602mm_d_8by3r_h_4by3l_mesh{mesh_num}.msh"#"RBGeom_test_mesh{mesh_num}.msh"#"RBGeom_r{r:.3e}mm_l{l:.3e}mm_d_8by3r_h_4by3l_mesh2_RBPDSPL_test.msh"
+mesh_num = 2 # CHECK
 #for mesh_file_name in mesh_file_names: 
 writeInputFile("Obtain_mesh_data.i",mesh_data_location.format(mesh_num=mesh_num),mesh_file_base.format(mesh_num=mesh_num),mesh_num)
-print "mesh ", mesh_num
+print("mesh ", mesh_num)
 subprocess_cmd("qsh; ./DwarfElephant-opt -i Obtain_mesh_data.i")
 mesh_num = mesh_num + 1

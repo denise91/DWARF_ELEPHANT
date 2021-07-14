@@ -11,7 +11,7 @@ def get_KernelIDs_and_blocks(filename):
     if KernelList_lines[i].find(" type") != -1:
       temp_list = KernelList_lines[i].split(" type = ")
       KernelID = temp_list[1].strip('\n')
-      print KernelID
+      print(KernelID)
     if KernelList_lines[i].find("block") != -1:
       temp_list = KernelList_lines[i].split("block = ")
       block = temp_list[1].strip('\n')
@@ -158,14 +158,14 @@ def writeInputFile(filename,mesh_file_name,r_new,l_new,offset,KernelIDs_and_bloc
 def subprocess_cmd(command):
     process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
     proc_stdout = process.communicate()[0].strip()
-    print proc_stdout
+    print(proc_stdout)
 
-mat_file_location = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/transienttestcase/"
+mat_file_location = "/home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/final_test/"#transienttestcase/"
 KernelIDs_and_blocks = get_KernelIDs_and_blocks("Diff_and_Perf_Kernels_list.txt")
-mesh_file_names = ["RBGeom_test_mesh{mesh_num}.msh"]
+mesh_file_names = ["RBGeom_test_r0.00306mm_l0.02602mm_d_8by3r_h_4by3l_mesh{mesh_num}.msh"]#["RBGeom_test_mesh{mesh_num}.msh"]
 #mesh_file_names = ["RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh0_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh1_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh2_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh3_new.msh","RBGeom_r3e-3mm_l4e-2mm_d_8by3r_h_4by3l_mesh4_new.msh"] #["RBGeom_test_mesh0.msh","RBGeom_test_mesh1.msh","RBGeom_test_mesh2.msh","RBGeom_test_mesh3.msh","RBGeom_test_mesh4.msh"]#CHECK
 r_l_new = [["00.003","00.04"]]#variation is not required since matrices are affine [["00.0004","00.0005"],["00.003","00.04"],["00.005","00.07"]] #[[r_new,l_new]]
-mesh_num = 4
+mesh_num = 2
 for mesh_file_name in mesh_file_names:
   for geom_param in r_l_new:
     for i in range(26):
@@ -174,7 +174,7 @@ for mesh_file_name in mesh_file_names:
       subprocess_cmd("qsh; ./DwarfElephant-opt -i Obtain_Aq.i")
   mesh_num = mesh_num + 1
       # add code to delete extra .m files
-for j in range(4,mesh_num):# CHECK
+for j in range(2,mesh_num):# CHECK
   for i in range(253,260): # CHECK PATH GIVEN TO rm
     subprocess.call("rm " + mat_file_location + "mesh" + str(j) + "/Aq_"+str(i)+".m",shell=True)
 

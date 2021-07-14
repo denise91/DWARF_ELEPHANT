@@ -46,6 +46,7 @@ protected:
   const VariableTestValue & _test;
 
   const DwarfElephantInitializeRBSystemSteadyState & _initialize_rb_system;
+  const std::string _param_str;
   
   //mutable DwarfElephanthpEIMNode *_hp_eim_node;
   //mutable DwarfElephanthpEIMBinaryTree *_hp_eim_bt;

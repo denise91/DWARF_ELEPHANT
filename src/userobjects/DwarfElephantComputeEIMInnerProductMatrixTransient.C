@@ -90,8 +90,8 @@ void DwarfElephantComputeEIMInnerProductMatrixTransient::finalize()
             #else
                 _initialize_rb_system._eim_con_ptr -> get_rb_evaluation().legacy_write_offline_data_to_files("eim_data");
             #endif
-            _initialize_rb_system._eim_eval_ptr->write_EIM_data();
-            _initialize_rb_system._rb_con_ptr->write_num_subdomains();
+            //_initialize_rb_system._eim_eval_ptr->write_EIM_data();
+            //_initialize_rb_system._rb_con_ptr->write_num_subdomains();
 
             _initialize_rb_system.processParameters();
             _initialize_rb_system._eim_eval_ptr -> initialize_eim_theta_objects();

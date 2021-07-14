@@ -20,12 +20,13 @@ InputParameters validParams<DwarfElephantRBDiffusion>()
   InputParameters params = validParams<DwarfElephantRBKernel>();
   params.addClassDescription("Implements a Diffusion problem using \
                              the RBKernel.");
+  params.addParam<Real>("thermal_conductivity",1.0,"Thermal conductivity");
   return params;
 }
 
 ///-------------------------------CONSTRUCTOR-------------------------------
 DwarfElephantRBDiffusion::DwarfElephantRBDiffusion(const InputParameters & parameters) :
-  DwarfElephantRBKernel(parameters)
+  DwarfElephantRBKernel(parameters), _thermal_conductivity(getParam<Real>("thermal_conductivity"))
 {
 }
 
@@ -39,7 +40,7 @@ DwarfElephantRBDiffusion::computeQpResidual()
 Real
 DwarfElephantRBDiffusion::computeQpJacobian()
 {
-  return _grad_phi[_j][_qp] * _grad_test[_i][_qp];
+  return _thermal_conductivity * _grad_phi[_j][_qp] * _grad_test[_i][_qp];
 }
 
 Real

@@ -1,5 +1,5 @@
 [Mesh]
-  file = RBGeom_test_mesh4.msh
+  file = RBGeom_test_r0.00306mm_l0.02602mm_d_8by3r_h_4by3l_mesh2.msh
 []
 
 [Variables]
@@ -31,8 +31,8 @@ block = 1
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -46,8 +46,8 @@ block = 2
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -61,8 +61,8 @@ block = 3
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -76,8 +76,8 @@ block = 4
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -91,8 +91,8 @@ block = 5
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -106,8 +106,8 @@ block = 6
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -121,8 +121,8 @@ block = 7
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -136,8 +136,8 @@ block = 8
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -151,8 +151,8 @@ block = 9
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -166,8 +166,8 @@ block = 10
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -181,8 +181,8 @@ block = 11
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -196,8 +196,8 @@ block = 12
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -211,8 +211,8 @@ block = 13
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -226,8 +226,8 @@ block = 14
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -241,8 +241,8 @@ block = 15
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -256,8 +256,8 @@ block = 16
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -271,8 +271,8 @@ block = 17
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -286,8 +286,8 @@ block = 18
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -301,8 +301,8 @@ block = 19
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -316,8 +316,8 @@ block = 20
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -331,8 +331,8 @@ block = 21
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -346,8 +346,8 @@ block = 22
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -361,8 +361,8 @@ block = 23
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -376,8 +376,8 @@ block = 24
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -391,8 +391,8 @@ block = 25
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -406,8 +406,8 @@ block = 26
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -421,8 +421,8 @@ block = 27
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -436,8 +436,8 @@ block = 28
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -451,8 +451,8 @@ block = 29
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -466,8 +466,8 @@ block = 30
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -481,8 +481,8 @@ block = 31
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -496,8 +496,8 @@ block = 32
   needle_center_z = 0.0
   needle_axis_phi = 0.0
   needle_axis_theta = 1.57
-  r0 = 00.005
-  l0 = 00.07
+  r0 = 00.0004
+  l0 = 00.005
   r = 0.001414
   l = 0.01871
 [../]
@@ -577,8 +577,8 @@ ID_Aq = 0
   n_training_samples_RB = 1#50
   rel_training_tolerance_RB = 1.e-3
   parameter_names_RB = 'mu_0 mu_1 mu_2 mu_3 mu_4 mu_5 mu_6 mu_7 mu_8 mu_9 mu_10 mu_11 mu_12' # r0 l0 x_n y_n z_n theta_n phi_n P_n omega_p r l k rhoC #Please name them mu_0 , mu_1 , ..., mu_n for the reusability
-  parameter_min_values_RB = '00.005 00.07 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6'
-  parameter_max_values_RB = '00.005 00.07 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6'
+  parameter_min_values_RB = '00.0004 00.005 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6'
+  parameter_max_values_RB = '00.0004 00.005 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6'
   normalize_rb_bound_in_greedy = true
   RB_RFA = true#
 [../]
@@ -586,8 +586,8 @@ ID_Aq = 0
   type = DwarfElephantOfflineOnlineStageTransient
   #offline_stage = false
   online_stage = false
-  online_mu = '00.005 00.07 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6'
-  mu_ref = '00.005 00.07 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6'
+  online_mu = '00.0004 00.005 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6'
+  mu_ref = '00.0004 00.005 0.001 0.001 0.001 1.57 1.57 1.0 1.9e5 3e-3 4e-2 0.8 3.82e6'
   online_N = 0
   execute_on = 'timestep_end'
   num_online_solves = 1#3
@@ -597,9 +597,9 @@ ID_Aq = 0
   mesh_index = 0
   Aq_mat_offset = 253
   Mq_mat_offset = 0
-  mesh_num = 4
-  param_str = param_max
+  mesh_num = 2
+  param_str = param_min
   vec_file_location = /home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/transienttestcase/
-  mat_file_location = /home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/MeshConvMatrices/transienttestcase/
+  mat_file_location = /home/2014-0004_focal_therapy/PhDs/AdapTT/Nikhil/DwarfElephant/3DRBRFAMatrices/final_test/
 [../]
 []

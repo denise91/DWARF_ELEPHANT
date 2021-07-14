@@ -58,5 +58,5 @@ for n = 1:N
 end
 
 time_ResNorm_TimeIndep = toc(time_ResNorm_TimeIndep_begin);
-fprintf(1,'Time to compute ResNorm time-indep terms: %f minutes\n',time_ResNorm_TimeIndep/60.0);
+%fprintf(1,'Time to compute ResNorm time-indep terms: %f minutes\n',time_ResNorm_TimeIndep/60.0);
 end

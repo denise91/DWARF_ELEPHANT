@@ -10,16 +10,24 @@ function [alpha_min] = get_alpha_min_est(RB_Con,RB_Eval)
 %   - Lowest generalized eigenvalue is alpha_min_approx(mu)
 %   - Update alpha_min_approx accordingly
   mu = set_constant_params();
+  mu('r') = RB_Eval.mu_bar('r');
+  mu('l') = RB_Eval.mu_bar('l');
+  mu('d') = (8.0/3.0)*mu('r');
+  mu('h') = (4.0/3.0)*mu('l');
+  mu('rho_C_t') = RB_Eval.mu_bar('rho_C_t');
+  mu('rho_C_b') = RB_Eval.mu_bar('rho_C_b');
+  mu('k_t') = RB_Eval.mu_bar('k_t');
+  mu('k_b') = RB_Eval.mu_bar('k_b');
 
   % 
-  r_0_array = linspace(1e-3,5e-3,100);
-  l_0_array = linspace(0.001,0.07,100);
+  r_0_array = linspace(RB_Eval.mu_min('r_0'),RB_Eval.mu_max('r_0'),100);
+  l_0_array = linspace(RB_Eval.mu_min('l_0'),RB_Eval.mu_max('l_0'),100);
   % 
 
   alpha_mu_min_approx = 1e22;
  
   A_mu = 0*RB_Con.X_curN;
-  
+  X_curN_symm = 0.5*(RB_Con.X_curN + RB_Con.X_curN');  
   mat_qa_min = min(cell2mat(keys(RB_Con.Aq_mat_map)));
   theta_qa_min = min(cell2mat(keys(RB_Eval.RB_A_Theta_map)));
   
@@ -31,7 +39,7 @@ function [alpha_min] = get_alpha_min_est(RB_Con,RB_Eval)
 		    A_theta_handle = RB_Eval.RB_A_Theta_map(theta_qa_min - 1 + q_a);
   			A_mu = A_mu + A_theta_handle(mu) * RB_Con.Aq_mat_map(mat_qa_min - 1 + q_a);
         end
-  		alpha_mu = eigs(A_mu, RB_Con.X_curN, 1, -0.1);
+  		alpha_mu = eigs(A_mu, X_curN_symm, 1, -0.1, 'Tolerance',1e-6,'IsSymmetricDefinite',1);
   		if alpha_mu_min_approx > alpha_mu
   			alpha_mu_min_approx = alpha_mu;
         end

@@ -26,17 +26,17 @@ bounding_box_mesh_size_pattern = re.compile('bounding_box_mesh_size = DefineNumb
 cylinder_mesh_size_pattern = re.compile('cylinder_mesh_size = DefineNumber\[ .* , Name "Parameters/cylinder_mesh_size" \];')
 cube_mesh_size_pattern = re.compile('cube_meshsize = DefineNumber\[ .* , Name "Parameters/cube_meshsize" \];')
 
-r = 0.001414 # old 3e-3
-l = 0.01871 # old 4e-2
+r = 0.00306#0.001939#0.001414 # old 3e-3
+l = 0.02602#0.01871 # old 4e-2
 d = 2*r*4.0/3.0
 h = l*4.0/3.0
 
-cylinder_mesh_size_arr = [4.5e-4, 1e-3, 2e-3]#4.5e-4 #REAL CASE#1e-2#TESTCASE #
-bounding_box_mesh_size_arr = [4.5e-4, 2e-3, 4e-3]#4.5e-4 #REAL CASE#1e-2#TESTCASE #
+#cylinder_mesh_size_arr = [4.5e-4, 1e-3, 2e-3]#4.5e-4 #REAL CASE#1e-2#TESTCASE #
+#bounding_box_mesh_size_arr = [4.5e-4, 2e-3, 4e-3]#4.5e-4 #REAL CASE#1e-2#TESTCASE #
 
-cylinder_mesh_size_0 = 1e-2#TESTCASE #4.5e-4 #REAL CASE#
-bounding_box_mesh_size_0 = 1e-2#TESTCASE #4.5e-4 #REAL CASE#
-cube_mesh_size_0 = 2e-1#TESTCASE #8.5e-3 #REAL CASE#
+cylinder_mesh_size_0 = 2e-3 #REAL CASE max params#1e-2#TESTCASE #4.5e-4 #REAL CASE#
+bounding_box_mesh_size_0 = 4e-3 #REAL CASE#1e-2#TESTCASE #
+cube_mesh_size_0 = 8.5e-3 #REAL CASE#2e-1#TESTCASE #
 
 number_of_meshes = 5
 mesh_size_ratio = np.sqrt(2) #REAL CASE# 1.1#TESTCASE #
@@ -48,11 +48,12 @@ for mesh_num in range(number_of_meshes):
     replace_line(GeoFileName,cube_mesh_size_pattern,'cube_meshsize = DefineNumber[ ' + str(cube_mesh_size_0/(mesh_size_ratio**mesh_num)) + ' , Name "Parameters/cube_meshsize" ];')
     replace_line(GeoFileName,bounding_box_mesh_size_pattern,'bounding_box_mesh_size = DefineNumber[ ' + str(bounding_box_mesh_size_0/(mesh_size_ratio**mesh_num)) + ' , Name "Parameters/bounding_box_mesh_size" ];')
     replace_line(GeoFileName,cylinder_mesh_size_pattern,'cylinder_mesh_size = DefineNumber[ ' + str(cylinder_mesh_size_0/(mesh_size_ratio**mesh_num)) + ' , Name "Parameters/cylinder_mesh_size" ];')
-    print "cube_mesh_size = ",cube_mesh_size_0/(mesh_size_ratio**mesh_num)
-    print "bounding_box_mesh_size = ",bounding_box_mesh_size_0/(mesh_size_ratio**mesh_num)
-    print "cylinder_mesh_size = ",cylinder_mesh_size_0/(mesh_size_ratio**mesh_num)
+    print("cube_mesh_size = ",cube_mesh_size_0/(mesh_size_ratio**mesh_num))
+    print("bounding_box_mesh_size = ",bounding_box_mesh_size_0/(mesh_size_ratio**mesh_num))
+    print("cylinder_mesh_size = ",cylinder_mesh_size_0/(mesh_size_ratio**mesh_num))
     #if (mesh_num == 3):
-    # call("gmsh "+GeoFileName+" -3 -smooth 1 -o RBGeom_r"+str(r)+"mm_l"+str(l)+"mm_d_8by3r_h_4by3l_mesh" + str(mesh_num-1) + "_new.msh",shell=True) #REALCASE 
+    #  call("gmsh "+GeoFileName+" -3 -smooth 1 -o RBGeom_r"+str(r)+"mm_l"+str(l)+"mm_d_8by3r_h_4by3l_mesh" + str(mesh_num-1) + "_new.msh",shell=True) #REALCASE 
     #call("gmsh "+GeoFileName+" -3 -o RBGeom_r"+str(r)+"mm_l"+str(l)+"mm_d_8by3r_h_4by3l_mesh"+str(mesh_num)+"_new.msh",shell=True) #REALCASE
     if (mesh_num == 2):
-      call("gmsh "+GeoFileName+" -3 -o RBGeom_test_mesh"+str(4)+".msh",shell=True)#str(mesh_num)+".msh",shell=True) #TESTCASE
+      call("gmsh "+GeoFileName+" -3 -o RBGeom_r"+str(r)+"mm_l"+str(l)+"mm_d_8by3r_h_4by3l_mesh"+str(mesh_num)+"_new.msh",shell=True) #REALCASE
+      #call("gmsh "+GeoFileName+" -3 -o RBGeom_test_r"+str(r)+"mm_l"+str(l)+"mm_d_8by3r_h_4by3l_mesh"+str(2)+".msh",shell=True)#str(mesh_num)+".msh",shell=True) #TESTCASE

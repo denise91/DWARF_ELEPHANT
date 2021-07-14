@@ -32,6 +32,9 @@ protected:
   /* Methods */
   virtual Real computeQpResidual() override;
   virtual Real computeQpJacobian() override;
+
+  /* Attribute */
+  Real _perfusion_coeff;
 };
 
 ///-------------------------------------------------------------------------

@@ -13,12 +13,13 @@ InputParameters validParams<DwarfElephantRBPennesPerfusion>()
 {
   InputParameters params = validParams<DwarfElephantRBDiffusion>();
   params.addClassDescription("The class implements a Pennes perfusion term.");
+  params.addParam<Real>("perfusion_coeff",1.0,"Perfusion coefficient");
   return params;
 }
 
 ///-------------------------------CONSTRUCTOR-------------------------------
 DwarfElephantRBPennesPerfusion::DwarfElephantRBPennesPerfusion(const InputParameters & parameters) :
-  DwarfElephantRBKernel(parameters)
+  DwarfElephantRBKernel(parameters), _perfusion_coeff(getParam<Real>("perfusion_coeff"))
 {
 }
 
@@ -33,5 +34,5 @@ DwarfElephantRBPennesPerfusion::computeQpResidual()
 Real
 DwarfElephantRBPennesPerfusion::computeQpJacobian()
 {
-  return _phi[_j][_qp] * _test[_i][_qp];
+  return _perfusion_coeff * _phi[_j][_qp] * _test[_i][_qp];
 }

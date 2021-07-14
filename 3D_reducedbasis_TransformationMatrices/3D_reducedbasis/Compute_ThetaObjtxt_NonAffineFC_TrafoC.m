@@ -138,7 +138,8 @@ for i = 1:32
     diffusion_theta_objects(:,:,i) = simplify(determinants(i) * (conductivityMatrix *( inv(current3x3) * inv(current3x3).')));
     
 end
-write_ThetaObj_txt(tetrahedronNames,diffusion_theta_objects,determinants);
+%write_ThetaObj_txt(tetrahedronNames,diffusion_theta_objects,determinants);
+createLatexMath(allTransformationMatrices,diffusion_theta_objects, determinants);
 %write_TrafoCFile3D(allTransformationMatrices);
 %write_nonAffineFunc_hFile(allTransformationMatrices);
 %write_meshSubdomainJacobians_hFile(allTransformationMatrices);
