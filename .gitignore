@@ -1,4 +1,5 @@
 .libs
+*.swp*
 *.CC
 *.hh
 *.convergence
