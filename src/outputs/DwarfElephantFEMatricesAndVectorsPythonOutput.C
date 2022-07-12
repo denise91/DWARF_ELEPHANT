@@ -33,6 +33,9 @@ DwarfElephantFEMatriciesAndVectorsPythonOutput::output(const ExecFlagType & /*ty
   if(_print_Mq)
     printMq(_ID_Mq);
 
+  if(_print_IC)
+    printIC(_ID_IC);
+
   if(_print_inner_product_matrix)
     printInnerProductMatrix(_simulation_type);
 
@@ -104,6 +107,22 @@ DwarfElephantFEMatriciesAndVectorsPythonOutput::printFq(std::vector<unsigned int
       _initialize_rb_system.getResiduals()[_id[q]]->print(_python_out);
       _python_out.close();
     }
+  }
+}
+
+void
+DwarfElephantFEMatriciesAndVectorsPythonOutput::printIC(std::vector<unsigned int> _id)
+{
+  DwarfElephantInitializeRBSystemTransient & _initialize_rb_system =
+    _problem_ptr->getUserObject<DwarfElephantInitializeRBSystemTransient>(_initialize_rb_system_name);
+  for(unsigned int q = 0; q<_id.size(); q++)
+  {
+    if(_id[q] >= _initialize_rb_system.getQIc())
+      mooseError("The ID '" + std::to_string(_id[q]) + "' of the IC is out of range.");
+
+    std::ofstream _python_out("IC"+std::to_string(_id[q]), std::ios::out);
+    _initialize_rb_system.getInitialConditions()[_id[q]]->print(_python_out);
+    _python_out.close();
   }
 }
 

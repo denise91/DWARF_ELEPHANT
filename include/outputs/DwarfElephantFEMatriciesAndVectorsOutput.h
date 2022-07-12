@@ -28,6 +28,7 @@ public:
   virtual void output(const ExecFlagType & /*type*/)override {};
   virtual void printAq(std::vector<unsigned int> /*_id*/, std::string /*_simulation_type*/){};
   virtual void printFq(std::vector<unsigned int> /*_id*/, std::string /*_simulation_type*/){};
+  virtual void printIC(std::vector<unsigned int> /*_id*/){};
   virtual void printMq(std::vector<unsigned int> /*_id*/){};
   virtual void printInnerProductMatrix(std::string /*_simulation_type*/){};
   virtual void printL2Matrix(){};
@@ -41,10 +42,12 @@ protected:
   std::vector<unsigned int> _ID_Aq;
   std::vector<unsigned int> _ID_Fq;
   std::vector<unsigned int> _ID_Mq;
+  std::vector<unsigned int> _ID_IC;
 
   bool _print_Aq;
   bool _print_Fq;
   bool _print_Mq;
+  bool _print_IC;
   bool _print_inner_product_matrix;
   bool _print_L2_matrix;
 };

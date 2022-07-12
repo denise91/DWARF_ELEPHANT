@@ -28,6 +28,7 @@ public:
   virtual void output(const ExecFlagType & type) override;
   void printAq(std::vector<unsigned int> _id, std::string _simulation_type) override;
   void printFq(std::vector<unsigned int> _id, std::string _simulation_type) override;
+  void printIC(std::vector<unsigned int> _id) override;
   void printMq(std::vector<unsigned int> _id) override;
   void printInnerProductMatrix(std::string _simulation_type) override;
   void printL2Matrix() override;

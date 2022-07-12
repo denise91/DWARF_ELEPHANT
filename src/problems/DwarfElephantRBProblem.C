@@ -44,6 +44,12 @@ DwarfElephantRBProblem::DwarfElephantRBProblem(const InputParameters & params):
 //    initNullSpaceVectors(parameters, *_nl_sys);
 
     _eq.parameters.set<DwarfElephantRBProblem *>("_fe_problem") = this;
+
+    // Create extra vectors and matrices if any
+   createTagVectors();
+
+   // Create extra solution vectors if any
+   createTagSolutions();
 }
 
 DwarfElephantRBProblem::~DwarfElephantRBProblem()
@@ -105,7 +111,6 @@ DwarfElephantRBProblem::newRBAssemblyArray(NonlinearSystemBase & nl)
   _rb_assembly->setCachedJacobianContributionSize(size);
   _rb_assembly->setCachedMassContributionSize(size);
 }
-
 // MooseVariable &
 // DwarfElephantRBProblem::getVariable(THREAD_ID tid, const std::string & var_name)
 // {

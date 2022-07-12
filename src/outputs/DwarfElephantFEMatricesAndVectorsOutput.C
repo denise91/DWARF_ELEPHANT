@@ -14,9 +14,11 @@ validParams<DwarfElephantFEMatriciesAndVectorsOutput>()
   params.addParam<std::vector<unsigned int>>("ID_Aq",std::vector<unsigned int> {0},"ID of the Aq you want to extract.");
   params.addParam<std::vector<unsigned int>>("ID_Fq",std::vector<unsigned int> {0},"ID of the Fq you want to extract.");
   params.addParam<std::vector<unsigned int>>("ID_Mq",std::vector<unsigned int> {0},"ID of the Mq you want to extract.");
+  params.addParam<std::vector<unsigned int>>("ID_IC",std::vector<unsigned int> {0},"ID of the IC you want to extract.");
   params.addParam<bool>("print_Aq",true, "Aq with specified ID is printed to file.");
   params.addParam<bool>("print_Fq", true, "Fq with specified ID is printed to file.");
   params.addParam<bool>("print_Mq", false, "Mq with specified ID is printed to file.");
+  params.addParam<bool>("print_IC", false, "IC with specified ID is printed to file.");
   params.addParam<bool>("print_inner_product_matrix", false, "Inner product matrix is printed to file.");
   params.addParam<bool>("print_L2_matrix", false, "L2 matrix is printed to file.");
   return params;
@@ -29,9 +31,11 @@ DwarfElephantFEMatriciesAndVectorsOutput::DwarfElephantFEMatriciesAndVectorsOutp
     _ID_Aq(getParam<std::vector<unsigned int>>("ID_Aq")),
     _ID_Fq(getParam<std::vector<unsigned int>>("ID_Fq")),
     _ID_Mq(getParam<std::vector<unsigned int>>("ID_Mq")),
+    _ID_IC(getParam<std::vector<unsigned int>>("ID_IC")),
     _print_Aq(getParam<bool>("print_Aq")),
     _print_Fq(getParam<bool>("print_Fq")),
     _print_Mq(getParam<bool>("print_Mq")),
+    _print_IC(getParam<bool>("print_IC")),
     _print_inner_product_matrix(getParam<bool>("print_inner_product_matrix")),
     _print_L2_matrix(getParam<bool>("print_L2_matrix"))
 {
