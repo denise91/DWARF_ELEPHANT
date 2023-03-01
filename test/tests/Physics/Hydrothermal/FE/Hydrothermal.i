@@ -189,33 +189,13 @@
 []
 
 [Preconditioning]
-  active = 'FSP'
+  active = 'SMP'
   [./SMP]
     type = SMP
     full = true
     solve_type = 'NEWTON'
     petsc_options_iname = '-pc_type -sub_pc_type -snes_linesearch_type -ksp_gmres_restart -pc_gamg_sym_graph'
     petsc_options_value = 'gasm hypre cp 301 true'
-  [../]
-
-  [./FSP]
-    type = FSP
-    full = true
-    solve_type = 'NEWTON'
-    topsplit = 'pt'
-    [./pt]
-      splitting = 'pressure temp'
-    [../]
-    [./pressure]
-      vars = 'pressure'
-      petsc_options_iname = '-pc_type -sub_pc_type -snes_linesearch_type -ksp_gmres_restart'
-      petsc_options_value = 'gamg hypre cp 151'
-    [../]
-    [./temp]
-      vars = 'temp'
-      petsc_options_iname = '-pc_type -sub_pc_type -snes_linesearch_type -ksp_gmres_restart'
-      petsc_options_value = 'gasm hypre cp 151'
-    [../]
   [../]
 []
 

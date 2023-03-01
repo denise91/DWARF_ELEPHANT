@@ -33,20 +33,21 @@ class DwarfElephantRBProblem :
 {
 //----------------------------------PUBLIC----------------------------------
   public:
-    DwarfElephantRBProblem(const InputParameters & params);
+  	static InputParameters validParams();
+    DwarfElephantRBProblem(const InputParameters & parameters);
 
     virtual ~DwarfElephantRBProblem();
 
     /* Methods */
-    virtual void solve () override;
+    virtual void solve () ;
 
     virtual void setInputParametersFEProblem(InputParameters & parameters) override;
 
-    NonlinearSystem & getNonlinearSystem() override { return *_nl_sys; }
+    NonlinearSystem & getNonlinearSystem(unsigned int nl_sys_num = 0) { return *_nl_sys[nl_sys_num]; }
 
     virtual DwarfElephantRBAssembly & rbAssembly() { return *_rb_assembly; }
-
-    virtual void newRBAssemblyArray(NonlinearSystemBase & nl);
+;
+    virtual void newRBAssemblyArray(std::vector<std::shared_ptr<NonlinearSystemBase>> & nls);
 
     void setReducedInitialCondition();
 
@@ -62,7 +63,7 @@ class DwarfElephantRBProblem :
 //--------------------------------PROTECTED---------------------------------
   protected:
     /* Attributes */
-    std::shared_ptr<NonlinearSystem> _nl_sys;
+    std::vector<std::shared_ptr<NonlinearSystem>> _nl_sys;
     // In case you are using a MOOSE version that is older than August 11 please replace the
     // line above with this line:
     //NonlinearSystem * _nl_sys;
@@ -76,6 +77,9 @@ class DwarfElephantRBProblem :
 
     std::string _file;
     std::string _offline_data_name;
+  
+  private:
+	using FEProblemBase::_nl; 
 
     // friend class DwarfElephantRBEvaluationTransient;
 };

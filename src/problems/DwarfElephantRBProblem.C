@@ -23,25 +23,29 @@ InputParameters validParams<DwarfElephantRBProblem>()
   return params;
 }
 
-DwarfElephantRBProblem::DwarfElephantRBProblem(const InputParameters & params):
-  FEProblemBase(params),
+DwarfElephantRBProblem::DwarfElephantRBProblem(const InputParameters & parameters):
+  FEProblemBase(parameters),
   _initial_rb_userobject(getParam<UserObjectName>("initial_rb_userobject")),
   _offline_online_rb_userobject(getParam<UserObjectName>("offline_online_rb_userobject")),
-  _nl_sys(std::make_shared<DwarfElephantSystem>(*this, "rb0")),
   _use_reduced_initial_condition(getParam<bool>("use_reduced_initial_condition")),
   _user_defined_assembly_size(getParam<bool>("user_defined_assembly_size")),
   _assembly_size(getParam<unsigned int>("assembly_size")),
   _offline_data_name(getParam<std::string>("offline_data_name"))
 {
-    _nl = _nl_sys;
+	auto & nl = _nl[0];
+	nl = std::make_shared<DwarfElephantSystem>(*this, "rb0");
+    _nl_sys.push_back(std::dynamic_pointer_cast<NonlinearSystem>(nl));
+    
+    //_nl = _nl_sys;
+    setCurrentNonlinearSystem(0);
     _aux = std::make_shared<AuxiliarySystem>(*this, "aux0");
 
     //_assembly = _rb_assembly;
 
-    newRBAssemblyArray(*_nl_sys);
+    newRBAssemblyArray(_nl);
 
-    newAssemblyArray(*_nl_sys);
-//    initNullSpaceVectors(parameters, *_nl_sys);
+    newAssemblyArray(_nl);
+    initNullSpaceVectors(parameters, _nl);
 
     _eq.parameters.set<DwarfElephantRBProblem *>("_fe_problem") = this;
 
@@ -75,17 +79,20 @@ DwarfElephantRBProblem::solve()
   Moose::PetscSupport::petscSetOptions(*this); // Make sure the PETSc options are setup for this app
 #endif
 
-  if (_solve)
-    _nl_sys->solve();
+  setCurrentNonlinearSystem(0);
 
   if (_solve)
-    _nl_sys->update();
+    _current_nl_sys->solve();
+
+  if (_solve)
+    _current_nl_sys->update();
 
   // Moose::perf_log.pop("constructRB()", "Execution");
 }
 
+
 void
-DwarfElephantRBProblem::newRBAssemblyArray(NonlinearSystemBase & nl)
+DwarfElephantRBProblem::newRBAssemblyArray(std::vector<std::shared_ptr<NonlinearSystemBase>> & nls)
 {
   unsigned int subdomains = mesh().meshSubdomains().size();
   unsigned int boundaries = mesh().meshBoundaryIds().size();
@@ -104,7 +111,7 @@ DwarfElephantRBProblem::newRBAssemblyArray(NonlinearSystemBase & nl)
   // _rb_assembly.resize(size);
   //
   // for (unsigned int i = 0; i < size; i++)
-  _rb_assembly = new DwarfElephantRBAssembly(nl, 0);
+  _rb_assembly = new DwarfElephantRBAssembly(*nls[0], 0);
 
   _rb_assembly->setCachedResidualContributionSize(size);
   _rb_assembly->setCachedOutputContributionSize(size);
